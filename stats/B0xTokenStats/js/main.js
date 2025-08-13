@@ -22,10 +22,10 @@ const _ZERO_BN = new Eth.BN(0, 10);
 /* contract constants */
 /* todo: pull these from the contract */
 /* todo: move these into some kind of contract helper class */
-const _CONTRACT_NAME = "BasedWorkToken";
-const _CONTRACT_SYMBOL = "BWORK";
-const _CONTRACT_ADDRESS = "0x2f38B1a516239739CdCD2C228D1Eb96E29800975"; // main Mining contract for Based Work Token Contract
-const Main_CONTRACT_ADDRESS = "0x2f38B1a516239739CdCD2C228D1Eb96E29800975"; // main Based Work Token Contract
+const _CONTRACT_NAME = "BZEROXToken";
+const _CONTRACT_SYMBOL = "B0x";
+const _CONTRACT_ADDRESS = "0x7aDf1927aa0c75Fd054804E9fc6574A56C211AbB"; // main Mining contract for Based Work Token Contract
+const Main_CONTRACT_ADDRESS = "0xc57306DBd783f95713Ace082f685dB43B66252aF"; // main Based Work Token Contract
 
 
 const _CONTRACT_USDCWETH_UNISWAP = "0xd0b53D9277642d899DF5C87A3966A349A798F224"; // main uniswap for USDC WETH on Uniswap v3 uses slot0
@@ -50,7 +50,8 @@ const _MINIMUM_TARGET_BN = new Eth.BN(_MINIMUM_TARGET);
 const _IDEAL_BLOCK_TIME_SECONDS = 60 * 10  //_ETH_BLOCKS_PER_REWARD * _SECONDS_PER_ETH_BLOCK;
 
 /* TODO: figure out why it doesn't work w metamask */
-var eth = new Eth(new Eth.HttpProvider("https://base-mainnet.g.alchemy.com/v2/u6woRjFLe5-e3SfnCYFnfoTlgVUangV3"));
+var eth = new Eth(new Eth.HttpProvider("https://base-sepolia.g.alchemy.com/v2/fTukefKxyH-72aDTEBUHqcad2_SK53CC"));
+//var eth = new Eth(new Eth.HttpProvider("https://base-mainnet.g.alchemy.com/v2/u6woRjFLe5-e3SfnCYFnfoTlgVUangV3"));
 //var eth = new Eth(new Eth.HttpProvider("https://base-sepolia.infura.io/v3/b8af241874c24ec78721b46e19c26c8a"));
 // if (typeof window.web3 !== 'undefined' && typeof window.web3.currentProvider !== 'undefined') {
 //   var eth = new Eth(window.web3.currentProvider);
@@ -59,9 +60,9 @@ var eth = new Eth(new Eth.HttpProvider("https://base-mainnet.g.alchemy.com/v2/u6
 //   log("warning: no web3 provider found, using infura.io as backup provider")
 // }
 
-var _BLOCK_EXPLORER_ADDRESS_URL = 'https://basescan.org/address/';
-var _BLOCK_EXPLORER_TX_URL = 'https://basescan.org/tx/';
-var _BLOCK_EXPLORER_BLOCK_URL = 'https://basescan.org/block/';
+var _BLOCK_EXPLORER_ADDRESS_URL = 'https://sepolia.basescan.org/address/';
+var _BLOCK_EXPLORER_TX_URL = 'https://sepolia.basescan.org/tx/';
+var _BLOCK_EXPLORER_BLOCK_URL = 'https://sepolia.basescan.org/block/';
 
 /* colors used by pool names. todo: move to css, still use them for chart.js */
 var pool_colors = {
@@ -225,7 +226,7 @@ function calculateNewMiningDifficulty(current_difficulty,
 stats = [
   /*Description                     promise which retuns, or null         units               multiplier  null: filled in later*/
 ['',                              null,                                 "",                 1,          null     ], /* */
-['Price of 1 Based Work Token in USD',                null,                      "",                 1,          null     ], /* mining */
+['Price of 1 B ZERO X in USD',                null,                      "",                 1,          null     ], /* mining */
 
 
 ['Mining Difficulty',             token.getMiningDifficulty,            "",                 0.000001907,          null     ], /* mining difficulty */
@@ -743,7 +744,7 @@ console.log("ETH VALUE OF BWORK IS IS : ",TOTAL_BWORK_WETH_PRICE );
   console.log("GOT VALUE TOTAL1 IS : ",total_WETH_USD_Price );
 
 var totalPriceof1Token = 1/TOTAL_BWORK_WETH_PRICE*total_WETH_USD_Price;
-  el_safe('#Priceof1BasedWorkTokeninUSD').innerHTML = "<b>"+totalPriceof1Token.toFixed(5)+"</b> $";
+  el_safe('#Priceof1BZEROXinUSD').innerHTML = "<b>"+totalPriceof1Token.toFixed(5)+"</b> $";
 	
 	
 
