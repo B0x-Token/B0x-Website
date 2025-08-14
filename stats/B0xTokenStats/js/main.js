@@ -7,7 +7,7 @@ function addToURL(value){
 
 const version = "v0.1.0";
 
-log('BWORK Stats', version);
+log('B0x Stats', version);
 el('#footerversion').innerHTML = version;
 
 
@@ -272,7 +272,7 @@ stats = [
   ['Token Transfers',               null,                                 "transfers",        1,          null     ], /* usage */
   ['Total Contract Operations',     null,                                 "txs",              1,          null     ], /* usage */
  ['Last Eth Block',                null,                      "",                 1,          null     ], /* mining */
- ['Last ZK Sync Era Block Number',                eth.blockNumber,                      "",                 1,          null     ], /* mining */
+ ['Last Base Block Number',                eth.blockNumber,                      "",                 1,          null     ], /* mining */
  ['u999',                PoolBWORKWETHtoken.getSlot0ForMyPool,                      "",                 1,          null     ], /* mining */
  ['u1010',                PoolWETHUSDCtoken.slot0,                      "",                 1,          null     ], /* mining */
 
@@ -460,8 +460,8 @@ console.log("current supply_remaining_in_era", supply_remaining_in_era);
 
   fixthis = 0.01
 
-  el_safe('#MiningRewardat360minutesSolve').innerHTML = "<b> "+(2800).toLocaleString()+" </b> BWORK";
-  el_safe('#MiningRewardat12minutesSolve').innerHTML = "<b> "+(7).toLocaleString()+" </b> BWORK";
+  el_safe('#MiningRewardat360minutesSolve').innerHTML = "<b> "+(2800).toLocaleString()+" </b> B0x";
+  el_safe('#MiningRewardat12minutesSolve').innerHTML = "<b> "+(7).toLocaleString()+" </b> B0x";
   el_safe('#StakingAPY').innerHTML = "<b>" + (fixthis).toFixed(0) + " </b> %";
 
 //DO MY STUFF FOR AUCTIONS
@@ -501,26 +501,26 @@ if(test51 != -1){
  var  auction_Total = getValueFromStats('Tokens distributed via Auctions', stats) - 32768
 
 
-  el_safe('#TokensdistributedviaAuctions').innerHTML = "<b>" + auction_Total.toLocaleString() + " </b> BWORK";
+  el_safe('#TokensdistributedviaAuctions').innerHTML = "<b>" + auction_Total.toLocaleString() + " </b> B0x";
  var  mining_Total = parseInt(getValueFromStats('Tokens distributed via Mining', stats));
 
 
-  el_safe('#TokensdistributedviaMining').innerHTML = "<b>" + mining_Total.toLocaleString() + " </b> BWORK";
+  el_safe('#TokensdistributedviaMining').innerHTML = "<b>" + mining_Total.toLocaleString() + " </b> B0x";
 
   var Staking_Total = mining_Total
 
 
-  el_safe('#TokensdistributedviaStaking').innerHTML = "<b>" + Staking_Total.toLocaleString() + " </b> BWORK";
+  el_safe('#TokensdistributedviaStaking').innerHTML = "<b>" + Staking_Total.toLocaleString() + " </b> B0x";
 
 	var totalCircl = parseInt(parseFloat(Staking_Total) + parseFloat(mining_Total) + parseFloat(auction_Total))
 
-  el_safe('#TotalzkBitcoinCirculatingSupply').innerHTML = "<b>" + totalCircl.toLocaleString() +" </b> BWORK";
+  el_safe('#TotalzkBitcoinCirculatingSupply').innerHTML = "<b>" + totalCircl.toLocaleString() +" </b> B0x";
 
 console.log("totalCircl", totalCircl);
 
 
   /* time per reward block */
-  current_eth_block = getValueFromStats('Last ZK Sync Era Block Number', stats)
+  current_eth_block = getValueFromStats('Last Base Block Number', stats)
   difficulty_start_eth_block = getValueFromStats('Last Difficulty Start Block', stats)
 
 
@@ -617,7 +617,7 @@ if(secUntilBlocks<1){
   
   
   }
- el_safe('#TotalSupply').innerHTML +="<b>"+ Number((21000000).toFixed(0)).toLocaleString()+"</b> BWORK";
+ el_safe('#TotalSupply').innerHTML +="<b>"+ Number((21000000).toFixed(0)).toLocaleString()+"</b> B0x";
  
 log("22diff", difficulty)
 log("22rewards_since_readjustment", rewards_since_readjustment)
@@ -641,7 +641,7 @@ rad = totalOwed1 / totalTest
 
 log("mine_length", mine_Length2)
  /*Get Inflation % per year */
-  last_Block = getValueFromStats('Last ZK Sync Era Block Number', stats)
+  last_Block = getValueFromStats('Last Base Block Number', stats)
   block_Then = getValueFromStats('Last Difficulty Start Block', stats) //block not seconds since
   blocks_Total = last_Block - block_Then
   seconds_Total = blocks_Total * _SECONDS_PER_ETH_BLOCK
@@ -689,7 +689,7 @@ rewards_blocks_remaining_in_era = rewards_blocks_remaining_in_era.toFixed(0)
   el_safe('#CurrentRewardEra').innerHTML += "<b>0</b> / 39  <span style='font-size:0.8em;'>(next era: ~" + secondsToReadableTime(rewards_blocks_remaining_in_era * seconds_per_reward) + "  @ "+secondsToReadableTime(seconds_per_reward)+" a mint)</div>";
 
 
-el_safe('#RewardPerSolve').innerHTML = "<b> "+current_Reward.toFixed(0) + "</b> BWORK per solve"
+el_safe('#RewardPerSolve').innerHTML = "<b> "+current_Reward.toFixed(0) + "</b> B0x per solve"
 
 
   if(mining_calculator_app) {
@@ -721,7 +721,7 @@ log("inflationCircl",circl)
   el_safe('#InflationAmountPerYear').innerHTML = "<b>" + inflation.toLocaleString(undefined, {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0
-}) + "</b> BWORK per year";
+}) + "</b> B0x per year";
 
 /* estimated hashrate */
   hashrate = difficulty * _HASHRATE_MULTIPLIER / _IDEAL_BLOCK_TIME_SECONDS;
@@ -969,8 +969,8 @@ var totalZKTC_Calculated = 0;
   var total_tx_count = 0;
   var last_imported_mint_block = 0;
 var total_TOTAL_mint_count_HASH = 0;
-  var last_reward_eth_block = getValueFromStats('Last ZK Sync Era Block Number', stats)
-  var current_eth_block = getValueFromStats('Last ZK Sync Era Block Number', stats)
+  var last_reward_eth_block = getValueFromStats('Last Base Block Number', stats)
+  var current_eth_block = getValueFromStats('Last Base Block Number', stats)
   var estimated_network_hashrate = getValueFromStats('Estimated Hashrate', stats)
   var last_difficulty_start_block = getValueFromStats('Last Difficulty Start Block', stats)
 
@@ -1408,7 +1408,7 @@ const formattedNumberfffff2 = new Intl.NumberFormat(navigator.language).format(R
       innerhtml_buffer2 += '<tr><td>'
         + miner_name_link + '</td><td>'
         + blocks + '</td><td>'
-        + (100*percent_of_total_blocks).toFixed(2) + '%' + '</td><td style="white-space: nowrap;">'+ toReadableHashrate(percent_of_total_blocks*estimated_network_hashrate, false)+ '</td><td>'+TotalBlocksPerReward+'</td><th>'+formattedNumberfffff2+' BWORK</th></tr>';
+        + (100*percent_of_total_blocks).toFixed(2) + '%' + '</td><td style="white-space: nowrap;">'+ toReadableHashrate(percent_of_total_blocks*estimated_network_hashrate, false)+ '</td><td>'+TotalBlocksPerReward+'</td><th>'+formattedNumberfffff2+' B0x</th></tr>';
     });
 	
 const formattedNumberfffff2FFFF = new Intl.NumberFormat(navigator.language).format(a_formattedNumberfffff2);
@@ -1417,7 +1417,7 @@ const formattedNumberfffff2FFFF = new Intl.NumberFormat(navigator.language).form
       innerhtml_buffer2 += '<tr><td style="border-bottom: 0rem;">TOTAL:'
 		+ '</td><td style="border-bottom: 0rem;">'
         + totalblockz + '</td><td style="border-bottom: 0rem;">'
-        + '100%' + '</td><td style="border-bottom: 0rem;">'+ toReadableHashrate(estimated_network_hashrate, false)+ '</td><td style="border-bottom: 0rem;">'+totalBlockszzz+'</td><td style="border-bottom: 0rem;">'+formattedNumberfffff2FFFF+' BWORK</td></tr>';
+        + '100%' + '</td><td style="border-bottom: 0rem;">'+ toReadableHashrate(estimated_network_hashrate, false)+ '</td><td style="border-bottom: 0rem;">'+totalBlockszzz+'</td><td style="border-bottom: 0rem;">'+formattedNumberfffff2FFFF+' B0x</td></tr>';
 	
 	
 //	el('#minerstats2').innerHTML = innerhtml_buffer2;
@@ -1449,7 +1449,7 @@ const formattedNumberfffff2FFFF = new Intl.NumberFormat(navigator.language).form
     };
 	var totalSpentINUSD = 0;
     var innerhtml_buffer = '<tr><th>Miner</th><th>Total Epochs Minted Count</th>'
-      + '<th>% of Minted</th><th>Transaction Count</th><th>TOTAL BWORK Mined</th></tr>';
+      + '<th>% of Minted</th><th>Transaction Count</th><th>TOTAL B0x Mined</th></tr>';
     sorted_miner_block_count.forEach(function(miner_info) {
       var addr = miner_info[0];
 // Find the matching address in combinedAddresses
@@ -1480,7 +1480,7 @@ const formattedNumberfffff2 = new Intl.NumberFormat(navigator.language).format(R
       innerhtml_buffer += '<tr><td>'
         + miner_name_link + '</td><td>'
         + blocks + '</td><td>'
-        + (100*percent_of_total_blocks).toFixed(2) + '%' + '</td><td>'+TotalBlocksPerReward+'</td><th style="white-space: nowrap">'+formattedNumberfffff2+' BWORK</th></tr>';
+        + (100*percent_of_total_blocks).toFixed(2) + '%' + '</td><td>'+TotalBlocksPerReward+'</td><th style="white-space: nowrap">'+formattedNumberfffff2+' B0x</th></tr>';
     });
 const formattedNumberfffff23 = new Intl.NumberFormat(navigator.language).format(totalZKTC_Calculated.toFixed(0));
 
@@ -1493,7 +1493,7 @@ const formattedNumberfffff23 = new Intl.NumberFormat(navigator.language).format(
   el_safe('#SuccessfulMintTransactions').innerHTML = "<b> "+(total_tx_count).toLocaleString()+" </b> txs";
     /* add the last row (totals) */
     innerhtml_buffer += '<tr><td style="border-bottom: 0rem;">TOTAL:</td><td style="border-bottom: 0rem;">'
-      + total_block_count + '</td><td style="border-bottom: 0rem;">100%</td><td style="border-bottom: 0rem;">' + total_tx_count + '</td><td style="border-bottom: 0rem;">'+formattedNumberfffff23+' BWORK</td></tr>';
+      + total_block_count + '</td><td style="border-bottom: 0rem;">100%</td><td style="border-bottom: 0rem;">' + total_tx_count + '</td><td style="border-bottom: 0rem;">'+formattedNumberfffff23+' B0x</td></tr>';
     el('#minerstats').innerHTML = innerhtml_buffer;
     log('done populating miner stats');
     // $(window).hide().show(0);
@@ -1585,7 +1585,7 @@ const formattedNumberparzedint = new Intl.NumberFormat(navigator.language).forma
 			+ '<a href="' + block_url + '" target="_blank">' + eth_block + '</td><td>'
 			+ '<a href="' + transaction_url + '" title="' + tx_hash + '" target="_blank">'
 			+ tx_hash.substr(0, 16) + '...</a></td><td align="right" style="text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">'
-			+ miner_name_link + '</td><td>'	+ formattedNumberfffff +" BWORK</td></tr>";
+			+ miner_name_link + '</td><td>'	+ formattedNumberfffff +" B0x</td></tr>";
 			//+ '</a></td></tr>';
 			
 		}
@@ -1602,8 +1602,8 @@ const formattedNumberparzedint = new Intl.NumberFormat(navigator.language).forma
 /* get last hours_into_past worth of mined 0xbtc blocks, save to a CSV file */
 function getMinerInfoCSV(eth, stats, hours_into_past){
   log('getMinerInfoCSV...')
-  var last_reward_eth_block = getValueFromStats('Last ZK Sync Era Block Number', stats)
-  var current_eth_block = getValueFromStats('Last ZK Sync Era Block Number', stats)
+  var last_reward_eth_block = getValueFromStats('Last Base Block Number', stats)
+  var current_eth_block = getValueFromStats('Last Base Block Number', stats)
   var last_difficulty_start_block = getValueFromStats('Last Difficulty Start Block', stats)
 
   if (hours_into_past == undefined) {
