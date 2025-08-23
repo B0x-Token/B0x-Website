@@ -1600,7 +1600,15 @@ button:disabled:hover {
         }
 
 
+
+
+
+
+
+
+
        /* Header with embedded chart */
+          /* Header with embedded chart */
         .header {
             background: linear-gradient(135deg, 
                 rgba(120, 119, 198, 0.2) 0%, 
@@ -1608,11 +1616,11 @@ button:disabled:hover {
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
-            padding: 40px 30px;
+            padding: 32px 24px; /* Reduced from 40px 30px */
             text-align: center;
             position: relative;
             overflow: hidden;
-            height: 300px; /* Set a fixed height for the header */
+            height: 320px; /* Reduced from 400px (80% = 320px) */
         }
 
         /* Chart container positioned behind text */
@@ -1623,7 +1631,7 @@ button:disabled:hover {
             right: 0;
             bottom: 0;
             z-index: 1;
-            opacity:1.1; /* Make chart semi-transparent so text shows through */
+            opacity: 0.3; /* Make chart semi-transparent so text shows through */
         }
 
         #priceChart {
@@ -1969,10 +1977,16 @@ timestamps.reverse();
                         display: true,
                         title: {
                             display: true,
-                            text: 'Time'
+                            text: 'Time',
+                             color: 'white', // Make x-axis title white
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
                         },
                         type: 'category',
                         ticks: {
+                                color: 'white', // Make x-axis labels white
                             maxRotation: 45,
                             minRotation: 0,
                             autoSkip: false, // Don't let Chart.js auto-skip
@@ -1991,17 +2005,24 @@ timestamps.reverse();
                         grid: {
                             display: true,
                             drawOnChartArea: true,
-                            color: 'rgba(0, 0, 0, 0.1)'
+                                color: 'rgba(255, 255, 255, 0.1)' // Light white grid lines
+
                         }
                     },
                     y: {
                         display: true,
                         title: {
                             display: true,
-                            text: 'Price (USDC per BWORK)'
+                            text: 'Price (USDC per BWORK)',
+                            color: 'white', // Make y-axis title white
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
                         },
                         beginAtZero: false,
                         ticks: {
+                                color: 'white', // Make y-axis labels white
                             callback: function(value) {
                                 return '$' + value.toFixed(6);
                             }
