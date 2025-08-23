@@ -5608,6 +5608,8 @@ async function decreaseLiquidityStaking(){
                 // For example, if there's a deploy function that uses the salt
                 // await UniV4Hook.deploy(validSalt);
                 // Using async/await with setTimeout (most common)
+
+               alert("Successfully decreased liquidity of your Staked Uniswap position");
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
                 fetchBalances();
@@ -6023,7 +6025,7 @@ async function decreaseLiquidity(){
                // If you want to use these values for further operations
                // For example, if there's a deploy function that uses the salt
                // await UniV4Hook.deploy(validSalt);
-
+               alert("Successfully decreased liquidity of your Uniswap position");
                // Using async/await with setTimeout (most common)
                await new Promise(resolve => setTimeout(resolve, 1000));
                fetchBalances();
@@ -6974,17 +6976,17 @@ var walletBalances = {
 
 const USDCToken = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
 const positionManager_address = "0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80";
-const contractAddress_PositionFinderPro = '0x04523e7B73dD80bb6bC80E456d278D6324059197'; // Replace with actual contract address
-const contractAddress_Swapper = '0x09971c16E1629F279F456FAdB043a8736A42ac33'; // Replace with actual contract address
-const contractAddressLPRewardsStaking = '0xAac97847b9863338674C99B69D9Caebdf75Df802';
-const hookAddress = '0x190E7C568B93f3AF51AD8eECdF93a1B09F7a1000';
-const ProofOfWorkAddresss = '0xaC83C332664e2E0878A69aD0Fb8f751a2997630E';
+const contractAddress_PositionFinderPro = '0x2b9164BCf825B47e2E7db5CEDE18aBDF237F0958'; // Replace with actual contract address
+const contractAddress_Swapper = '0x509C67d2cc8f64EabB8C049DBd1e36926cE678F9'; // Replace with actual contract address
+const contractAddressLPRewardsStaking = '0xD6eF729c3206a2f063f587Dbb405854aE3AAa2D1';
+const hookAddress = '0x15e08DF006dBA03B2ad3004BD3FCEA85d9499000';
+const ProofOfWorkAddresss = '0x5c6223365c55Ef48A2b54911b48062A40de4A03f';
 
 // Token addresses mapping
 const tokenAddresses = {
 'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
-'B0x': '0xf4dD99249B3F7A904c7E13cf31f65E76De6A7217',
-'0xBTC': '0x12E7ac33f50c6E8635D9De4F234194b0d2FA41e9',
+'B0x': '0x80eB21d70bff8A11f63Fe08bc79Bc69c8eAcA65D',
+'0xBTC': '0x6d39dAB87d193c3ED3462731E45F83834eb50A8a',
 'WETH': '0x4200000000000000000000000000000000000006',
 };
 
@@ -6993,8 +6995,8 @@ const tokenAddresses = {
     const tokenMap = {
         "0x4200000000000000000000000000000000000006": "WETH",
         "0x0000000000000000000000000000000000000000": "ETH",
-        "0xf4dD99249B3F7A904c7E13cf31f65E76De6A7217": "B0x",
-        "0x12E7ac33f50c6E8635D9De4F234194b0d2FA41e9": "0xBTC",
+        "0x80eB21d70bff8A11f63Fe08bc79Bc69c8eAcA65D": "B0x",
+        "0x6d39dAB87d193c3ED3462731E45F83834eb50A8a": "0xBTC",
         // Add more token mappings as needed
     };
 
