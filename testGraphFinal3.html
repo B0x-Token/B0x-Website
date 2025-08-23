@@ -1762,26 +1762,27 @@ button:disabled:hover {
     font-weight: normal;
 }
 
-/* Fully self-contained H1 style */
-.megapunch-only {
+/* Fully self-contained MegaPunch style */
+.megapunch-only,
+.boxNameInline {
     font-family: 'MegaPunchItalic';
-    font-size: 2em;      /* your own size */
-    font-weight: normal;   /* override default h1 weight */
-    margin: 0;             /* override default h1 margin */
-    color: #ff5722;        /* set your own color */
-    line-height: 1.2;      /* optional for spacing */
+    font-size: 2em;          /* scale for emphasis */
+    font-weight: normal;
+    margin: 0;
+    color: #ff5722;
+    line-height: 1.2;
 
+    background: linear-gradient(135deg, #ffffff 0%, #7877c6 50%, #ff0080 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 
-            background: linear-gradient(135deg, #ffffff 0%, #7877c6 50%, #ff0080 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 12px;
-            letter-spacing:0.01em;
-            text-shadow: 0 0 30px rgba(120, 119, 198, 0.5);
-            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.7));
+    margin-bottom: 12px;
+    letter-spacing: 0.01em;
+    text-shadow: 0 0 30px rgba(120, 119, 198, 0.5);
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.7));
 
-
+    display: inline; /* ✅ ensures it stays inside the sentence */
 }
     </style>
 </head>
@@ -1841,10 +1842,10 @@ button:disabled:hover {
         <div class="loading-content">
             <div class="loader"></div>
             <div class="loading-title">
-                B0x<br>
-                B ZERO X
+                <span class="boxNameInline">B[]x</span><br>
+                <span class="boxNameInline">B ZERO X</span>
                 </div>
-            <div class="loading-subtitle">Initializing your B[]x Token DeFi dAPP experience</div>
+            <div class="loading-subtitle">Initializing your <span class="boxNameInline">B[]x</span> Token DeFi dAPP experience</div>
             <div class="loading-status" id="loading-status">Loading contracts...</div>
         </div>
     </div>
