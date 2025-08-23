@@ -3,13 +3,16 @@
 <head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Mega+Punch&display=swap" rel="stylesheet">
+
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
     <title>B0x Token DEFI dAPP Operations</title>
 
     <!-- Favicon -->
-    <link rel="icon" href="https://b0x-token.github.io/B0x-Website/images/b0x_logo_square.png" type="image/png">
+    <link rel="icon" href="https://raw.githubusercontent.com/B0x-Token/B0x-Website/refs/heads/main/images/favicon.ico" type="image/x-icon">
+
 
     <!-- Description for search engines -->
     <meta name="description" content="B0x Token DeFi dAPP that has swaps, create b0x Uniswap V4 positions, Stake your B0x Univ4 positions to beat IL and collect rewards right along side the miners of B0x Tokens! 100% Decentralized">
@@ -1114,6 +1117,9 @@ input[readonly]:hover {
 
 
 #walletAddress {
+    display: inline-block;  /* keeps span inline but blocks weird bullets */
+    list-style: none;       /* removes any inherited list styling */
+
     font-size: 1rem;
     font-weight: 700;
     font-family: 'JetBrains Mono', 'Courier New', monospace;
@@ -1160,18 +1166,14 @@ input[readonly]:hover {
 
 
 
-
-
-/* Update the wallet section layout for vertical stacking */
 .wallet-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 12px; /* Space between connect button and wallet info */
-    margin-bottom: 20px;
+    justify-content: flex-start; /* don't stretch vertically */
+    gap: 8px; /* small space between items */
+    margin: 20px auto; /* little breathing room */
 }
-
 
 #walletInfo {
     display: flex !important;
@@ -1751,8 +1753,36 @@ button:disabled:hover {
             background: rgba(0, 0, 0, 0.1);
         }
 
+@font-face {
+    font-family: 'MegaPunchItalic';
+    src: url('https://example.com/fonts/Megapunch-Italic.woff2') format('woff2'),
+         url('https://b0x-token.github.io/B0x-Website/fonts/Megapunch_Italic.ttf') format('truetype'),
+         url('https://b0x-token.github.io/B0x-Website/fonts/Megapunch_Italic.otf') format('opentype');
+    font-style: normal; /* already italic in the font itself */
+    font-weight: normal;
+}
+
+/* Fully self-contained H1 style */
+.megapunch-only {
+    font-family: 'MegaPunchItalic';
+    font-size: 2em;      /* your own size */
+    font-weight: normal;   /* override default h1 weight */
+    margin: 0;             /* override default h1 margin */
+    color: #ff5722;        /* set your own color */
+    line-height: 1.2;      /* optional for spacing */
 
 
+            background: linear-gradient(135deg, #ffffff 0%, #7877c6 50%, #ff0080 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            letter-spacing:0.01em;
+            text-shadow: 0 0 30px rgba(120, 119, 198, 0.5);
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.7));
+
+
+}
     </style>
 </head>
 <body>
@@ -1814,7 +1844,7 @@ button:disabled:hover {
                 B0x<br>
                 B ZERO X
                 </div>
-            <div class="loading-subtitle">Initializing your B0x Token DeFi dAPP experience</div>
+            <div class="loading-subtitle">Initializing your B[]x Token DeFi dAPP experience</div>
             <div class="loading-status" id="loading-status">Loading contracts...</div>
         </div>
     </div>
@@ -1832,7 +1862,7 @@ button:disabled:hover {
             
             <!-- Text content positioned over chart -->
             <div class="header-content">
-                <h1>B0x DeFi Operations</h1>
+                <div class="megapunch-only">B[]x DeFi Operations</div>
                 <p>Swap, Stake, and Manage Your Liquidity Positions</p>
             </div>
        </div>
@@ -1853,7 +1883,7 @@ button:disabled:hover {
             <div class="wallet-section">
             <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
             <div id="walletInfo" style="display: none;">
-                <span id="walletAddress"></span>
+                <span id="walletAddress"  style="display: none;"></span>
                 <button id="disconnectBtn" onclick="disconnectWallet()"  style="display: none;">Disconnect</button>
             </div>
             </center>
