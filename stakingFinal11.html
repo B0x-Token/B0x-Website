@@ -3,7 +3,6 @@
 <head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Mega+Punch&display=swap" rel="stylesheet">
 
 
     <meta charset="UTF-8">
@@ -2817,31 +2816,34 @@ button:disabled:hover {
                     display: true
                 },
                 tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    callbacks: {
-                        afterBody: function(context) {
-                            const dataIndex = context[0].dataIndex;
-                            if (dataIndex > 0) {
-                                const currentPrice = prices[dataIndex];
-                                const prevPrice = prices[dataIndex - 1];
-                                const change = currentPrice - prevPrice;
-                                const changePercent = ((change / prevPrice) * 100).toFixed(2);
-                                
-                                // Also show the actual timestamp
-                                const date = new Date(timestamps[dataIndex] * 1000);
-                                const timeStr = date.toLocaleString();
-                                
-                                return [`Time: ${timeStr}`,
-                                       `Previous: $${prevPrice.toFixed(6)}`,
-                                       `Current: $${currentPrice.toFixed(6)}`,
-                                       `Change: ${change >= 0 ? '+' : ''}$${Math.abs(change).toFixed(6)}`,
-                                       `(${change >= 0 ? '+' : ''}${changePercent}%)`];
-                            }
-                            return [`Time: ${new Date(timestamps[dataIndex] * 1000).toLocaleString()}`];
+                mode: 'index',
+                intersect: false,
+            displayColors: false, // This removes the little color box
+                callbacks: {
+                    label: function(context) {
+                        return `$${context.parsed.y.toFixed(8)}`; // Show 8 decimal places instead of default rounding
+                    },
+                    afterBody: function(context) {
+                        const dataIndex = context[0].dataIndex;
+                        if (dataIndex > 0) {
+                            const currentPrice = prices[dataIndex];
+                            const prevPrice = prices[dataIndex - 1];
+                            const change = currentPrice - prevPrice;
+                            const changePercent = ((change / prevPrice) * 100).toFixed(2);
+                            
+                            const date = new Date(timestamps[dataIndex] * 1000);
+                            const timeStr = date.toLocaleString();
+                            
+                            return [`Time: ${timeStr}`,
+                                `Previous: $${prevPrice.toFixed(8)}`, // More digits here too
+                                `Current: $${currentPrice.toFixed(8)}`, // And here
+                                `Change: ${change >= 0 ? '+' : ''}$${Math.abs(change).toFixed(8)}`,
+                                `(${change >= 0 ? '+' : ''}${changePercent}%)`];
                         }
+                        return [`Time: ${new Date(timestamps[dataIndex] * 1000).toLocaleString()}`];
                     }
                 }
+            }
             }
         },
         plugins: [movementBarsPlugin]
