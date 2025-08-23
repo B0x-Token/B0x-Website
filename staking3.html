@@ -4,161 +4,193 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
     <title>DeFi Operations</title>
      <style>
        
-	   /*B0x Widget CSS*/
-         .b0x-widget {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(26, 26, 46, 0.95);
-            border: 1px solid rgba(15, 52, 96, 0.6);
-            border-radius: 8px;
-            padding: 8px 14px;
-            font-family: 'Arial', sans-serif;
-            font-size: 11px;
-            color: #ffffff;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            z-index: 1000;
-            height: 36px;
-            min-width: 280px;
-        }
+	   /*B0x Widget CSS*/    
+       
+      .b0x-widget {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;  /* doubled from 8px */
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;  /* doubled from 6px */
+    padding: 8px 16px;  /* doubled from 4px 8px */
+    font-family: 'Courier New', monospace;
+    font-size: 20px !important;  /* doubled from 10px */
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    height: 48px !important;  /* doubled from 24px */
+    line-height: 1;
+}
 
-        .b0x-widget:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 24px rgba(15, 52, 96, 0.4);
-            border-color: #0ea5e9;
-            background: rgba(26, 26, 46, 0.98);
-        }
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;  /* doubled from 3px */
+    font-size: 18px;  /* doubled from 9px */
+    font-weight: 500;
+}
 
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            min-width: 65px;
-        }
+.stat-icon {
+    font-size: 20px;  /* doubled from 10px */
+}
 
-        .stat-icon {
-            width: 14px;
-            height: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+.stat-valueWidget {
+    color: #60a5fa;
+    font-weight: 600;
+    font-size: 18px;  /* doubled from 9px */
+}
 
-        .stat-value {
-            font-weight: 600;
-            color: #60a5fa;
-            font-size: 11px;
-            line-height: 1.2;
-        }
+.divider {
+    width: 2px;  /* doubled from 1px */
+    height: 28px;  /* doubled from 14px */
+    background: rgba(255, 255, 255, 0.2);
+}
 
-        .stat-label {
-            color: #94a3b8;
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            line-height: 1;
-        }
+.icon-0xbtc {
+    display: inline-block;
+    width: 20px;  /* doubled from 10px */
+    height: 20px;  /* doubled from 10px */
+    background: #ff7b00;
+    border-radius: 50%;
+    position: relative;
+}
 
-        /* Icons using CSS */
-        .icon-dollar::before {
-            content: "💵";
-            font-size: 12px;
-        }
+.icon-0xbtc::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;  /* doubled from 4px */
+    height: 12px;  /* doubled from 6px */
+    background: white;
+    clip-path: polygon(0% 20%, 100% 0%, 100% 80%, 0% 100%);
+}
 
-        .icon-btc::before {
-            content: "₿";
-            font-size: 12px;
-            color: #f7931a;
-        }
+/* Mobile - doubled sizes */
+@media (max-width: 768px) {
+    .b0x-widget {
+        top: 10px;  /* doubled from 5px */
+        right: 10px;  /* doubled from 5px */
+        padding: 6px 12px;  /* doubled from 3px 6px */
+        height: 40px;  /* doubled from 20px */
+        font-size: 16px;  /* doubled from 8px */
+        gap: 12px;  /* doubled from 6px */
+    }
+    .stat-valueWidget{ 
+        color: #60a5fa;
+    font-weight: 600;
+    font-size: 13px;  /* doubled from 9px */
 
+    }
+    .stat {
+        font-size: 14px;  /* doubled from 7px */
+        gap: 4px;  /* doubled from 2px */
+    }
+    
+    .stat-icon {
+        font-size: 16px;  /* doubled from 8px */
+    }
+    
     .icon-0xbtc {
-            position: relative;
-            width: 16px;
-            height: 16px;
-            background: #ff7b00;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        width: 16px;  /* doubled from 8px */
+        height: 16px;  /* doubled from 8px */
+    }
+    
+    .icon-0xbtc::before {
+        width: 6px;  /* doubled from 3px */
+        height: 8px;  /* doubled from 4px */
+    }
+    
+    .divider {
+        height: 24px;  /* doubled from 12px */
+    }
+}
 
-        .icon-0xbtc::before {
-            content: "";
-            width: 6px;
-            height: 10px;
-            background: white;
-            clip-path: polygon(0% 20%, 100% 0%, 100% 80%, 0% 100%);
-        }
+/* Extra small screens - doubled sizes */
+@media (max-width: 480px) {
+    .b0x-widget {
+        top: 16px !important;  /* doubled from 8px */
+        right: 6px;  /* doubled from 3px */
+        padding: 4px 8px;  /* doubled from 2px 4px */
+        height: 36px;  /* doubled from 18px */
+        font-size: 10px;  /* doubled from 7px */
+        gap: 8px;  /* doubled from 4px */
+    }
+    
+    .stat-valueWidget{ 
+        color: #60a5fa;
+    font-weight: 600;
+    font-size: 10px;  /* doubled from 9px */
+
+    }
+    .stat {
+        font-size: 10px;  /* doubled from 6px */
+        gap: 2px;  /* doubled from 1px */
+    }
+    
+    .stat-icon {
+        font-size: 10px;  /* doubled from 7px */
+    }
+    
+    .icon-0xbtc {
+        width: 10px;  /* doubled from 7px */
+        height: 10px;  /* doubled from 7px */
+    }
+    
+    .icon-0xbtc::before {
+        width: 4px;  /* doubled from 2px */
+        height: 6px;  /* doubled from 3px */
+    }
+    
+    .divider {
+        height: 10px;  /* doubled from 10px */
+    }
+}
+
+.icon-dollar::before {
+    content: "💵";
+}
 
 
+.icon-hash::before {
+    content: "⚡";
+}
 
-        .icon-hash::before {
-            content: "⚡";
-            font-size: 12px;
-            color: #10b981;
-        }
+/* Icon sizing - doubled */
+.icon-dollar {
+    font-size: 20px;  /* doubled from 10px */
+}
 
-        .divider {
-            width: 1px;
-            height: 24px;
-            background: linear-gradient(180deg, transparent, #334155, transparent);
-        }
+.icon-hash {
+    font-size: 20px;  /* doubled from 10px */
+    color: #10b981;
+}
 
-        .loading {
-            color: #64748b;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
+@media (max-width: 768px) {
+    .icon-dollar::before,
+    .icon-hash::before {
+        font-size: 16px;  /* doubled from 8px */
+    }
+}
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
+@media (max-width: 480px) {
+    .icon-dollar::before,
+    .icon-hash::before {
+        font-size: 14px;  /* doubled from 7px */
+    }
+}
 
-        /* Responsive design */
-        @media (max-width: 640px) {
-            .b0x-widget {
-                gap: 8px;
-                padding: 6px 10px;
-                font-size: 10px;
-                height: 32px;
-                min-width: 240px;
-                top: 15px;
-                right: 15px;
-            }
-            
-            .stat-item {
-                min-width: 50px;
-                gap: 4px;
-            }
-            
-            .divider {
-                height: 20px;
-            }
-
-            .stat-value {
-                font-size: 10px;
-            }
-
-            .stat-label {
-                font-size: 8px;
-            }
-        }
-
-        /* Alternative: Inline banner version */
-        .b0x-widget.inline {
-            position: static;
-            display: inline-flex;
-            margin-right: auto;
-        }
+        /*END B0xWidget*/
 		/* BZeroX Inspired CSS - Part 1 of 3 */
 
 * {
@@ -431,7 +463,6 @@ input[readonly]:hover {
     background: rgba(255, 255, 255, 0.1) !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
-
 
 		/*end first part of css code*/
 		
@@ -1584,7 +1615,7 @@ button:disabled:hover {
         <div class="stat-item">
             <div class="stat-icon icon-dollar"></div>
             <div>
-                <div class="stat-value" id="usd-price">$0.00</div>
+                <div class="stat-valueWidget" id="usd-price">$0.00</div>
                 <div class="stat-label">USD</div>
             </div>
         </div>
@@ -1594,7 +1625,7 @@ button:disabled:hover {
         <div class="stat-item">
             <div class="stat-icon icon-0xbtc"></div>
             <div>
-                <div class="stat-value" id="btc-price">0.000000</div>
+                <div class="stat-valueWidget" id="btc-price">0.000000</div>
                 <div class="stat-label">0xBTC</div>
             </div>
         </div>
@@ -1604,7 +1635,7 @@ button:disabled:hover {
         <div class="stat-item">
             <div class="stat-icon icon-hash"></div>
             <div>
-                <div class="stat-value" id="hashrate">0 H/s</div>
+                <div class="stat-valueWidget" id="hashrate">0 H/s</div>
                 <div class="stat-label">Hash</div>
             </div>
         </div>
@@ -2798,7 +2829,30 @@ async function GetRewardAPY(_tokenAddresses, _rewardRate, zeroXBTC_In_Staking){
 }
 
 
+function handleWidgetVisibility() {
+    const widget = document.getElementById('b0x-widget');
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const tolerance = 300; // Show widget if within 50px of top
+    
+    // Check if screen is smaller than 500px
+    const isSmallScreen = window.matchMedia('(max-width: 600px)').matches;
+    
 
+    if (scrollTop <= tolerance) {
+        widget.style.opacity = '1';
+        widget.style.visibility = 'visible';
+    } else if(isSmallScreen){
+        widget.style.opacity = '0';
+        widget.style.visibility = 'hidden';
+    }else{
+        widget.style.opacity = '1';
+        widget.style.visibility = 'visible';
+
+    }
+}
+
+window.addEventListener('scroll', handleWidgetVisibility);
+window.addEventListener('load', handleWidgetVisibility);
 
 
 
@@ -6918,23 +6972,19 @@ var walletBalances = {
 
 
 
-
-
-
-
 const USDCToken = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
 const positionManager_address = "0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80";
-const contractAddress_PositionFinderPro = '0xf9fbd2F98A1c53A3e7eFc81bA9d62C2d1E04d619'; // Replace with actual contract address
-const contractAddress_Swapper = '0xdd22790101fd57894e2e8bd12426eBD574CB5Ff9'; // Replace with actual contract address
-const contractAddressLPRewardsStaking = '0x9C786F1E4240239d4cf1DD9Dbde53BEc8d16Fdff';
-const hookAddress = '0x0393191157033e10B323248398a380a5Bed6D000';
-const ProofOfWorkAddresss = '0xe17C4F66F3455E28B349373768676E2F9F94E7C0';
+const contractAddress_PositionFinderPro = '0x04523e7B73dD80bb6bC80E456d278D6324059197'; // Replace with actual contract address
+const contractAddress_Swapper = '0x09971c16E1629F279F456FAdB043a8736A42ac33'; // Replace with actual contract address
+const contractAddressLPRewardsStaking = '0xAac97847b9863338674C99B69D9Caebdf75Df802';
+const hookAddress = '0x190E7C568B93f3AF51AD8eECdF93a1B09F7a1000';
+const ProofOfWorkAddresss = '0xaC83C332664e2E0878A69aD0Fb8f751a2997630E';
 
 // Token addresses mapping
 const tokenAddresses = {
 'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
-'B0x': '0xd1913c7b5d579D4b3387022E19BB717Ae0CC212F',
-'0xBTC': '0x68F00834775091C7e2638bb0fC0Ff8cf7A7006BB',
+'B0x': '0xf4dD99249B3F7A904c7E13cf31f65E76De6A7217',
+'0xBTC': '0x12E7ac33f50c6E8635D9De4F234194b0d2FA41e9',
 'WETH': '0x4200000000000000000000000000000000000006',
 };
 
@@ -6943,16 +6993,10 @@ const tokenAddresses = {
     const tokenMap = {
         "0x4200000000000000000000000000000000000006": "WETH",
         "0x0000000000000000000000000000000000000000": "ETH",
-        "0xd1913c7b5d579D4b3387022E19BB717Ae0CC212F": "B0x",
-        "0x68F00834775091C7e2638bb0fC0Ff8cf7A7006BB": "0xBTC",
+        "0xf4dD99249B3F7A904c7E13cf31f65E76De6A7217": "B0x",
+        "0x12E7ac33f50c6E8635D9De4F234194b0d2FA41e9": "0xBTC",
         // Add more token mappings as needed
     };
-
-
-
-
-
-
 
 
 
