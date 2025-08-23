@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Price Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <canvas id="priceChart" width="1200" height="600"></canvas>
+
+    <script>
+        // Your data
+        const prices = [0.0009435962815633916, 0.0009429582951917147, 0.0009443033801571058, 0.000948524789948991, 0.0009455839387887492, 0.0009440830040711391, 0.0009500866648852758, 0.0009513090551987913, 0.0009485770225543332, 0.0009397029977271556, 0.0009445985099713367, 0.0009567426044673336, 0.000963815102908786, 0.0009667447061644491, 0.0009622056634000851, 0.0009719682499634816, 0.0009691440674122234, 0.0009697948834196165, 0.0009579580784818055, 0.0009602832664799096, 0.0009506972357563532, 0.0009298160185279505, 0.0009245059576691454, 0.0008607330887314613, 0.0008510942406943471, 0.0008569044803155862, 0.0008607748436550088, 0.0008665190542715062, 0.0008679661416365502, 0.0008692403376967282, 0.0008596159761181688, 0.0008590318642871621, 0.0008563328333218056, 0.0008559706149442704, 0.0008592527125068337, 0.000852913746049122, 0.0008482921889013566, 0.0008458265885583857, 0.0008508418435119685, 0.0008500219232826226, 0.0008513800692435097, 0.0008452201087433859, 0.0008537344879387985, 0.0008483721494235761, 0.0008469791891717077, 0.0008488265617033965, 0.0008577015639787956, 0.0008558955183282563, 0.0008500319572857116, 0.0008567433504824999, 0.0008595963590577773, 0.0008565677520415909, 0.0008588933648940936, 0.0008629408740589228, 0.0008618513187560602, 0.0008644157277142009, 0.0008614632808084492, 0.0008614775114879147, 0.0008590660694291533, 0.000866166153443605, 0.0008645838267967892, 0.0008667859830716236, 0.0008751884600474266, 0.0008716697223179955, 0.0008739170772461837, 0.0008701874938199327, 0.0008620626729805016, 0.000869982268390419, 0.0008630634301084937, 0.0008534030289830834, 0.0008439329926453454, 0.0008295620972539519, 0.0008412531877306704, 0.0008383770886832423, 0.0008471463797693052, 0.0008450174544766497, 0.0008474989244316902, 0.0008389924641464278, 0.0008374319238219702, 0.0008358433257641008, 0.0008347976614218932, 0.0008289076061514444, 0.0008463528208223424, 0.000841514362251526, 0.0008405938812685725, 0.0008346444792045229, 0.000846933673462963, 0.0008489833398239743, 0.0008510338254721342, 0.0008496277152829588, 0.0008482653786505962, 0.0008553930412388747, 0.0008528638423198543, 0.0008593954467368703, 0.0008606622273901458, 0.0008806124837526642, 0.0008791070583264606];
+        const timestamps = [1755953711, 1755950111, 1755946511, 1755942911, 1755939311, 1755935711, 1755932111, 1755928511, 1755924911, 1755921311, 1755917711, 1755914111, 1755910511, 1755906911, 1755903311, 1755899711, 1755896111, 1755892511, 1755888911, 1755885311, 1755881711, 1755878111, 1755874511, 1755870911, 1755867311, 1755863711, 1755860111, 1755856511, 1755852911, 1755849311, 1755845711, 1755842111, 1755838511, 1755834911, 1755831311, 1755827711, 1755824111, 1755820511, 1755816911, 1755813311, 1755809711, 1755806111, 1755802511, 1755798911, 1755795311, 1755791711, 1755788111, 1755784511, 1755780911, 1755777311, 1755773711, 1755770111, 1755766511, 1755762911, 1755759311, 1755755711, 1755752111, 1755748511, 1755744911, 1755741311, 1755737711, 1755734111, 1755730511, 1755726911, 1755723311, 1755719711, 1755716111, 1755712511, 1755708911, 1755705311, 1755701711, 1755698111, 1755694511, 1755690911, 1755687311, 1755683711, 1755680111, 1755676511, 1755672911, 1755669311, 1755665711, 1755662111, 1755658511, 1755654911, 1755651311, 1755647711, 1755644111, 1755640511, 1755636911, 1755633311, 1755629711, 1755626111, 1755622511, 1755618911, 1755615311, 1755611711, 1755608111];
+
+// Reverse the arrays in-place
+prices.reverse();
+timestamps.reverse();
+
+
+        // Convert timestamps to human-readable format
+        const labels = timestamps.map(ts => {
+            const date = new Date(ts * 1000);
+            return date.toISOString().slice(0, 19).replace("T", " ");
+        });
+
+        // Chart.js setup
+        // Create movement bars data - each bar spans from previous price to current price
+        const movementBars = [];
+        for (let i = 1; i < prices.length; i++) {
+            const prevPrice = prices[i - 1];
+            const currentPrice = prices[i];
+            movementBars.push({
+                x: i - 0.5, // Position between previous and current point
+                y: Math.min(prevPrice, currentPrice), // Bottom of bar
+                w: 1, // Width spans full interval
+                h: Math.abs(currentPrice - prevPrice) // Height is the price difference
+            });
+        }
+
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        
+        // Custom plugin to draw the movement bars
+        const movementBarsPlugin = {
+            id: 'movementBars',
+            afterDatasetsDraw: function(chart) {
+                const ctx = chart.ctx;
+                const xAxis = chart.scales.x;
+                const yAxis = chart.scales.y;
+                
+                movementBars.forEach((bar, index) => {
+                    const prevPrice = prices[index];
+                    const currentPrice = prices[index + 1];
+                    const isUp = currentPrice >= prevPrice;
+                    
+                    // Calculate pixel positions
+                    const xStart = xAxis.getPixelForValue(index);
+                    const xEnd = xAxis.getPixelForValue(index + 1);
+                    const yStart = yAxis.getPixelForValue(prevPrice);
+                    const yEnd = yAxis.getPixelForValue(currentPrice);
+                    
+                    // Draw the vertical bar
+                    ctx.fillStyle = isUp ? 'rgba(34, 197, 94, 0.6)' : 'rgba(239, 68, 68, 0.6)';
+                    ctx.strokeStyle = isUp ? 'rgba(34, 197, 94, 1)' : 'rgba(239, 68, 68, 1)';
+                    ctx.lineWidth = 1;
+                    
+                    const barWidth = (xEnd - xStart) * 0.8; // 80% of the interval width
+                    const barX = xStart + (xEnd - xStart - barWidth) / 2; // Center the bar
+                    
+                    // Draw filled rectangle from prevPrice to currentPrice
+                    ctx.fillRect(barX, Math.min(yStart, yEnd), barWidth, Math.abs(yEnd - yStart));
+                    ctx.strokeRect(barX, Math.min(yStart, yEnd), barWidth, Math.abs(yEnd - yStart));
+                });
+            }
+        };
+
+        const priceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'USDC per BWORK',
+                        data: prices,
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 4,
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        pointBorderColor: 'rgba(255, 255, 255, 1)',
+                        pointBorderWidth: 2,
+                        order: 1 // Draw on top of bars
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Timestamp'
+                        },
+                        ticks: {
+                            maxRotation: 90,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Price (USDC per BWORK)'
+                        },
+                        beginAtZero: false
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            afterBody: function(context) {
+                                const dataIndex = context[0].dataIndex;
+                                if (dataIndex > 0) {
+                                    const currentPrice = prices[dataIndex];
+                                    const prevPrice = prices[dataIndex - 1];
+                                    const change = currentPrice - prevPrice;
+                                    const changePercent = ((change / prevPrice) * 100).toFixed(2);
+                                    return [`Previous: ${prevPrice.toFixed(4)}`,
+                                           `Current: ${currentPrice.toFixed(4)}`,
+                                           `Change: ${change >= 0 ? '+' : ''}${change.toFixed(4)}`,
+                                           `(${change >= 0 ? '+' : ''}${changePercent}%)`];
+                                }
+                                return [];
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [movementBarsPlugin]
+        });
+    </script>
+</body>
+</html>
