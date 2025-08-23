@@ -280,11 +280,9 @@ body::before {
 }
 
 .header {
-    background: linear-gradient(135deg, 
-        rgba(120, 119, 198, 0.2) 0%, 
-        rgba(255, 0, 128, 0.15) 100%);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    
+    backdrop-filter: none;
+    border-bottom: 3px solid rgba(255, 255, 255, 0.1);
     color: white;
     padding: 40px 30px;
     text-align: center;
@@ -299,13 +297,6 @@ body::before {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: conic-gradient(from 0deg at 50% 50%, 
-        transparent 0deg, 
-        rgba(120, 119, 198, 0.1) 90deg, 
-        transparent 180deg, 
-        rgba(255, 0, 128, 0.1) 270deg, 
-        transparent 360deg);
-    animation: rotate 20s linear infinite;
     z-index: -1;
 }
 
@@ -1651,10 +1642,7 @@ button:disabled:hover {
        /* Header with embedded chart */
           /* Header with embedded chart */
         .header {
-            background: linear-gradient(135deg, 
-                rgba(120, 119, 198, 0.2) 0%, 
-                rgba(255, 0, 128, 0.15) 100%);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(0px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
             padding: 32px 24px; /* Reduced from 40px 30px */
@@ -1672,7 +1660,6 @@ button:disabled:hover {
             right: 0;
             bottom: 0;
             z-index: 1;
-            opacity: 0.3; /* Make chart semi-transparent so text shows through */
         }
 
         #priceChart {
@@ -1773,7 +1760,7 @@ button:disabled:hover {
 .megapunch-only
 {
     font-family: 'MegaPunchItalic';
-    font-size: 1.5rem; /* ~24px if root is 16px */
+    font-size: 3rem; /* ~24px if root is 16px */
     font-weight: normal;
     margin: 0;
     color: #ff5722;
