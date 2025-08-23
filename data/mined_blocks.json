@@ -146,7 +146,9 @@
     ]
   ],
   "total_blocks": 24,
-  "last_updated": 1755992604,
+  "last_updated": 1755993202,
+  "latest_block_number": 30112457,
   "contract_address": "0xc121A73059DC953B4E4A323F1bc568877CC9B492",
-  "mint_topic": "0xcf6fbb9dcea7d07263ab4f5c3a92f53af33dffc421d9d121e1c74b307e68189d"
+  "mint_topic": "0xcf6fbb9dcea7d07263ab4f5c3a92f53af33dffc421d9d121e1c74b307e68189d",
+  "previous_challenge": "833bce19818c3bf96a403358f07cb367fdb0f267d0d5d198abb24bbc65305aa5"
 }
