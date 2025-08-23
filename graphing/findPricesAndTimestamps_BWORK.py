@@ -186,6 +186,8 @@ def collect_missing_historical_data(timestamps, blocks, prices, target_days=30):
     
     print("Historical data collection complete!")
     return timestamps, blocks, prices
+
+def add_data_point(timestamps, blocks, prices, new_timestamp, new_block, new_price):
     """Add a new data point and remove oldest if over limit"""
     timestamps.append(new_timestamp)
     blocks.append(new_block)
@@ -352,46 +354,74 @@ def main():
     
     print(f"\nTotal data points: {len(ArrayOfTimestamps)}")
     print("Most recent prices:", ArrayOfActualPrices[-5:] if len(ArrayOfActualPrices) >= 5 else ArrayOfActualPrices)
-    
+   # Now enter the monitoring loop
+   
     # Now enter the monitoring loop
     print("\nEntering monitoring mode...")
     while True:
-        time.sleep(10 * 60)  # Wait 10 minutes
-        
         try:
-            # Get current block and timestamp
+            # Get current block and timestamp for current price display
             current_block, current_timestamp = get_current_block_and_timestamp()
             if current_block is None:
-                print("Failed to get current block, retrying in 10 minutes...")
+                print("Failed to get current block, retrying in 5 minutes...")
+                time.sleep(5 * 60)  # Wait 5 minutes before retrying
                 continue
             
-            # Check if 30 minutes have passed since last data point
-            last_timestamp = ArrayOfTimestamps[-1]
-            if current_timestamp - last_timestamp >= 30 * 60:
-                print(f"\n30+ minutes passed, collecting new data point...")
-                print(f"Current time: {datetime.fromtimestamp(current_timestamp)}")
+            # Get and display current price every 5 minutes
+            print(f"\n=== CURRENT PRICE UPDATE ===")
+            print(f"Current time: {datetime.fromtimestamp(current_timestamp)}")
+            current_price = getSlot0(current_block)
+            print(f"CURRENT BWORK PRICE: ${current_price:.8f}")
+            print(f"Block: {current_block}")
+            print("=" * 30)
+            
+            # Check if 30 minutes have passed since last stored data point for the 30-minute interval collection
+            if ArrayOfTimestamps:
+                last_timestamp = ArrayOfTimestamps[-1]
+                time_since_last_stored = current_timestamp - last_timestamp
                 
-                # Get price for current block
-                price = getSlot0(current_block)
+                if time_since_last_stored >= 30 * 60:  # 30 minutes
+                    print(f"\n30+ minutes passed since last stored data point, adding new 30-minute interval...")
+                    
+                    # Add new 30-minute interval data point
+                    ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices = add_data_point(
+                        ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices,
+                        current_timestamp, current_block, current_price
+                    )
+                    
+                    print(f"New 30-minute interval data point added. Total stored points: {len(ArrayOfTimestamps)}")
+                else:
+                    # Update the most recent data point with current price (within the same 30-minute interval)
+                    ArrayOfTimestamps[-1] = current_timestamp
+                    ArrayOfBlocksSearched[-1] = current_block
+                    ArrayOfActualPrices[-1] = current_price
+                    
+                    minutes_until_next_storage = 30 - (time_since_last_stored / 60)
+                    print(f"Updated most recent data point. Next 30-minute interval in {minutes_until_next_storage:.1f} minutes")
                 
-                # Add to arrays
+                # Save data after either adding new point or updating existing
+                save_data(ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices)
+            else:
+                # No existing data, add first data point
                 ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices = add_data_point(
                     ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices,
-                    current_timestamp, current_block, price
+                    current_timestamp, current_block, current_price
                 )
-                
-                # Save data
                 save_data(ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices)
-                
-                print(f"New data point added. Total points: {len(ArrayOfTimestamps)}")
-                print(f"Latest price: {price}")
-            else:
-                minutes_remaining = 30 - ((current_timestamp - last_timestamp) / 60)
-                print(f"Next data collection in {minutes_remaining:.1f} minutes")
-                
+                print("First data point added.")
+                    
         except Exception as e:
             print(f"Error in monitoring loop: {e}")
-            print("Continuing monitoring...")
+            print("Continuing monitoring in 5 minutes...")
+        
+        # Wait 5 minutes before next current price check
+        time.sleep(5 * 60)
+
+
+
+
+
+
 
 if __name__ == "__main__":
     main()
