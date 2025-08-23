@@ -1104,6 +1104,8 @@ var total_TOTAL_mint_count_HASH = 0;
     run++;
     stop_log_search_at_loop = start_log_search_at_loop + 499
     log('searching from block', start_log_search_at_loop, 'to block', stop_log_search_at_loop);
+
+     sleep(400)
     //
   /* get all mint() transactions in the last N blocks */
   /* more info: https://github.com/ethjs/ethjs/blob/master/docs/user-guide.md#ethgetlogs */
