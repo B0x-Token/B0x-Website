@@ -43,6 +43,14 @@ const _LAST_DIFF_START_BLOCK_INDEX = '4'; //BLOCK OF DIFFICULTY START
 const _ERA_INDEX = '5'; //getEpoch
 const _TOKENS_MINTED_INDEX = '11';
 const _MINING_TARGET_INDEX = '6';
+
+const BWORK_LAST_DIFF_START_BLOCK_INDEX = '4'; //BLOCK OF DIFFICULTY START 
+const BWORK_ERA_INDEX = '5'; //getEpoch
+const BWORK_TOKENS_MINTED_INDEX = '11';
+const BWORK_MINING_TARGET_INDEX = '6';
+const BWORK_CONTRACT_ADDRESS ="0x2f38B1a516239739CdCD2C228D1Eb96E29800975"
+var BWORK_RPC = new Eth(new Eth.HttpProvider("https://base-mainnet.g.alchemy.com/v2/u6woRjFLe5-e3SfnCYFnfoTlgVUangV3"));
+
 /* calculated contract values */
 const _MAXIMUM_TARGET_BN = new Eth.BN(_MAXIMUM_TARGET_STR, 10);
 const _MAXIMUM_TARGET_BN_OLD = new Eth.BN(_MAXIMUM_TARGET_STR_OLD, 10);
@@ -50,7 +58,7 @@ const _MINIMUM_TARGET_BN = new Eth.BN(_MINIMUM_TARGET);
 const _IDEAL_BLOCK_TIME_SECONDS = 60 * 10  //_ETH_BLOCKS_PER_REWARD * _SECONDS_PER_ETH_BLOCK;
 
 /* TODO: figure out why it doesn't work w metamask */
-var eth = new Eth(new Eth.HttpProvider("https://base-sepolia.g.alchemy.com/v2/fTukefKxyH-72aDTEBUHqcad2_SK53CC"));
+var eth = new Eth(new Eth.HttpProvider("https://sepolia.base.org"));
 //var eth = new Eth(new Eth.HttpProvider("https://base-mainnet.g.alchemy.com/v2/u6woRjFLe5-e3SfnCYFnfoTlgVUangV3"));
 //var eth = new Eth(new Eth.HttpProvider("https://base-sepolia.infura.io/v3/b8af241874c24ec78721b46e19c26c8a"));
 // if (typeof window.web3 !== 'undefined' && typeof window.web3.currentProvider !== 'undefined') {
@@ -287,6 +295,13 @@ eth.blockNumber().then((value)=>{
   latest_eth_block = parseInt(value.toString(10), 10);
   log('loaded latest_eth_block:', latest_eth_block);
 });
+
+var BWORK_latest_eth_block = null;
+BWORK_RPC.blockNumber().then((value)=>{
+  BWORK_latest_eth_block = parseInt(value.toString(10), 10);
+  log('loaded BWORK_latest_eth_block:', BWORK_latest_eth_block);
+});
+
 function ethBlockNumberToDateStr(eth_block) {
   //log('converting', eth_block)
   //log('latest e', latest_eth_block)
@@ -294,6 +309,16 @@ function ethBlockNumberToDateStr(eth_block) {
   /* blockDate = new Date(web3.eth.get bBlock(startBlock-i+1).timestamp*1000); */
   return new Date(Date.now() - ((latest_eth_block - eth_block)*_SECONDS_PER_ETH_BLOCK*1000)).toLocaleDateString()
 }
+
+function BWORKethBlockNumberToDateStr(eth_block) {
+  //log('converting', eth_block)
+  //log('latest e', latest_eth_block)
+  /* TODO: use web3 instead, its probably more accurate */
+  /* blockDate = new Date(web3.eth.get bBlock(startBlock-i+1).timestamp*1000); */
+  return new Date(Date.now() - ((BWORK_latest_eth_block - eth_block)*_SECONDS_PER_ETH_BLOCK*1000)).toLocaleDateString()
+}
+
+
 function ethBlockNumberToTimestamp(eth_block) {
   //log('converting', eth_block)
   //log('latest e', latest_eth_block)
@@ -1053,7 +1078,7 @@ var total_TOTAL_mint_count_HASH = 0;
     mined_blocks.length = 0;
   }
 
-  var start_log_search_at = Math.max(last_difficulty_start_block +0, last_imported_mint_block + 1);
+  var start_log_search_at = Math.max(last_difficulty_start_block +1, last_imported_mint_block + 1);
     last_reward_eth_block = last_reward_eth_block - 2
 
   log("searching lastlast_difficulty_start_block", last_difficulty_start_block, "blocks");

@@ -885,7 +885,7 @@ if (hashrate_data.length > 0 && hashrate_data[hashrate_data.length - 1].y === 0)
           },
           ticks: {
             callback: function(value, index, values) {
-              return ethBlockNumberToDateStr(value);
+              return BWORKethBlockNumberToDateStr(value);
             },
             //stepSize: 6*((24*60*60)/15),  // 6 days
           }
@@ -1083,7 +1083,7 @@ if (hashrate_data.length > 0 && hashrate_data[hashrate_data.length - 1].y === 0)
           ticks: {
             // Include a dollar sign in the ticks
             callback: function(value, index, values) {
-              return ethBlockNumberToDateStr(value);
+              return BWORKethBlockNumberToDateStr(value);
             },
             //stepSize: 6*((24*60*60)/15),  // 6 days
           }
@@ -1226,7 +1226,7 @@ if (hashrate_data.length > 0 && hashrate_data[hashrate_data.length - 1].y === 0)
           ticks: {
             // Include a dollar sign in the ticks
             callback: function(value, index, values) {
-              return ethBlockNumberToDateStr(value);
+              return BWORKethBlockNumberToDateStr(value);
             },
             //stepSize: 6*((24*60*60)/15),  // 6 days
           }
@@ -1416,7 +1416,7 @@ if (hashrate_data.length > 0 && hashrate_data[hashrate_data.length - 1].y === 0)
           ticks: {
             // Include a dollar sign in the ticks
             callback: function(value, index, values) {
-              return ethBlockNumberToDateStr(value);
+              return BWORKethBlockNumberToDateStr(value);
             },
             //stepSize: 6*((24*60*60)/15),  // 6 days
           }
@@ -1483,6 +1483,10 @@ async function show_progress(value){
 
 
 async function updateHashrateAndBlocktimeGraph(eth, start_eth_block, end_eth_block, num_search_points){
+  console.log("123123Start search at: ",start_eth_block);
+  
+  console.log("123123end_eth_block: ",end_eth_block);
+  
   /*
   note: this is implementation of diff. in contract:
       function getMiningDifficulty() public constant returns (uint) 
@@ -1493,16 +1497,16 @@ async function updateHashrateAndBlocktimeGraph(eth, start_eth_block, end_eth_blo
   // NOTE: it is important to make sure the step size is small enough to
   //       capture all difficulty changes. For 0xBTC once/day is more than
   //       enough.
-  var last_diff_start_blocks = new contractValueOverTime(eth, _CONTRACT_ADDRESS, _LAST_DIFF_START_BLOCK_INDEX, 'diffStartBlocks2');
+  var last_diff_start_blocks = new contractValueOverTime(BWORK_RPC, BWORK_CONTRACT_ADDRESS, BWORK_LAST_DIFF_START_BLOCK_INDEX, 'diffStartBlocks2');
 	log("last diff ",last_diff_start_blocks)
   // 'reward era' is at location 7
-  var era_values = new contractValueOverTime(eth, _CONTRACT_ADDRESS, _ERA_INDEX, 'eraValues2');
+  var era_values = new contractValueOverTime(BWORK_RPC, BWORK_CONTRACT_ADDRESS, BWORK_ERA_INDEX, 'eraValues2');
 log("last era_values ",era_values)
   // 'tokens minted' is at location 20
-  var tokens_minted_values = new contractValueOverTime(eth, _CONTRACT_ADDRESS, _TOKENS_MINTED_INDEX, 'tokensMinted2');
+  var tokens_minted_values = new contractValueOverTime(BWORK_RPC, BWORK_CONTRACT_ADDRESS, BWORK_TOKENS_MINTED_INDEX, 'tokensMinted2');
 
 log("last tokens_minted_values ",tokens_minted_values)
-  var tokens_price_values = new contractValueOverTime(eth, '0x498581fF718922c3f8e6A244956aF099B2652b2b', '0xd66bf39be2869094cf8d2d31edffab51dc8326eadf3c7611d397d156993996da', 'BWORKETHPrice');
+  var tokens_price_values = new contractValueOverTime(BWORK_RPC, '0x498581fF718922c3f8e6A244956aF099B2652b2b', '0xd66bf39be2869094cf8d2d31edffab51dc8326eadf3c7611d397d156993996da', 'BWORKETHPrice');
  
 //  var tokens_price_values =  new contractValueOverTime(eth, "0x7002d33c756f593ab41af4a236005766e80dc960", 9, 'tokensPrice');
 
@@ -1512,7 +1516,7 @@ log("last Price_values ",tokens_price_values.getValues)
   
   
 log("last tokens_minted_values ",tokens_minted_values)
-  var tokens_price_values3 = new contractValueOverTime(eth, '0x498581fF718922c3f8e6A244956aF099B2652b2b', '0xe570f6e770bf85faa3d1dbee2fa168b56036a048a7939edbcd02d7ebddf3f948', 'USDCETHPrice');
+  var tokens_price_values3 = new contractValueOverTime(BWORK_RPC, '0x498581fF718922c3f8e6A244956aF099B2652b2b', '0xe570f6e770bf85faa3d1dbee2fa168b56036a048a7939edbcd02d7ebddf3f948', 'USDCETHPrice');
 // new contractValueOverTime(eth, "0x80115c708E12eDd42E504c1cD52Aea96C547c05c", 9, 'tokensPrice3');
 
 		console.log("456FUCKTHIS: tokens_price_values3",tokens_price_values3);
@@ -1523,7 +1527,7 @@ log("last Price_values ",tokens_price_values.getValues)
 log("last Price_values ",tokens_price_values.getValues)
 log("last Price_values3 ",tokens_price_values3.getValues)
   // 'mining target' is at location 11
-  var mining_target_values = new contractValueOverTime(eth, _CONTRACT_ADDRESS, _MINING_TARGET_INDEX, 'miningTargets2');
+  var mining_target_values = new contractValueOverTime(BWORK_RPC, BWORK_CONTRACT_ADDRESS, BWORK_MINING_TARGET_INDEX, 'miningTargets2');
 log("last mining_target_values ",mining_target_values.getValues)
 log("last mining_target_values tokens_minted_values ",tokens_minted_values.getValues)
 log("end_eth_block", end_eth_block)
@@ -1702,8 +1706,8 @@ function updateGraphData(history_days, num_search_points) {
 
   setTimeout(async ()=>{
     /* loaded in main.js */
-    while(latest_eth_block == null) {
-      log('waiting for latest_eth_block...');
+    while(BWORK_latest_eth_block == null) {
+      log('waiting for BWORK_latest_eth_block...');
       await sleep(300);
     }
 
@@ -1719,16 +1723,24 @@ function updateGraphData(history_days, num_search_points) {
     // ignore value passed in, since we assume 24 hour data intervals in other parts of this code
     num_search_points = history_days;   
 	searchPoints2 = num_search_points
-    let start_eth_block = (latest_eth_block-max_blocks);
+    let start_eth_block = (BWORK_latest_eth_block-max_blocks);
 	  if(start_eth_block<25990908){
 			  start_eth_block = 25990908;  //25990908
 	  }
 	  
   log("latest_eth_block..."+latest_eth_block);
+  log("BWORK_latest_eth_block..."+BWORK_latest_eth_block);
+  log("USING BWORK_LATEST_ETH_BLOCK RIGHT NOW BWORK_latest_eth_block..."+BWORK_latest_eth_block);
   log("latest_eth_block max_blocks..."+max_blocks);
   log("latest_eth_block...="+(latest_eth_block-max_blocks));
   log("latest_eth_block max_blocks..."+start_eth_block);
-    let end_eth_block = latest_eth_block-8;
+    let end_eth_block = BWORK_latest_eth_block-8;
+
+
+  console.log("zz123123Start search at: ",start_eth_block);
+  
+  console.log("zz123123end_eth_block: ",end_eth_block);
     updateHashrateAndBlocktimeGraph(eth, start_eth_block, end_eth_block, num_search_points);
+
   }, 0); 
 }
