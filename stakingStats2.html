@@ -319,6 +319,27 @@ body::before {
     z-index: -1;
 }
 
+.header2 {
+    
+    backdrop-filter: none;
+    border-bottom: 3px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 40px 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.header2::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    z-index: -1;
+}
+
 @keyframes rotate {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
@@ -337,6 +358,25 @@ body::before {
 }
 
 .header p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.2rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+}
+
+.header2 h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #7877c6 50%, #ff0080 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 30px rgba(120, 119, 198, 0.5);
+}
+
+.header2 p {
     color: rgba(255, 255, 255, 0.8);
     font-size: 1.2rem;
     font-weight: 400;
@@ -417,6 +457,13 @@ body::before {
     }
     
     .header p {
+        font-size: 1rem;
+    }
+    .header2 h1 {
+        font-size: 2rem;
+    }
+    
+    .header2 p {
         font-size: 1rem;
     }
 }
@@ -1655,6 +1702,20 @@ button:disabled:hover {
 
 
 
+       /* Header with embedded chart */
+          /* Header with embedded chart */
+        .header2 {
+            backdrop-filter: blur(0px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 32px 24px; /* Reduced from 40px 30px */
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            height: 320px; /* Reduced from 400px (80% = 320px) */
+        }
+
+
 
 
 
@@ -1673,6 +1734,16 @@ button:disabled:hover {
 
         /* Chart container positioned behind text */
         .chart-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+        }
+
+        /* Chart container positioned behind text */
+        .chart-container2 {
             position: absolute;
             top: 0;
             left: 0;
@@ -1726,6 +1797,52 @@ button:disabled:hover {
             letter-spacing: 0.01em;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
         }
+
+
+
+
+
+.header2 {
+    position: relative;
+    height: 300px; /* or whatever fits your design */
+}
+
+.header2-content {
+    position: absolute;
+    top: 0;
+    bottom: 0;       /* stretches full height of header */
+    left: 0;
+    right: 0;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.header2-content p {
+    margin: 0;       /* no extra space */
+}
+        .header2 h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #7877c6 50%, #ff0080 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+            text-shadow: 0 0 30px rgba(120, 119, 198, 0.5);
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.7));
+        }
+
+        .header2 p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
 
         /* Rest of your existing styles */
         * {
@@ -1961,14 +2078,14 @@ button:disabled:hover {
     <div id="main-content2"  style="display: none;">
 
 
-        <div class="header">
+        <div class="header2">
             <!-- Chart positioned behind text -->
-            <div class="chart-container">
-                <canvas id="priceChart"></canvas>
+            <div class="chart-container2">
+                <canvas id="priceChart2"></canvas>
             </div>
             
             <!-- Text content positioned over chart -->
-            <div class="header-content">
+            <div class="header-content2">
                 <div class="megapunch-only">B[]x DeFi</div>
                 <p>Swap, Stake, and Manage Your Liquidity Positions</p>
             </div>
@@ -2905,6 +3022,8 @@ async function initializeChart() {
 
         const ctx = document.getElementById('priceChart').getContext('2d');
         
+        const ctx2 = document.getElementById('priceChart2').getContext('2d');
+        
         // Custom plugin to draw the movement bars
         const movementBarsPlugin = {
             id: 'movementBars',
@@ -3076,6 +3195,148 @@ async function initializeChart() {
         },
         plugins: [movementBarsPlugin]
     });
+
+
+
+
+    const priceChart2 = new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: '',
+                    data: prices,
+                    borderColor: 'rgba(0, 0, 0, 0)', // Transparent border
+                    backgroundColor: 'rgba(0, 0, 0, 0)', // Transparent background
+                    fill: false,
+                    tension: 0,
+                    pointRadius: 0, // No points
+                    pointHoverRadius: 0, // No hover points
+                    borderWidth: 0, // No border width
+                    order: 1,
+                    yAxisID: 'y' // Explicitly assign to the y-axis
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: '',
+                         color: 'white', // Make x-axis title white
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                    },
+                    type: 'category',
+                    ticks: {
+                            color: 'white', // Make x-axis labels white
+                        maxRotation: 45,
+                        minRotation: 0,
+                        autoSkip: false, // Don't let Chart.js auto-skip
+                        maxTicksLimit: 10,
+                        callback: function(value, index) {
+                            // Show every nth label for even distribution
+                            const totalPoints = labels.length;
+                            const showEvery = Math.max(1, Math.floor(totalPoints / 8)); // Show ~8 labels
+                            
+                            if (index % showEvery === 0 || index === totalPoints - 1) {
+                                return labels[index];
+                            }
+                            return null; // Return null instead of empty string to hide tick
+                        }
+                    },
+                    grid: {
+                        display: true,
+                        drawOnChartArea: true,
+                            color: 'rgba(255, 255, 255, 0.1)' // Light white grid lines
+
+                    }
+                },
+                y: {
+                    position: 'right', // Move Y-axis to the right side
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Price (USD $)',
+                        color: 'white', // Make y-axis title white
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                    },
+                    beginAtZero: false,
+                    ticks: {
+                            color: 'white', // Make y-axis labels white
+                        callback: function(value) {
+                            return '$' + value.toFixed(6);
+                        }
+                    },
+                    grid: {
+                        display: true,
+                        drawOnChartArea: true,
+                        color: 'rgba(255, 255, 255, 0.1)' // Light white grid lines for y-axis too
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true
+                },
+                tooltip: {
+                mode: 'index',
+                intersect: false,
+            displayColors: false, // This removes the little color box
+                callbacks: {
+                    label: function(context) {
+                        return `$${context.parsed.y.toFixed(8)}`; // Show 8 decimal places instead of default rounding
+                    },
+                    afterBody: function(context) {
+                        const dataIndex = context[0].dataIndex;
+                        if (dataIndex > 0) {
+                            const currentPrice = prices[dataIndex];
+                            const prevPrice = prices[dataIndex - 1];
+                            const change = currentPrice - prevPrice;
+                            const changePercent = ((change / prevPrice) * 100).toFixed(2);
+                            
+                            const date = new Date(timestamps[dataIndex] * 1000);
+                            const timeStr = date.toLocaleString();
+                            
+                            return [`Time: ${timeStr}`,
+                                `Previous: $${prevPrice.toFixed(8)}`, // More digits here too
+                                `Current: $${currentPrice.toFixed(8)}`, // And here
+                                `Change: ${change >= 0 ? '+' : ''}$${Math.abs(change).toFixed(8)}`,
+                                `(${change >= 0 ? '+' : ''}${changePercent}%)`];
+                        }
+                        return [`Time: ${new Date(timestamps[dataIndex] * 1000).toLocaleString()}`];
+                    }
+                }
+            }
+            }
+        },
+        plugins: [movementBarsPlugin]
+    });
+
+
+
 }
         
         // Initialize the chart when the page loads
