@@ -71,7 +71,7 @@ class contractValueOverTime {
     var use_storage = false;
     for (var count = 0; count < query_count - 1; count += 1) {
       var block_num = end_block_num - (stepsize*count);
-      if (Math.abs(block_num - last_storage_block) < 500) {
+      if (Math.abs(block_num - last_storage_block) < 2000) {
         use_storage = true;
       }
       if (use_storage) {

@@ -1001,83 +1001,122 @@ var total_TOTAL_mint_count_HASH = 0;
 
   // check to see if the browser has any data in localStorage we can use.
   // don't use the data, though, if it's from an old difficulty period
-  try {
+    try {
+    // Load local storage data first
     var last_diff_block_storage = Number(localStorage.getItem('lastDifficultyStartBlock_EraBitcoin2_afbRAFFABC'));
     last_imported_mint_block = Number(localStorage.getItem('lastMintBlock_EraBitcoin2_afbRAFFABC'));
     previousChallenge = JSON.parse(localStorage.getItem('mintData_GreekWedding2'));
-	  console.log("previous ended challenge is this, starting here");
+    console.log("previous ended challenge is this, starting here");
     var mint_data = localStorage.getItem('mintData_EraBitcoin2_afbRAFFABC');
 
-//FUCK THIS LINE    if (mint_data !== null && last_diff_block_storage == last_difficulty_start_block) {
-      if (mint_data !== null) {
-      mined_blocks = JSON.parse(mint_data);
-      log('imported', mined_blocks.length, 'transactions from localStorage');
-      mined_blocks.forEach(function(mintData) {
-		if(mintData[3] == -1){return;}
-		  
-		 if(mintData[3] !=0 && mintData[0] > last_difficulty_start_block){
-				if (miner_block_countHASH[mintData[2]] === undefined) {
-				  miner_block_countHASH[mintData[2]] = mintData[3];
-				} else {
-				  miner_block_countHASH[mintData[2]]+= mintData[3];
-				}
-			if ( total_mint_count_HASH[mintData[2]] ===  undefined) {
-			  total_mint_count_HASH[mintData[2]] =  1;
+    let localMinedBlocks = [];
+    let localLatestBlock = 0;
 
-			} else {
-			  total_mint_count_HASH[mintData[2]] +=  1;
-
-			}
-			 total_TOTAL_mint_count_HASH+=mintData[3]/25;
-			 
-			 totalZKBTC_Mined_HASH[mintData[2]] += mintData[3]/25;
-
-			 
-			 
-		 }
-		  
-        if (miner_block_count[mintData[2]] === undefined) {
-          miner_block_count[mintData[2]] =  mintData[3]/25;
-	  if(miner_block_count2[mintData[2]]  === undefined &&  mintData[3] != 0) {
-		  miner_block_count2[mintData[2]] =  1;
-	  }else if(  mintData[3] != 0 ){
-		miner_block_count2[mintData[2]] +=  1;
-	  }
-        } else {
-          miner_block_count[mintData[2]]+=  mintData[3]/25;
-	  if(miner_block_count2[mintData[2]]  === undefined &&  mintData[3] != 0) {
-		  miner_block_count2[mintData[2]] =  1;
-	  }else if(  mintData[3] != 0 ){
-		miner_block_count2[mintData[2]] +=  1;
-	  }
-        }
-	if(mintData[3] !=0){
-	    total_tx_count+=1;
-	}
-
-        if (total_block_count == 0) {
-          total_block_count =  mintData[3]/25;
-		
-        } else {
-          total_block_count+=  mintData[3]/25;
-		
-        }
-
-        if (totalZKBTC_Mined[mintData[2]] === undefined) {
-          totalZKBTC_Mined[mintData[2]] = mintData[3];
-	totalZKTC_Calculated += mintData[3];
-        } else {
-          totalZKBTC_Mined[mintData[2]]+=  mintData[3];
-	totalZKTC_Calculated += mintData[3];
-        }
-      });
+    if (mint_data !== null) {
+      localMinedBlocks = JSON.parse(mint_data);
+      // Find the highest block number in local data
+      localLatestBlock = Math.max(...localMinedBlocks.map(block => block[0]));
+      console.log('Local storage has', localMinedBlocks.length, 'blocks, latest:', localLatestBlock);
     }
+
+    // Fetch remote data
+    let remoteMinedBlocks = [];
+    let remoteLatestBlock = 0;
+    
+    try {
+      const response = await fetch('https://b0x-token.github.io/B0x-Website/data/mined_blocks.json');
+      if (response.ok) {
+        const remoteData = await response.json();
+        remoteMinedBlocks = remoteData.mined_blocks;
+        remoteLatestBlock = Math.max(...remoteMinedBlocks.map(block => block[0]));
+        console.log('Remote data has', remoteMinedBlocks.length, 'blocks, latest:', remoteLatestBlock);
+        
+        // Update previousChallenge if available in remote data
+        if (remoteData.previous_challenge) {
+          previousChallenge = remoteData.previous_challenge;
+        }
+      }
+    } catch (fetchError) {
+      console.log('Error fetching remote data:', fetchError.message);
+    }
+
+    // Compare and choose the best dataset
+    if (remoteLatestBlock > localLatestBlock) {
+      console.log('Using REMOTE data (more recent)');
+      mined_blocks = remoteMinedBlocks;
+      last_imported_mint_block = remoteLatestBlock;
+      
+      // Update localStorage with remote data
+      localStorage.setItem('mintData_EraBitcoin2_afbRAFFABC', JSON.stringify(remoteMinedBlocks));
+      localStorage.setItem('lastMintBlock_EraBitcoin2_afbRAFFABC', remoteLatestBlock.toString());
+      if (previousChallenge) {
+        localStorage.setItem('mintData_GreekWedding2', JSON.stringify(previousChallenge));
+      }
+    } else {
+      console.log('Using LOCAL data');
+      mined_blocks = localMinedBlocks;
+      last_imported_mint_block = localLatestBlock;
+    }
+
+    // Process the chosen mined_blocks array
+    console.log('imported', mined_blocks.length, 'transactions');
+    mined_blocks.forEach(function(mintData) {
+      if(mintData[3] == -1){return;}
+      
+      if(mintData[3] !=0 && mintData[0] > last_difficulty_start_block){
+        if (miner_block_countHASH[mintData[2]] === undefined) {
+          miner_block_countHASH[mintData[2]] = mintData[3];
+        } else {
+          miner_block_countHASH[mintData[2]]+= mintData[3];
+        }
+        if ( total_mint_count_HASH[mintData[2]] ===  undefined) {
+          total_mint_count_HASH[mintData[2]] =  1;
+        } else {
+          total_mint_count_HASH[mintData[2]] +=  1;
+        }
+        total_TOTAL_mint_count_HASH+=mintData[3]/25;
+        totalZKBTC_Mined_HASH[mintData[2]] += mintData[3]/25;
+      }
+      
+      if (miner_block_count[mintData[2]] === undefined) {
+        miner_block_count[mintData[2]] =  mintData[3]/25;
+        if(miner_block_count2[mintData[2]]  === undefined &&  mintData[3] != 0) {
+          miner_block_count2[mintData[2]] =  1;
+        }else if(  mintData[3] != 0 ){
+          miner_block_count2[mintData[2]] +=  1;
+        }
+      } else {
+        miner_block_count[mintData[2]]+=  mintData[3]/25;
+        if(miner_block_count2[mintData[2]]  === undefined &&  mintData[3] != 0) {
+          miner_block_count2[mintData[2]] =  1;
+        }else if(  mintData[3] != 0 ){
+          miner_block_count2[mintData[2]] +=  1;
+        }
+      }
+      if(mintData[3] !=0){
+        total_tx_count+=1;
+      }
+
+      if (total_block_count == 0) {
+        total_block_count =  mintData[3]/25;
+      } else {
+        total_block_count+=  mintData[3]/25;
+      }
+
+      if (totalZKBTC_Mined[mintData[2]] === undefined) {
+        totalZKBTC_Mined[mintData[2]] = mintData[3];
+        totalZKTC_Calculated += mintData[3];
+      } else {
+        totalZKBTC_Mined[mintData[2]]+=  mintData[3];
+        totalZKTC_Calculated += mintData[3];
+      }
+    });
+
   } catch (err) {
-    log('error reading from localStorage:', err.message);
+    console.log('error reading from localStorage:', err.message);
     last_imported_mint_block = 0;
     mined_blocks.length = 0;
   }
-
   var start_log_search_at = Math.max(last_difficulty_start_block +1, last_imported_mint_block + 1);
     last_reward_eth_block = last_reward_eth_block - 2
 
