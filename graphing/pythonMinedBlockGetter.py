@@ -259,18 +259,25 @@ class EthereumBlockFetcher:
 
 # Usage examples
 if __name__ == "__main__":
-    # Initialize with your Ethereum RPC URL
-    RPC_URL = "https://base-sepolia.g.alchemy.com/v2/fTukefKxyH-72aDTEBUHqcad2_SK53CC"
+    while True:
+        try:
+        
+            # Initialize with your Ethereum RPC URL
+            RPC_URL = "https://base-sepolia.g.alchemy.com/v2/fTukefKxyH-72aDTEBUHqcad2_SK53CC"
     
-    fetcher = EthereumBlockFetcher(RPC_URL)
+            fetcher = EthereumBlockFetcher(RPC_URL)
     
-    # Option 1: Run once manually
-    # fetcher.run_once(batch_size=499)
+            # Option 1: Run once manually
+            # fetcher.run_once(batch_size=499)
     
-    # Option 2: Run continuously every 3 minutes (recommended)
-    fetcher.run_continuously(interval_minutes=3, batch_size=499)
+            # Option 2: Run continuously every 3 minutes (recommended)
+            fetcher.run_continuously(interval_minutes=3, batch_size=499)
     
-    # Option 3: Start scheduler in background and do other things
-    # fetcher.start_scheduler(interval_minutes=3, batch_size=499)
-    # # Do other things here...
-    # # fetcher.stop_scheduler()  # Call this when you want to stop
+            # Option 3: Start scheduler in background and do other things
+            # fetcher.start_scheduler(interval_minutes=3, batch_size=499)
+            # # Do other things here...
+            # # fetcher.stop_scheduler()  # Call this when you want to stop
+        
+        except Exception as e:
+            print(f"Error during main execution: {e}")
+            time.sleep(175)
