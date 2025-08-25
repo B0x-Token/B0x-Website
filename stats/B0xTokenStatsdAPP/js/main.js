@@ -1143,8 +1143,11 @@ var total_TOTAL_mint_count_HASH = 0;
     run++;
     stop_log_search_at_loop = start_log_search_at_loop + 499
     log('searching from block', start_log_search_at_loop, 'to block', stop_log_search_at_loop);
-
-     sleep(400)
+    if(attempts > 25){
+      console.log("Errored too many attempts at block");
+      return;
+    }
+     await sleep(400* attempts);
     //
   /* get all mint() transactions in the last N blocks */
   /* more info: https://github.com/ethjs/ethjs/blob/master/docs/user-guide.md#ethgetlogs */
@@ -1255,7 +1258,6 @@ var total_TOTAL_mint_count_HASH = 0;
 	//	  run = run +1
 	//  }
 	  attempts = attempts + 1;
-     sleep(500)
   });
   
   }
