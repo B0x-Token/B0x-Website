@@ -1777,6 +1777,21 @@ button:disabled:hover {
 .header-content p {
     margin: 0;       /* no extra space */
 }
+.header-content2 {
+    position: absolute;
+    top: 0;
+    bottom: 0;       /* stretches full height of header */
+    left: 0;
+    right: 0;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.header-content2 p {
+    margin: 0;       /* no extra space */
+}
         .header h1 {
             font-size: 3rem;
             font-weight: 800;
@@ -2009,6 +2024,40 @@ button:disabled:hover {
     left: 0;
     top: 0;
 }
+
+/* Media query for small screens (typically mobile devices) */
+@media (max-width: 768px) {
+    
+    .megapunch-only {
+        font-size: 2rem; /* reduced from 3rem */
+    }
+}
+
+/* For even smaller screens (mobile portrait) */
+@media (max-width: 480px) {
+    
+    .megapunch-only {
+        font-size: 1.5rem; /* further reduced */
+    }
+}
+@media (max-width: 500px) {
+    .header2 {
+        height: 400px; /* increase from 300px */
+    }
+    
+    .chart-container2 {
+        height: 90%; /* make chart fill the space */
+    }   
+    
+    .header {
+        height: 400px; /* increase from 300px */
+    }
+    
+    .chart-container {
+        height: 90%; /* make chart fill the space */
+    }
+}
+
     </style>
 </head>
 <body>
@@ -3059,6 +3108,12 @@ async function initializeChart() {
         };
 
         
+                        var divideby = 8;
+                        const mediaQuery = window.matchMedia('(max-width: 768px)');
+
+                        if(mediaQuery.matches){
+                                divideby = 4;
+                        }
 
     const priceChart = new Chart(ctx, {
         type: 'line',
@@ -3117,7 +3172,46 @@ async function initializeChart() {
                         callback: function(value, index) {
                             // Show every nth label for even distribution
                             const totalPoints = labels.length;
-                            const showEvery = Math.max(1, Math.floor(totalPoints / 8)); // Show ~8 labels
+                            const showEvery = Math.max(1, Math.floor(totalPoints / divideby)); // Show ~8 labels
+
+                            if (index % showEvery === 0 || index === totalPoints - 1) {
+                                 if(divideby == 4){
+                                        let label = labels[index];
+                                        console.log('Processing label:', label);
+                                        console.log('Processing label:', label);
+                                        console.log('Processing index:', index);
+                                        console.log('Processing totalPoints:', totalPoints);
+                                        if(totalPoints - showEvery < index &&  index != totalPoints-1){
+                                            console.log("not showing index: ",index);
+                                            return null;
+                                        }
+                                      
+                                        if (label.includes('days ago')) {
+                                            const days = Math.round(parseFloat(label));
+                                            console.log('Converted days:', days);
+                                            const result = days + 'd ago';
+                                            console.log('Final result:', result);
+                                            return result;
+                                        } else if (label.includes('hours ago')) {
+                                            const hours = Math.round(parseFloat(label));
+                                            console.log('Converted hours:', hours);
+                                            const result = hours + 'h ago';
+                                            console.log('Final result:', result);
+                                            return result;
+                                        }
+                                }else{
+                                        let label = labels[index];
+
+                                        if(totalPoints - showEvery < index &&  index != totalPoints-1){
+                                       
+                                            console.log("not showing index: ",index);
+                                            return null;
+                                        }
+                                        return label;
+
+
+                                }
+                        }
                             
                             if (index % showEvery === 0 || index === totalPoints - 1) {
                                 return labels[index];
@@ -3198,7 +3292,6 @@ async function initializeChart() {
 
 
 
-
     const priceChart2 = new Chart(ctx2, {
         type: 'line',
         data: {
@@ -3256,8 +3349,49 @@ async function initializeChart() {
                         callback: function(value, index) {
                             // Show every nth label for even distribution
                             const totalPoints = labels.length;
-                            const showEvery = Math.max(1, Math.floor(totalPoints / 8)); // Show ~8 labels
-                            
+                            const showEvery = Math.max(1, Math.floor(totalPoints / divideby)); // Show ~8 labels
+                            if (index % showEvery === 0 || index === totalPoints - 1) {
+                                 if(divideby == 4){
+                                        let label = labels[index];
+                                        console.log('1Processing label:', label);
+                                        console.log('1Processing index:', index);
+                                        console.log('1Processing showEvery:', showEvery);
+                                        console.log('1Processing totalPoints:', totalPoints);
+                                        
+    // Add this debug line:
+    console.log('Condition check:', totalPoints - showEvery, '<', index, '&&', index, '!=', totalPoints-1);
+    console.log('Result:', totalPoints - showEvery < index && index != totalPoints-1);
+    
+                                        if(totalPoints - showEvery < index &&  index != totalPoints-1){
+                                       
+                                            console.log("not showing index: ",index);
+                                            return null;
+                                        }
+                                        if (label.includes('days ago')) {
+                                            const days = Math.round(parseFloat(label));
+                                            console.log('Converted days:', days);
+                                            const result = days + 'd ago';
+                                            console.log('Final result:', result);
+                                            return result;
+                                        } else if (label.includes('hours ago')) {
+                                            const hours = Math.round(parseFloat(label));
+                                            console.log('Converted hours:', hours);
+                                            const result = hours + 'h ago';
+                                            console.log('Final result:', result);
+                                            return result;
+                                        }
+                                }else{
+
+                                        if(totalPoints - showEvery < index &&  index != totalPoints-1){
+                                       
+                                            console.log("not showing index: ",index);
+                                            return null;
+                                        }
+                                        return label;
+
+
+                                }
+                        }
                             if (index % showEvery === 0 || index === totalPoints - 1) {
                                 return labels[index];
                             }
@@ -5446,11 +5580,6 @@ function updateStakePercentage(value) {
         tokenInputs[1].value = `${(((tokenBAmount*(100-penaltyAsNumber))/100)).toFixed(tokenBDecimals)} ${position.tokenB}`;
     }
 }
-
-
-
-
-
 
 
 
