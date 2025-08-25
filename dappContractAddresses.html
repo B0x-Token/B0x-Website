@@ -2122,25 +2122,29 @@ button:disabled:hover {
     gap: 12px;
     flex-wrap: wrap;
 }
-
-.address {    
+.address {
     color: #ffffff;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 16px 20px;
-    border-radius: 12px;
-    flex: 1;
-    min-width: 200px;
+    padding: 0px 0%;
+    border-radius: 0px;
     font-size: 1rem;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    resize: vertical;
-    word-wrap: break-word;
-    white-space: pre-wrap;
     line-height: 1.4;
-}
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
+    /* ✅ Critical fixes */
+    height: auto;               
+    min-width: 0;
+    width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+
+    /* ✅ Force at least 3 lines tall */
+    min-height: calc(1.4em * 3);  /* line-height × 3 lines */
+}
 .address:focus {
     outline: none;
     border-color: #7877c6;
@@ -2295,14 +2299,7 @@ button:disabled:hover {
         gap: 8px;
     }
     
-    .address {
-        flex: none;
-        min-width: unset;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        word-break: normal;
-    }
+    
     
     .container11 .btn {
         flex: 1;
