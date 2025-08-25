@@ -3177,6 +3177,7 @@ async function initializeChart() {
                             if (index % showEvery === 0 || index === totalPoints - 1) {
                                  if(divideby == 4){
                                         let label = labels[index];
+                                        console.log("label: ", label);
                                         if(totalPoints - showEvery < index &&  index != totalPoints-1){
                                             console.log("not showing index: ",index);
                                             return null;
@@ -3195,9 +3196,28 @@ async function initializeChart() {
                                             //console.log('Final result:', result);
                                             return result;
                                         }
+                                        if (label.includes('min ago')) {
+
+                                            const min = parseFloat(label);
+                                            result = min + "m ago";
+                                            return result;
+                                        }
                                 }else{
                                         let label = labels[index];
 
+                                        console.log("label: ", label);
+                                        if (label.includes('min ago')) {
+
+                                            const min = parseFloat(label);
+                                            result = min + " min ago";
+                                            return result;
+                                        }
+                                        if (label.includes('h ago')) {
+
+                                            const min = parseFloat(label);
+                                            result = min + " hours ago";
+                                            return result;
+                                        }
                                         if(totalPoints - showEvery < index &&  index != totalPoints-1){
                                        
                                             console.log("not showing index: ",index);
@@ -3349,7 +3369,7 @@ async function initializeChart() {
                             if (index % showEvery === 0 || index === totalPoints - 1) {
                                  if(divideby == 4){
                                         let label = labels[index];
-    
+                                        console.log("label: ", label);
                                         if(totalPoints - showEvery < index &&  index != totalPoints-1){
                                        
                                             console.log("not showing index: ",index);
@@ -3368,8 +3388,35 @@ async function initializeChart() {
                                           //  console.log('Final result:', result);
                                             return result;
                                         }
+
+                                        if (label.includes('h ago')) {
+
+                                            const min = parseFloat(label);
+                                            result = min + " hours ago";
+                                            return result;
+                                        }
+                                        if (label.includes('min ago')) {
+
+                                            const min = parseFloat(label);
+                                            result = min + "min ago";
+                                            return result;
+                                        }
                                 }else{
 
+                                        let label = labels[index];
+                                        console.log("label: ", label);
+                                        if (label.includes('min ago')) {
+
+                                            const min = parseFloat(label);
+                                            result = min + " min ago";
+                                            return result;
+                                        }
+                                        if (label.includes('h ago')) {
+
+                                            const min = parseFloat(label);
+                                            result = min + " hours ago";
+                                            return result;
+                                        }
                                         if(totalPoints - showEvery < index &&  index != totalPoints-1){
                                        
                                             console.log("not showing index: ",index);
