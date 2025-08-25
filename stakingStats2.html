@@ -3177,10 +3177,6 @@ async function initializeChart() {
                             if (index % showEvery === 0 || index === totalPoints - 1) {
                                  if(divideby == 4){
                                         let label = labels[index];
-                                        console.log('Processing label:', label);
-                                        console.log('Processing label:', label);
-                                        console.log('Processing index:', index);
-                                        console.log('Processing totalPoints:', totalPoints);
                                         if(totalPoints - showEvery < index &&  index != totalPoints-1){
                                             console.log("not showing index: ",index);
                                             return null;
@@ -3188,15 +3184,15 @@ async function initializeChart() {
                                       
                                         if (label.includes('days ago')) {
                                             const days = Math.round(parseFloat(label));
-                                            console.log('Converted days:', days);
+                                            //console.log('Converted days:', days);
                                             const result = days + 'd ago';
-                                            console.log('Final result:', result);
+                                            //console.log('Final result:', result);
                                             return result;
                                         } else if (label.includes('hours ago')) {
                                             const hours = Math.round(parseFloat(label));
-                                            console.log('Converted hours:', hours);
+                                           // console.log('Converted hours:', hours);
                                             const result = hours + 'h ago';
-                                            console.log('Final result:', result);
+                                            //console.log('Final result:', result);
                                             return result;
                                         }
                                 }else{
@@ -3353,14 +3349,6 @@ async function initializeChart() {
                             if (index % showEvery === 0 || index === totalPoints - 1) {
                                  if(divideby == 4){
                                         let label = labels[index];
-                                        console.log('1Processing label:', label);
-                                        console.log('1Processing index:', index);
-                                        console.log('1Processing showEvery:', showEvery);
-                                        console.log('1Processing totalPoints:', totalPoints);
-                                        
-    // Add this debug line:
-    console.log('Condition check:', totalPoints - showEvery, '<', index, '&&', index, '!=', totalPoints-1);
-    console.log('Result:', totalPoints - showEvery < index && index != totalPoints-1);
     
                                         if(totalPoints - showEvery < index &&  index != totalPoints-1){
                                        
@@ -3369,15 +3357,15 @@ async function initializeChart() {
                                         }
                                         if (label.includes('days ago')) {
                                             const days = Math.round(parseFloat(label));
-                                            console.log('Converted days:', days);
+                                          //  console.log('Converted days:', days);
                                             const result = days + 'd ago';
-                                            console.log('Final result:', result);
+                                          //  console.log('Final result:', result);
                                             return result;
                                         } else if (label.includes('hours ago')) {
                                             const hours = Math.round(parseFloat(label));
-                                            console.log('Converted hours:', hours);
+                                          //  console.log('Converted hours:', hours);
                                             const result = hours + 'h ago';
-                                            console.log('Final result:', result);
+                                          //  console.log('Final result:', result);
                                             return result;
                                         }
                                 }else{
