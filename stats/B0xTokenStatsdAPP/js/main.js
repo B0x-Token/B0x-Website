@@ -857,7 +857,7 @@ function combineWithMinerData(miner_blk_cnt, transactionsData) {
 
 function showBlockDistributionPieChart(piechart_dataset, piechart_labels) {
   //console.log('dataset', piechart_dataset);
-  el('#blockdistributionpiechart2').innerHTML = '<canvas id="chart-block-distribution" width="2rem" height="2rem"></canvas>';
+  el('#blockdistributionpiechart').innerHTML = '<canvas id="chart-block-distribution" width="2rem" height="2rem"></canvas>';
 
   if(piechart_dataset.length == 0 || piechart_labels.length == 0) {
     return;
@@ -1003,11 +1003,11 @@ var total_TOTAL_mint_count_HASH = 0;
   // don't use the data, though, if it's from an old difficulty period
     try {
     // Load local storage data first
-    var last_diff_block_storage = Number(localStorage.getItem('lastDifficultyStartBlock_EraBitcoin2_afbRAFFABC'));
-    last_imported_mint_block = Number(localStorage.getItem('lastMintBlock_EraBitcoin2_afbRAFFABC'));
-    previousChallenge = JSON.parse(localStorage.getItem('mintData_GreekWedding2'));
+    var last_diff_block_storage = Number(localStorage.getItem('lastDifficultyStartBlock_EraBitcoin2_afbRAFFABC_B0x'));
+    last_imported_mint_block = Number(localStorage.getItem('lastMintBlock_EraBitcoin2_afbRAFFABC_B0x'));
+    previousChallenge = JSON.parse(localStorage.getItem('mintData_GreekWedding2_B0x'));
     console.log("previous ended challenge is this, starting here");
-    var mint_data = localStorage.getItem('mintData_EraBitcoin2_afbRAFFABC');
+    var mint_data = localStorage.getItem('mintData_EraBitcoin2_afbRAFFABC_B0x');
 
     let localMinedBlocks = [];
     let localLatestBlock = 0;
@@ -1024,11 +1024,11 @@ var total_TOTAL_mint_count_HASH = 0;
     let remoteLatestBlock = 0;
     
     try {
-      const response = await fetch('https://b0x-token.github.io/B0x-Website/data/mined_blocks.json');
+      const response = await fetch('https://raw.githubusercontent.com/B0x-Token/B0x-Website/refs/heads/main/data/mined_blocks.json');
       if (response.ok) {
         const remoteData = await response.json();
         remoteMinedBlocks = remoteData.mined_blocks;
-        remoteLatestBlock = Math.max(...remoteMinedBlocks.map(block => block[0]));
+        remoteLatestBlock = remoteData.latest_block_number
         console.log('Remote data has', remoteMinedBlocks.length, 'blocks, latest:', remoteLatestBlock);
         
         // Update previousChallenge if available in remote data
@@ -1047,10 +1047,10 @@ var total_TOTAL_mint_count_HASH = 0;
       last_imported_mint_block = remoteLatestBlock;
       
       // Update localStorage with remote data
-      localStorage.setItem('mintData_EraBitcoin2_afbRAFFABC', JSON.stringify(remoteMinedBlocks));
-      localStorage.setItem('lastMintBlock_EraBitcoin2_afbRAFFABC', remoteLatestBlock.toString());
+      localStorage.setItem('mintData_EraBitcoin2_afbRAFFABC_B0x', JSON.stringify(remoteMinedBlocks));
+      localStorage.setItem('lastMintBlock_EraBitcoin2_afbRAFFABC_B0x', remoteLatestBlock.toString());
       if (previousChallenge) {
-        localStorage.setItem('mintData_GreekWedding2', JSON.stringify(previousChallenge));
+        localStorage.setItem('mintData_GreekWedding2_B0x', JSON.stringify(previousChallenge));
       }
     } else {
       console.log('Using LOCAL data');
@@ -1062,7 +1062,7 @@ var total_TOTAL_mint_count_HASH = 0;
     console.log('imported', mined_blocks.length, 'transactions');
     mined_blocks.forEach(function(mintData) {
       if(mintData[3] == -1){return;}
-      
+      console.log("Last diff start block: ",last_difficulty_start_block, "    Vs mintDataBlock: ",mintData[0])
       if(mintData[3] !=0 && mintData[0] > last_difficulty_start_block){
         if (miner_block_countHASH[mintData[2]] === undefined) {
           miner_block_countHASH[mintData[2]] = mintData[3];
@@ -1117,7 +1117,7 @@ var total_TOTAL_mint_count_HASH = 0;
     last_imported_mint_block = 0;
     mined_blocks.length = 0;
   }
-  var start_log_search_at = Math.max(last_difficulty_start_block +1, last_imported_mint_block + 1);
+  var start_log_search_at = Math.max(ethblockstart +1, last_imported_mint_block + 1);
     last_reward_eth_block = last_reward_eth_block - 2
 
   log("searching lastlast_difficulty_start_block", last_difficulty_start_block, "blocks");
@@ -1260,12 +1260,12 @@ var total_TOTAL_mint_count_HASH = 0;
   
   }
     if (run > 0) {
-      localStorage.setItem('mintData_EraBitcoin2_afbRAFFABC', JSON.stringify(mined_blocks));
-      localStorage.setItem('mintData_GreekWedding2', JSON.stringify(previousChallenge));
+      localStorage.setItem('mintData_EraBitcoin2_afbRAFFABC_B0x', JSON.stringify(mined_blocks));
+      localStorage.setItem('mintData_GreekWedding2_B0x', JSON.stringify(previousChallenge));
 		if (mined_blocks[0] !== undefined) {
-			localStorage.setItem('lastMintBlock_EraBitcoin2_afbRAFFABC', mined_blocks[0][0]);
+			localStorage.setItem('lastMintBlock_EraBitcoin2_afbRAFFABC_B0x', current_eth_block);
 		}
-      localStorage.setItem('lastDifficultyStartBlock_EraBitcoin2_afbRAFFABC', last_difficulty_start_block.toString());
+      localStorage.setItem('lastDifficultyStartBlock_EraBitcoin2_afbRAFFABC_B0x', last_difficulty_start_block.toString());
     }
 
     log("processed blocks:",
@@ -1486,7 +1486,7 @@ const formattedNumberfffff2FFFF = new Intl.NumberFormat(navigator.language).form
         + '100%' + '</td><td style="border-bottom: 0rem;">'+ toReadableHashrate(estimated_network_hashrate, false)+ '</td><td style="border-bottom: 0rem;">'+totalBlockszzz+'</td><td style="border-bottom: 0rem;">'+formattedNumberfffff2FFFF+' B0x</td></tr>';
 	
 	
-//	el('#minerstats2').innerHTML = innerhtml_buffer2;
+	el('#minerstats2').innerHTML = innerhtml_buffer2;
     log('done populating RECENT miner stats');
     // $(window).hide().show(0);
     // $(window).trigger('resize');
