@@ -4514,8 +4514,87 @@ async function checkWalletConnection() {
             let signerETH =  "";
             let provider = "";
             let signer =  "";
-        async function connectWallet() {
-            console.log("ConnectWallet");
+
+
+
+async function quickconnectWallet() 
+{
+
+        console.log("ConnectWallet");
+
+        if (walletConnected) {
+            console.log('Wallet already connected');
+            return userAddress;
+        }
+
+        if (typeof window.ethereum === 'undefined') {
+            alert('Please install MetaMask or Rabby wallet!');
+            return null;
+        }
+
+
+        try {
+            const accounts = await window.ethereum.request({
+            method: 'eth_requestAccounts'
+            });
+            if (accounts.length > 0) {
+            
+
+            // Switch to Base Sepolia network
+            await switchToBaseSepolia();
+            userAddress = accounts[0];
+            walletConnected = true;
+            
+
+            localStorage.setItem('walletConnected', 'true');
+            localStorage.setItem('walletAddress', userAddress);
+            
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+
+            updateWalletUI(userAddress, true);
+            
+            await switchToEthereum();
+            
+
+            // Set up event listeners for account changes
+            setupWalletListeners();
+            await fetchBalances();
+
+            await fetchBalancesETH();
+            await getRewardStats();
+
+            getTokenIDsOwnedByMetamask();
+            await checkAdminAccess();
+
+            await loadPositionsIntoDappSelections();
+
+            throttledGetSqrtRtAndPriceRatio("ConnectWallet");
+            await getCurrentPoolFee();
+
+            const toggle = document.getElementById('#settings toggle1');
+            if(toggle1.checked){
+                console.log ("contractAddresses MATCH ");
+            await restoreDefaultAddressesfromContract();
+            }
+
+
+
+            return userAddress;
+            }
+        } catch (error) {
+            handleWalletError(error);
+            return null;
+        }
+
+}
+
+
+
+async function connectWallet() 
+{
+
+        console.log("ConnectWallet");
 
         if (walletConnected) {
             console.log('Wallet already connected');
@@ -6846,6 +6925,11 @@ async function addToMetaMaskByIndex(index, button) {
     if (!contractData || !contractData.isToken) {
         showToast("Invalid token data", true);
         return;
+    }
+
+    if (!walletConnected) {
+
+        await quickconnectWallet();
     }
     
     // Move originalText OUTSIDE the try block so it's accessible in catch
