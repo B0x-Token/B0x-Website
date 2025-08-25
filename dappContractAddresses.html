@@ -5494,20 +5494,39 @@
 
         function switchTab(tabName) {
             // Hide all pages
-            const pages = document.querySelectorAll('.page');
+            const pages = document.querySelectorAll('#main-content2 .page');
+
+            console.log("Pages: ",pages);
             pages.forEach(page => page.classList.remove('active'));
+            const pages2 = document.querySelectorAll('#main-content .page');
+            pages2.forEach(page => page.classList.remove('active'));
 
             // Remove active class from all tabs
-            const tabs = document.querySelectorAll('.nav-tab');
+            const tabs = document.querySelectorAll('#main-content2 .nav-tab');
             tabs.forEach(tab => tab.classList.remove('active'));
+            const tabs2 = document.querySelectorAll('#main-content .nav-tab');
+            tabs2.forEach(tab => tab.classList.remove('active'));
 
             // Add active class to clicked tab (find the tab by matching text content)
             const activeTab = Array.from(tabs).find(tab =>
                 tab.textContent.toLowerCase().includes(tabName.toLowerCase()) ||
                 tab.getAttribute('onclick').includes(`'${tabName}'`)
             );
+            
+
+            
             if (activeTab) {
                 activeTab.classList.add('active');
+            }
+
+
+            const activeTab2 = Array.from(tabs2).find(tab =>
+                tab.textContent.toLowerCase().includes(tabName.toLowerCase()) ||
+                tab.getAttribute('onclick').includes(`'${tabName}'`)
+            );
+
+            if (activeTab2) {
+                activeTab2.classList.add('active');
             }
 
             // Handle content switching
