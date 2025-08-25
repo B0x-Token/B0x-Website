@@ -115,6 +115,7 @@ Attributions:
         </div>
       </div>
 
+      
       <div style="display:none;" id="row-statistics">
         <div class="row">
           <div class="column"><h4 class="add-top-padding-5">Current Contract Status</h4></div>
@@ -141,8 +142,26 @@ Attributions:
           <div class="column">
             <table>
               <!--<thead id="minerstats2"> <tr> <th> </th> <th> </th> </tr> </thead>-->
+              <tbody id="minerstats2">
+                <tr><td colspan="3">Loading info from the blockchain...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div style="display:none;" id="row-miners">
+        <div class="row">
+          <div class="column"><h4 class="add-top-padding"><a name="miners"></a>Block distribution since launch</h4></div>
+        </div>
+        <div class="row">
+          <div class="column column-25" style="max-width:30rem;">
+            <div id="blockdistributionpiechart"></div>
+          </div>
+          <div class="column">
+            <table>
+              <!--<thead id="minerstats"> <tr> <th> </th> <th> </th> </tr> </thead>-->
               <tbody id="minerstats">
-                <tr><td colspan="3">Loading info from the blockchain...  Takes a few minutes</td></tr>
+                <tr><td colspan="3">Loading info from the blockchain...</td></tr>
               </tbody>
             </table>
           </div>
@@ -150,14 +169,14 @@ Attributions:
       </div>
       <div style="display:none;" id="row-blocks">
         <div class="row">
-          <div class="column"><h4 class="add-top-padding"><a name="blocks"></a>Blocks solved in latest Difficulty period</h4></div>
+          <div class="column"><h4 class="add-top-padding"><a name="blocks"></a>Blocks solved since launch</h4></div>
         </div>
         <div class="row">
           <div class="column">
             <table>
               <!--<thead id="minerstats"> <tr> <th> </th> <th> </th> </tr> </thead>-->
               <tbody id="blockstats">
-                <tr><td colspan="3">Loading info from the blockchain... Takes a few minutes</td></tr>
+                <tr><td colspan="3">Loading info from the blockchain...</td></tr>
               </tbody>
             </table>
           </div>
