@@ -2991,7 +2991,7 @@
 
 
 
-                    <button class="btn-primary" id="executeSwapBtn" onclick="executeSwap()">Execute Swap</button>
+                    <button class="btn-primary" id="executeSwapBtn" onclick="executeConvert()">Convert Tokens</button>
                     <!--   <button class="btn-primary" onclick="getRatioCreatePositiontokenA()">getRatioCreatePositiontokenA Position</button>
                     <button class="btn-primary" onclick="getRatioCreatePositiontokenB()">getRatioCreatePositiontokenB Position</button>
                     <button class="btn-primary" onclick="getMaxCreatePosition()">getMaxCreatePosition Button</button> -->
@@ -3853,63 +3853,101 @@
 
 
 
+const USDCToken = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+const positionManager_address = "0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80";
+const contractAddress_PositionFinderPro = '0xC688886ca562915DcbBD3C297aA611b438429E1C'; // Replace with actual contract address
+const contractAddress_Swapper = '0xcb6d55E105b2d1004bd89c1016C331dFF104884f'; // Replace with actual contract address
+const contractAddressLPRewardsStaking = '0xe1F1bCB735791c566db881913E388475edAF000A';
+const hookAddress = '0x30635A1fA4AFFb1Db26E6f88A04911d3b2769000';
+const ProofOfWorkAddresss = '0xE09d0f77E63860cAb61e0b9DebD97Dc30aec32F5';
 
-        const USDCToken = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
-        const positionManager_address = "0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80";
-        const contractAddress_PositionFinderPro = '0x1b316565F8C46215B773aA792e41FbE13FED397e'; // Replace with actual contract address
-        const contractAddress_Swapper = '0x773cf7f35c531cF46f6Cc558B515129f5B571bDC'; // Replace with actual contract address
-        const contractAddressLPRewardsStaking = '0x99EA8e715B73da512D6dBC51939518e4C9A91Fcf';
-        const hookAddress = '0x0343CcAd34c4785d75E8Aa9256ec5eaAD7089000';
-        const ProofOfWorkAddresss = '0xc121A73059DC953B4E4A323F1bc568877CC9B492';
+// Token addresses mapping
+const tokenAddresses = {
+'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
+'B0x': '0xb50F524182061e705Dfe88396bb92DB08752Adb6',
+'0xBTC': '0xa868D17f7eD3Ba5b9792b4cd784F5bE52F93BBF7',
+'WETH': '0x4200000000000000000000000000000000000006',
+'RightsTo0xBTC': '0x38Dce15Cc8BB62DB8aF6ad65279cfBEE19465cD5', //temp until mainnet
+'USDC': '0x036CbD53842c5426634e7929541eC2318f3dCF7e', //temp until mainnet
+};
 
-        // Token addresses mapping
-        const tokenAddresses = {
-            'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
-            'B0x': '0xbA472ac3c91b3b82dDb53106F7E8d42941b4d975',
-            '0xBTC': '0xb3c03EAa69e38dbde03474901337991cE939B49e',
-            'WETH': '0x4200000000000000000000000000000000000006',
-            'RightsTo0xBTC': '0x4200000000000000000000000000000000000006',
-            'USDC': '0x4200000000000000000000000000000000000006',
+
+
+    const tokenMap = {
+        "0x4200000000000000000000000000000000000006": "WETH",
+        "0x0000000000000000000000000000000000000000": "ETH",
+        "0xb50F524182061e705Dfe88396bb92DB08752Adb6": "B0x",
+        "0xa868D17f7eD3Ba5b9792b4cd784F5bE52F93BBF7": "0xBTC",
+        "0x38Dce15Cc8BB62DB8aF6ad65279cfBEE19465cD5": "RightsTo0xBTC", //temp until mainnet
+        "0x036CbD53842c5426634e7929541eC2318f3dCF7e": "USDC", //temp until mainnet
+        // Add more token mappings as needed
+    };
+
+
+   
+
+
+// Token addresses mapping FOR ETHEREUM MAINNET ONLY but using testnet base sepolia instead of mainnet ETH
+  const tokenAddressesETH = {
+      'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
+      'B0x': '0xb50F524182061e705Dfe88396bb92DB08752Adb6',
+      '0xBTC': '0xa868D17f7eD3Ba5b9792b4cd784F5bE52F93BBF7',
+      'RightsTo0xBTC': '0x38Dce15Cc8BB62DB8aF6ad65279cfBEE19465cD5',
+      };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        var walletBalancesETH = {
+            'ETH': 0.0,
+            '0xBTC': 0.000,
+            'B0x': 0.00,
+            'RightsTo0xBTC': 0.00
         };
 
 
 
-        const tokenMap = {
-            "0x4200000000000000000000000000000000000006": "WETH",
-            "0x0000000000000000000000000000000000000000": "ETH",
-            "0xbA472ac3c91b3b82dDb53106F7E8d42941b4d975": "B0x",
-            "0xb3c03EAa69e38dbde03474901337991cE939B49e": "0xBTC",
-            "0x4200000000000000000000000000000000000006": "RightsTo0xBTC", //temp
-            "0x4200000000000000000000000000000000000006": "USDC", //temp
-            // Add more token mappings as needed
-        };
+        let lastCallTime = 0;
+        const THROTTLE_DELAY = 15000; // 15 seconds in milliseconds
 
+        // Declare global variables that should be defined elsewhere in your application
+        let tokenSwapper = contractAddress_Swapper;
+        let tokenAddress = tokenAddresses["B0x"];
+        let Address_ZEROXBTC_TESTNETCONTRACT = tokenAddresses["0xBTC"];
 
-
-
-
-
-
-
-
-        // Token addresses mapping FOR ETHEREUM MAINNET ONLY
-        const tokenAddressesETH = {
-            'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
-            'B0x': '0xbA472ac3c91b3b82dDb53106F7E8d42941b4d975',
-            '0xBTC': '0xb3c03EAa69e38dbde03474901337991cE939B49e',
-            'RightsTo0xBTC': '0x4f404695CF5531271a0698b746225867B4C0a89c',
-        };
-
-
-
-
-
-
-
-
-
-
-
+        let HookAddress = hookAddress;
+        let MinamountOut; // Declare this variable globally
 
 
 
@@ -4796,7 +4834,7 @@
             console.log("EERRROR contractAddress_Swapper: ",contractAddress_Swapper);
             */
 
-            var tokenInputAddress = tokenAddress;
+            var tokenInputAddress = tokenAddresses['B0x'];
             amountToSwap = BigInt(10 ** 18);
             // Call the view function
             var result = 0;
@@ -5159,14 +5197,15 @@
 
                     updateWalletUI(userAddress, true);
 
-                    await switchToEthereum();
 
 
                     // Set up event listeners for account changes
                     setupWalletListeners();
                     await fetchBalances();
 
+                    await switchToEthereum();
                     await fetchBalancesETH();
+                    await switchToBaseSepolia();
                     await getRewardStats();
 
                     await getTokenIDsOwnedByMetamask();
@@ -5271,14 +5310,14 @@
                     method: 'wallet_addEthereumChain',
                     params: [EthereumConfig]
                 });
-                console.log('Base Sepolia network added/confirmed');
+                console.log('Ethereum network added/confirmed');
 
                 // Then switch to it
                 await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
                     params: [{ chainId: EthereumConfig.chainId }]
                 });
-                console.log('Switched to Base Sepolia network');
+                console.log('Switched to Ethereum network');
 
                 providerETH = new ethers.providers.Web3Provider(window.ethereum);
                 signerETH = provider.getSigner();
@@ -5634,7 +5673,10 @@
 
         var olduserAddy = "0x0";
         async function connect2() {
+
+                 await switchToEthereum();
             await fetchBalancesETH();
+                    await switchToBaseSepolia();
             await fetchBalances();
 
             await getRewardStats();
@@ -9975,13 +10017,6 @@ function displayWalletBalancesETH() {
 
 
 
-        // Declare global variables that should be defined elsewhere in your application
-        let tokenSwapper = contractAddress_Swapper;
-        let tokenAddress = tokenAddresses["B0x"];
-        let Address_ZEROXBTC_TESTNETCONTRACT = tokenAddresses["0xBTC"];
-
-        let HookAddress = hookAddress;
-        let MinamountOut; // Declare this variable globally
 
         async function getSwapOfTwoTokens() {
             if (!walletConnected) {
@@ -10303,6 +10338,133 @@ function displayWalletBalancesETH() {
 
         }
 
+
+        async function executeConvert(){
+
+
+            const fromSelect = document.querySelector('#convert .form-group:nth-child(3) select');
+
+
+            // Get the currently selected value
+            const selectedValue = fromSelect.value;
+            console.log("Currently selected value:", selectedValue);
+
+            // Or get the selected option element itself
+            const selectedOption = fromSelect.options[fromSelect.selectedIndex];
+
+            if (selectedOption.value == 'B0x') {
+                console.log("Withdrawing from V2 to V1");
+                withdrawFromV2toV1();
+            }
+            else{
+                console.log("Depositing from V1 to V2");
+                depositFromV1toV2();
+            }
+
+        }
+
+
+
+        async function depositFromV1toV2(){
+            try {
+                tokenInputAddress = tokenAddressesETH['0xBTC'];
+                console.log("tokenInputAddresstokenInputAddresstokenInputAddresstokenInputAddress", tokenInputAddress);
+                const amountInput = document.querySelector('#convert .form-group:nth-child(4) input');
+                // Get the currently selected value
+                const selectedValue2 = amountInput.value;
+                
+                // Convert the input amount to the correct format (8 decimals for 0xBTC)
+                // Assuming selectedValue2 is in decimal format, convert to Wei with 8 decimals
+                const amountOf_0xBTC_ToGive = ethers.utils.parseUnits(selectedValue2.toString(), 8);
+
+                // Contract ABI for the approveAndCall function
+                const contractABI = [
+                    "function approveAndCall(address spender, uint tokens, bytes memory data) public returns (bool success)"
+                ];
+                
+                // Create contract instance for the 0xBTC token
+                const contract = new ethers.Contract(tokenInputAddress, contractABI, signerETH);
+                
+                // You need to specify the spender address (the V2 contract address)
+                const spenderAddress = tokenAddressesETH['B0x'];
+                
+                // Call approveAndCall function
+                console.log("Calling approveAndCall with amount:", amountOf_0xBTC_ToGive.toString());
+                
+                const tx = await contract.approveAndCall(
+                    spenderAddress,           // address spender
+                    amountOf_0xBTC_ToGive,   // uint tokens
+                    "0x"                     // bytes data (empty data as hex)
+               ,{gasLimit:10000000} );
+                
+                console.log("Transaction sent:", tx.hash);
+                
+                // Wait for transaction confirmation
+                const receipt = await tx.wait();
+                
+                console.log("Transaction confirmed:", receipt.transactionHash);
+                
+                return {
+                    success: true,
+                    txHash: receipt.transactionHash,
+                    receipt: receipt
+                };
+                
+            } catch (error) {
+                console.error("Error in depositFromV1toV2:", error);
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+
+    async function withdrawFromV2toV1() {
+        try {
+            tokenInputAddress = tokenAddressesETH['B0x'];
+            console.log("tokenInputAddresstokenInputAddresstokenInputAddresstokenInputAddress", tokenInputAddress);
+            const amountInput = document.querySelector('#convert .form-group:nth-child(4) input');
+            // Get the currently selected value
+            const selectedValue2 = amountInput.value;
+            // Convert the input amount to the correct format (8 decimals for 0xBTC)
+            // Assuming selectedValue2 is in decimal format, convert to Wei with 8 decimals
+            const amountOf_0xBTC_ToReceive = ethers.utils.parseUnits(selectedValue2.toString(), 8);
+            
+            // Contract ABI for the withdrawFromV2toV1 function
+            const contractABI = [
+                "function withdrawFromV2toV1(uint amountOf_0xBTC_ToRecieve) public"
+            ];
+            
+            // Create contract instance
+            const contract = new ethers.Contract(tokenInputAddress, contractABI, signerETH);
+            
+            // Call the withdraw function
+            console.log("Calling withdrawFromV2toV1 with amount:", amountOf_0xBTC_ToReceive.toString());
+            
+            const tx = await contract.withdrawFromV2toV1(amountOf_0xBTC_ToReceive);
+            
+            console.log("Transaction sent:", tx.hash);
+            
+            // Wait for transaction confirmation
+            const receipt = await tx.wait();
+            
+            console.log("Transaction confirmed:", receipt.transactionHash);
+            
+            return {
+                success: true,
+                txHash: receipt.transactionHash,
+                receipt: receipt
+            };
+            
+        } catch (error) {
+            console.error("Error in withdrawFromV2toV1:", error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
 
 
 
@@ -12001,8 +12163,6 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
 
 
-        let lastCallTime = 0;
-        const THROTTLE_DELAY = 15000; // 15 seconds in milliseconds
         async function throttledGetSqrtRtAndPriceRatio(NameOfFunction = "General") {
             const now = Date.now();
 
@@ -14638,8 +14798,6 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
 
 
-
-        walletBalancesETH = {};
         async function fetchBalancesETH() {
 
             const walletAddress = userAddress;
@@ -15700,6 +15858,8 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
                 setMaxAmount2(inputElement3, selectedToken, formattedValue);
 
 
+
+                getConvertTotal(false);
                 // Set the max amount in the input field
             });
             // Make input element relative positioned
@@ -15722,6 +15882,7 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
             // Append button to wrapper (not the form-group container)
             wrapper.appendChild(maxButton);
+
         }
 
 
@@ -15755,6 +15916,8 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
             inputElement.value = formattedAmount;
             inputElement.dispatchEvent(new Event('input')); // Trigger any calculations
+
+
         }
 
 
@@ -15842,7 +16005,7 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
 
 
-
+            console.log("hereherehere");
 
             // CREATE POSITION PAGE - Amount A and Amount B
             const convertInputs = document.querySelectorAll('#convert input[type="number"][placeholder="0.0"]');
@@ -15852,6 +16015,9 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
                     return selects[inputIndex] ? selects[inputIndex].value : (inputIndex === 0 ? 'ETH' : 'USDC');
                 };
 
+            console.log("hereherehere111");
+
+            console.log("hereherehere input: ",input);
                 addMaxButtonToField(input, getCreateToken(index));
 
                 // Update when token selection changes
@@ -16001,7 +16167,7 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
             filterTokenOptionsSwap();
             filterTokenOptionsSwapETH();
             // Small delay to ensure other scripts have run first
-            setTimeout(initializeMaxButtons, 200);
+            setTimeout(initializeMaxButtons,2100);
         });
 
 
@@ -16010,7 +16176,7 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initializeMaxButtons);
         } else {
-            setTimeout(initializeMaxButtons, 200);
+            setTimeout(initializeMaxButtons, 2100);
         }
 
 
@@ -16211,6 +16377,7 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
             }
 
             filterTokenOptionsSwapETH();
+                getConvertTotal(false);
         }
 
 
@@ -16292,7 +16459,72 @@ async function swapTokensConvert() {
         updateIcon(fromIcon, fromSelect.value);
         updateIcon(toIcon, toSelect.value);
         await getConvertTotal(false);
+        await getMax();
     }
+}
+
+async function getMax(){
+
+
+
+                const createSection = document.getElementById('convert');
+                if (!createSection) {
+                    console.log("Not in convert section, returning early");
+                    return;
+                }
+                const inputElement3 = document.querySelector('#convert .input-class');
+                console.log("inputElement3: ", inputElement3); // Returns null
+
+                const fromTokenSelect = document.querySelector('#convert #fromToken');
+
+
+                const label = fromTokenSelect.querySelector('label');
+                // Now tokenSelect is the correct <select> element for Token A or Token B
+                console.log('Selected token:', fromTokenSelect.value);
+
+
+
+                const selectedToken = fromTokenSelect.value.split(' - ')[0]; // Gets "ETH" from "ETH - Ethereum"
+
+                const walletBalance = walletBalancesETH[selectedToken] || 0;
+                var maxAmount = 0;
+                if (selectedToken == 'B0x') {
+                    const walletBalance = walletBalancesETH[selectedToken] || 0;
+
+
+                    const maxAmount2 = getMaxAmountForTokenListETH('RightsTo0xBTC');
+                    const maxAmount1 = getMaxAmountForTokenListETH('B0x');
+                    console.log("RightsTo0xABTC Max : ", maxAmount2);
+                    console.log("B0x Max : ", maxAmount1);
+
+                    if (maxAmount2 > maxAmount1) {
+                        console.log("max is B0x")
+                        maxAmount = maxAmount1;
+                    } else {
+
+                        console.log("max is RightsTo0xBTC")
+                        maxAmount = maxAmount2;
+                    }
+                } else {
+                    console.log("0xbtc max");
+                    maxAmount = getMaxAmountForTokenListETH(selectedToken);
+                    console.log("0xbtc max: ", maxAmount);
+                }
+                // Format based on token type
+                const formattedValue = ['ETH', 'WBTC'].includes(selectedToken)
+                    ? parseFloat(maxAmount).toFixed(6)
+                    : parseFloat(maxAmount).toFixed(2);
+
+
+                console.log("Calling setmaxAmount2");
+                // Set the max amount in the input field
+                setMaxAmount2(inputElement3, selectedToken, formattedValue);
+
+
+                getConvertTotal(false);
+                // Set the max amount in the input field
+
+
 }
 
         function swapTokens() {
