@@ -11,7 +11,7 @@ log('B0x Stats', version);
 el('#footerversion').innerHTML = version;
 
 
-var ethblockstart = 24007014;
+var ethblockstart = 30219008;
 const ShowStats = true; //Removes my excessive stats
 const API_zkBTC_Users_tx_transactions = "https://raw.githubusercontent.com/BasedWorkToken/Based-Work-Token-General/main/api/BWORK_statsPage_stats.html"
 const Forge_Pool_efficeny = 150/32 + 1  //150 min solves and 32 min on Forge only
@@ -24,8 +24,8 @@ const _ZERO_BN = new Eth.BN(0, 10);
 /* todo: move these into some kind of contract helper class */
 const _CONTRACT_NAME = "BZEROXToken";
 const _CONTRACT_SYMBOL = "B0x";
-const _CONTRACT_ADDRESS = "0x7aDf1927aa0c75Fd054804E9fc6574A56C211AbB"; // main Mining contract for Based Work Token Contract
-const Main_CONTRACT_ADDRESS = "0xc57306DBd783f95713Ace082f685dB43B66252aF"; // main Based Work Token Contract
+const _CONTRACT_ADDRESS = "0x4571a464d2c24424B8756ba6D240e1A3e738887a"; // main Mining contract for B0x Token Contract
+const Main_CONTRACT_ADDRESS = "0x5A6BD09eF2e6021f8E77676059b49191E4b2112e"; // main B0x Token Contract
 
 
 const _CONTRACT_USDCWETH_UNISWAP = "0xd0b53D9277642d899DF5C87A3966A349A798F224"; // main uniswap for USDC WETH on Uniswap v3 uses slot0
@@ -238,7 +238,8 @@ stats = [
 
 
 ['Mining Difficulty',             token.getMiningDifficulty,            "",                 0.000001907,          null     ], /* mining difficulty */
- ['Mining Difficulty2',             token.reAdjustsToWhatDifficultyAVG,            "",                 0.000001907,          null     ], /* mining difficulty */
+['Mining Target',             token.miningTarget,            "",                 0.000001907,          null     ], /* mining difficulty */
+ ['Mining Difficulty2',             token.readjustsToWhatDifficulty,            "",                 0.000001907,          null     ], /* mining difficulty */
  ['Estimated Hashrate',            null,                                 "Mh/s",             1,          null     ], /* mining difficulty */
  	['Current Average Reward Time',   null,                                 "minutes",          1,          null     ], /* mining difficulty */
    ['Reward per Solve',   token.getMiningReward,                                _CONTRACT_SYMBOL,          0.000000000000000001,          null     ], /* mining difficulty */
@@ -447,6 +448,30 @@ function setValueInStats(name, value, stats) {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+// Option 1: Using BigInt (built into JavaScript)
+function calculateDifficultyBigInt(maximumTargetStr, miningTarget) {
+    try {
+        const maxTarget = BigInt(maximumTargetStr);
+        const target = BigInt(miningTarget);
+        
+        // BigInt division truncates, so multiply by a scaling factor for precision
+        const scalingFactor = BigInt(1000000); // 6 decimal places
+        const difficulty = (maxTarget * scalingFactor) / target;
+        
+        // Convert back to regular number with decimal places
+        const difficultyWithDecimals = Number(difficulty) / Number(scalingFactor) / 524288;
+        
+        console.log("Max Target (BigInt):", maxTarget.toString());
+        console.log("Mining Target (BigInt):", target.toString());
+        console.log("Difficulty:", difficultyWithDecimals);
+        
+        return difficultyWithDecimals;
+    } catch (error) {
+        console.error("BigInt calculation error:", error);
+        return null;
+    }
+}
+
 
 function updateStatsThatHaveDependencies(stats) {
   /* estimated hashrate */
@@ -619,7 +644,7 @@ rewards_left = getValueFromStats('Rewards Until Readjustment', stats)
 
 
 
-
+console.log("new difF: ",newDifficulty);
 
 
 
@@ -631,6 +656,7 @@ var indaysTime = secUntilBlocks / (60 * 60 * 24);
 var MaxNumber = getValueFromStats('Rewards Until Readjustment', stats) 
 var eCountz = getValueFromStats('Epoch Count', stats) 
 var eCountzOld = getValueFromStats('Epoch Old', stats)
+var miningTarget = getValueFromStats('Mining Target', stats)
  var NumberToGoLeft =  2048/32 - ((eCountz - eCountzOld) % (2048/32));
 
 if(secUntilBlocks<1){
@@ -648,7 +674,14 @@ log("22diff", difficulty)
 log("22rewards_since_readjustment", rewards_since_readjustment)
 log("22eth_blocks_since_last_difficulty_period", eth_blocks_since_last_difficulty_period)
 
-  el_safe('#MiningDifficulty').innerHTML += "  <span style='font-size:0.8em;'>(next: ~" + newDifficulty.toLocaleString() + ")</span>";
+
+var difficulty = calculateDifficultyBigInt(_MAXIMUM_TARGET_STR_OLD, miningTarget);
+log("_MAXIMUM_TARGET_STR: ",_MAXIMUM_TARGET_STR);
+log("miningTarget: ",miningTarget);
+log("difficulty: ",difficulty);
+
+el_safe ('#MiningDifficulty').innerHTML = '<b>'+difficulty.toFixed(3).toLocaleString()+'</b>';
+  el_safe('#MiningDifficulty').innerHTML += "  <span style='font-size:0.8em;'>(next: ~" + newDifficulty.toFixed(3).toLocaleString() + ")</span>";
   if(mining_calculator_app) {
     mining_calculator_app.setNextDifficulty(newDifficulty);
   }
@@ -1918,10 +1951,11 @@ if(stat_name =="u3"){
         }
       }
     }
-    /* run promises that store stat values */
+    /* run promises that store stat values */ /* How to  have a variable called inside stats
     if(stat_function !== null && stat_name ==='Mining Difficulty2' ) {
       stat_function(1).then(set_value(stats, stat_name, stat_unit, stat_multiplier, (value) => {stat[4]=value}));
-    } else if(stat_function !== null)
+    }*/
+    if(stat_function !== null)
     {
       stat_function().then(set_value(stats, stat_name, stat_unit, stat_multiplier, (value) => {stat[4]=value}));
     }
