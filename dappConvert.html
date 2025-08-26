@@ -2749,10 +2749,313 @@
 }
 /*SOCIAL MEDIA CSS END*/
 
+
+
+/*NOTIFICATION WIDGET CSS BEGINS*/
+/*NOTIFICATION WIDGET CSS BEGINS*/
+
+/* Notification Container - Multiple Positions */
+.notification-container {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.notification-container.top-right {
+    top: 10px;
+    right: 10px;
+}
+
+.notification-container.bottom-right {
+    bottom: 20px;
+    right: 10px;
+    max-width: calc(100vw - 20px);
+}
+
+.notification-container.bottom-center {
+    bottom: 20px;
+    left: 10px;
+    right: 10px;
+}
+
+.notification-container.bottom-left {
+    bottom: 20px;
+    left: 10px;
+    max-width: calc(100vw - 20px);
+}
+
+/* Individual Notification - Mobile Optimized */
+.notification {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background: rgba(255,255,255,0.98);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border-left: 3px solid;
+    min-width: 250px;
+    max-width: calc(100vw - 40px);
+    width: auto;
+    min-height: 60px;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), transform 0.3s ease-out;
+    pointer-events: auto;
+    position: relative;
+    backdrop-filter: blur(10px);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Position-specific initial transforms */
+.notification-container.top-right .notification,
+.notification-container.bottom-right .notification {
+    transform: translateX(50px);
+}
+
+.notification-container.bottom-center .notification {
+    transform: translateY(50px);
+}
+
+.notification-container.bottom-left .notification {
+    transform: translateX(-50px);
+}
+
+/* Show state - position-specific final transforms */
+.notification-container.top-right .notification.show,
+.notification-container.bottom-right .notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification-container.bottom-center .notification.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.notification-container.bottom-left .notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification.success { border-left-color: #10b981; }
+.notification.error { border-left-color: #ef4444; }
+.notification.warning { border-left-color: #f59e0b; }
+.notification.info { border-left-color: #3b82f6; }
+
+.notification-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.notification.success .notification-icon { background: #10b981; }
+.notification.error .notification-icon { background: #ef4444; }
+.notification.warning .notification-icon { background: #f59e0b; }
+.notification.info .notification-icon { background: #3b82f6; }
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.notification-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1f2937;
+    margin-bottom: 2px;
+    line-height: 1.3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.notification-message {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 60px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+.notification-close:active {
+    color: #4b5563;
+    background: #f3f4f6;
+    transform: scale(0.9);
+}
+
+/* Progress bar - 10 second duration */
+.notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+}
+
+.notification-progress::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: currentColor;
+    animation: progress 10s linear;
+    border-radius: inherit;
+}
+
+.notification.success .notification-progress::after { 
+    color: #10b981;
+    animation-duration: 30s; /* 30 seconds for success notifications */
+}
+.notification.error .notification-progress::after { color: #ef4444; }
+.notification.warning .notification-progress::after { color: #f59e0b; }
+.notification.info .notification-progress::after { color: #3b82f6; }
+
+@keyframes progress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* Notification message links */
+.notification-message a {
+    color: #10b981;
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s ease;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+.notification-message a:hover {
+    color: #059669;
+    border-bottom-color: #059669;
+    transform: translateX(2px);
+}
+
+.notification-message a:active {
+    transform: scale(0.98);
+}
+
+/* Responsive scaling for enlarged notifications with transaction hash */
+/* Desktop: Full 1.7x scale */
+@media (min-width: 801px) {
+    .notification[style*="scale(1.7)"] {
+        transform: scale(1.7) !important;
+        transform-origin: bottom right !important;
+    }
+}
+
+/* Tablet: 1.5x scale (below 800px) */
+@media (max-width: 800px) {
+    .notification[style*="scale(1.7)"] {
+        transform: scale(1.5) !important;
+        transform-origin: bottom right !important;
+    }
+}
+
+/* Mobile: 1.0x scale (below 500px - essentially no enlargement) */
+@media (max-width: 500px) {
+    .notification[style*="scale(1.7)"] {
+        transform: scale(1.0) !important;
+        transform-origin: bottom right !important;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+    .notification {
+        min-width: calc(100vw - 32px);
+        max-width: calc(100vw - 32px);
+        width: auto;
+        margin-left: 8px;
+        margin-right: 8px;
+        padding: 10px 12px;
+        min-height: 56px;
+    }
+
+    .notification-container {
+        left: 8px !important;
+        right: 8px !important;
+        transform: none !important;
+    }
+
+    .notification-container.bottom-center {
+        left: 8px;
+        transform: none;
+    }
+
+    .notification-title { font-size: 13px; }
+    .notification-message { font-size: 11px; }
+}
+
+.code-example {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    text-align: left;
+}
+
+.code-example h4 {
+    color: white;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.code-example pre {
+    background: rgba(0,0,0,0.3);
+    padding: 10px;
+    border-radius: 6px;
+    color: #e5e7eb;
+    font-size: 11px;
+    overflow-x: auto;
+}
+
+/*NOTIFICATION WIDGET CSS ENDS*/
+/*NOTIFICATION WIDGET CSS ENDS*/
+/*NOTIFCATION WIDGET CSS ENDS*/
 </style>
 </head>
 
 <body>
+
+    <!-- Notification Container -->
+    <div class="notification-container bottom-right" id="notificationContainer"></div>
 
 
     <!-- B0x Stats Widget -->
@@ -7492,6 +7795,11 @@ console.log("ICON URL: ",iconURL);
                 address: hookAddress,
                 isToken: false,
                 chain: "baseSepolia"
+            },{
+                name: "B0x Uniswap Router",
+                address: contractAddress_Swapper,
+                isToken: false,
+                chain: "baseSepolia"
             },
             {
                 name: "B0x Token ",
@@ -8250,6 +8558,9 @@ function displayWalletBalancesETH() {
 
 
             try {
+
+                showInfoNotification('Approve the NFT', 'Approve NFT TokenID: '+approveThisToken+' for Staking');
+
                 console.log(`Approving NFT token ${approveThisToken}...`);
 
                 // Step 1: Approve the staking contract to transfer the NFT
@@ -8259,7 +8570,9 @@ function displayWalletBalancesETH() {
                 );
 
                 console.log("Approval transaction sent:", approveTx.hash);
+                showInfoNotification();
                 await approveTx.wait(); // Wait for confirmation
+            showSuccessNotification('Approved NFT Transfer!', 'Transaction confirmed on blockchain, now confirm in your wallet the Stake transaction', approveTx.hash)
                 console.log("Approval confirmed!");
                 await new Promise(resolve => setTimeout(resolve, 2000));
 
@@ -8267,11 +8580,12 @@ function displayWalletBalancesETH() {
                 console.log(`Staking NFT token ${approveThisToken}...`);
                 const stakeTx = await LPStakingContract.stakeUniswapV3NFT(approveThisToken);
 
+                showInfoNotification();
                 console.log("Staking transaction sent:", stakeTx.hash);
                 await stakeTx.wait(); // Wait for confirmation
                 console.log("NFT staked successfully!");
+                showSuccessNotification('NFT Staked Successfully!', 'Transaction confirmed on blockchain', stakeTx.hash)
                 enableButton('depositNFTStakeBtn', 'Deposit NFT');
-                alert("NFT STAKED SUCCESSFULLY!");
 
                 fetchBalances();
                 await getRewardStats();
@@ -8528,13 +8842,21 @@ function displayWalletBalancesETH() {
                 console.log("percentagedivby10000000000000: ", percentagedivby10000000000000);
                 console.log("minAmount0: ", minAmount0.toString());
                 console.log("minAmount1: ", minAmount1.toString());
+
+
+
+                showInfoNotification('Decreasing Liquidity on Staked ID: '+positionID, 'Please confirm transaction in the wallet');
+               
                 const tx = await LPrewardsStakingContracts.decreaseLiquidityOfPosition(positionID, percentagedivby10000000000000, amount0remove, amount1remove, { gasLimit: 10000000 });
 
+                showInfoNotification();
                 console.log("DECREASED Liquidity transaction sent:", tx.hash);
                 console.log("Waiting for transaction confirmation...");
 
                 // Wait for the transaction to be mined
                 const receipt = await tx.wait();
+                showSuccessNotification('Decreased Liquidity on Staked Uniswap ID: '+positionID+' successfully!', 'Transaction confirmed on blockchain', tx.hash)
+
                 console.log("Increased Liquidity transaction confirmed in block:", receipt.blockNumber);
                 console.log("REMOVED " + (percentagedivby10000000000000 / 10000000000000) + "% of the tokens from tokenID: " + positionID);
 
@@ -8941,16 +9263,31 @@ function displayWalletBalancesETH() {
                 );
 
 
+
+
+
+
+
+
+
+
+
                 alert("Decreasing Liquidity now! Approve Transaction!");
+                showInfoNotification('Confirm Decrease Liquidity', 'Confirm the decrease in liquidity transaction in your wallet');
                 const tx = await positionManagerContract.modifyLiquidities(callData, deadline, { gasLimit: 10000000 });
 
                 console.log("DECREASED Liquidity transaction sent:", tx.hash);
                 console.log("Waiting for transaction confirmation...");
 
+                showInfoNotification();
+
                 // Wait for the transaction to be mined
                 const receipt = await tx.wait();
 
                 enableButton('decreaseLiquidityBtn', 'Decrease Liquidity and Claim Fees');
+
+
+            showSuccessNotification('Decrease Liquidity Complete!', 'Transaction confirmed on blockchain', tx.hash)
 
                 console.log("Increased Liquidity transaction confirmed in block:", receipt.blockNumber);
                 console.log("REMOVED " + (percentagedivby10000 / 10000) + "% of the tokens from tokenID: " + positionID);
@@ -9085,9 +9422,10 @@ function displayWalletBalancesETH() {
             console.log("positionID = : ", positionID);
 
             var amountAtoCreate = ethers.utils.parseUnits(tokenAAmount, 18);  // Correctly represents 12 * 10^8
-            if (tokenAValue == "0xBTC") {
+            console.log("EEE tokenAValue",tokenAValue);
+            if (tokenAValue == "0xBTC" ||tokenAValue == "0xBTC "  || tokenAValue == " 0xBTC") {
                 console.log("LOGGED 0xBTC selected A Value, stakeincrease");
-                amountAtoCreate = ethers.utils.parseUnits(tokenAAmount, 8);  // Correctly represents 12 * 10^8
+                amountAtoCreate = ethers.utils.parseUnits(tokenBAmount, 8);  // Correctly represents 12 * 10^8
             }
 
             console.log("Currently amountInputB value:", tokenBAmount);
@@ -9096,12 +9434,12 @@ function displayWalletBalancesETH() {
             var amountIn0xBTC = ethers.BigNumber.from(0);
             var uncalimedFeesB0x = ethers.utils.parseUnits("0", 18);
             var uncalimedFees0xBTC = ethers.utils.parseUnits("0", 8);
-            if (tokenBValue != "0xBTC") {
+            if (tokenBValue != "0xBTC" && tokenBValue == "0xBTC "  && tokenBValue == " 0xBTC") {
                 amountInB0x = ethers.BigNumber.from(amountBtoCreate.toString());
                 amountIn0xBTC = ethers.BigNumber.from(amountAtoCreate.toString());
                 // uncalimedFeesB0x = ethers.utils.parseUnits(position.unclaimedFeesTokenB.toString(), 18);
                 //  uncalimedFees0xBTC =  ethers.utils.parseUnits(position.unclaimedFeesTokenA.toString(), 8);
-            } else if (tokenBValue == "0xBTC") {
+            } else if (tokenBValue == "0xBTC" ||tokenBValue == " 0xBTC" ||tokenBValue == "0xBTC " ) {
                 console.log("LOGGED 0xBTC selected B Value, stakeincrease");
                 amountBtoCreate = ethers.utils.parseUnits(tokenBAmount, 8);  // Correctly represents 12 * 10^8
 
@@ -9232,11 +9570,17 @@ function displayWalletBalancesETH() {
                 var sqrtPricex96 = Current_getsqrtPricex96;
                 console.log("Sllipage BPS: ", numberValueSlippage, " %");
                 var slippageBPS = Math.floor(numberValueSlippage * 100);
+                showInfoNotification('Increasing Liquidity on Staked ID: '+positionID, 'Please confirm transaction in the wallet');
                 const tx = await LPRewarsdStakingContract.increaseLiquidityOfPosition(userAddress, amount0, amount1, positionID, sqrtPricex96, slippageBPS);
+
+
+                showInfoNotification();
 
 
                 console.log("Transaction sent:", tx.hash);
                 const receipt12 = await tx.wait();
+            showSuccessNotification('Increased Liquidity on Staked Uniswap ID: '+positionID+' successfully!', 'Transaction confirmed on blockchain', tx.hash)
+
                 console.log("Increase Liq Transaction Confirmed@!")
 
                 alert("Successfully Increased Liquidity of Staked NFT");
@@ -9620,18 +9964,20 @@ function displayWalletBalancesETH() {
                 [actions, params]
             );
 
-
+                showInfoNotification('Confirm Increase Liquidity', 'Confirm the increase liquidity transaction in your wallet');
             try {
                 const tx = await positionManagerContract.modifyLiquidities(
                     callData,
                     deadline
                 );
+                showInfoNotification();
 
                 console.log("Transaction sent:", tx.hash);
                 const receipt12 = await tx.wait();
                 console.log("Transaction confirmed:", receipt12.transactionHash);
 
 
+            showSuccessNotification('Increase Liquidity Complete!', 'Transaction confirmed on blockchain', tx.hash)
 
 
 
@@ -9745,6 +10091,9 @@ function displayWalletBalancesETH() {
                 );
 
                 if (needsToken0Approval) {
+
+                    var sym = getSymbolFromAddress(token0);
+                showInfoNotification('Approve '+sym+' Tokens', 'Requesting approval of '+sym+' tokens for Uniswaps Contract...');
                     var sym = getSymbolFromAddress(token0);
                     console.log('Token0 needs permit approval, approving...');
                     alert(sym + ' needs permit approval to use on Uniswap, sign tx in wallet');
@@ -9757,6 +10106,7 @@ function displayWalletBalancesETH() {
                     console.log(sym + ' approval transaction hash:', tx1.hash);
                     await tx1.wait();
 
+                    showSuccessNotification(sym+' Approved!', sym+' Tokens have been approved on the contract successfully');
                     alert(sym + ' approved on uniswap');
                 } else {
 
@@ -9776,7 +10126,7 @@ function displayWalletBalancesETH() {
                 if (needsToken1Approval) {
 
                     var sym = getSymbolFromAddress(token1);
-                    alert(sym + ' needs permit approval to use on Uniswap, sign tx in wallet');
+                showInfoNotification('Approve '+sym+' Tokens', 'Requesting approval of '+sym+' tokens for Uniswaps Contract...');
                     console.log('Token1 needs approval, approving...');
                     const tx2 = await permit2Contract.approve(
                         token1,
@@ -9786,8 +10136,7 @@ function displayWalletBalancesETH() {
                     );
                     console.log(sym + ' approval transaction hash:', tx2.hash);
                     await tx2.wait();
-
-                    alert(sym + ' approved on uniswap');
+                    showSuccessNotification(sym+' Approved!', sym+' Tokens have been approved on the contract successfully');
                 } else {
                     var sym = getSymbolFromAddress(token1);
                     console.log(sym + ' already has sufficient allowance');
@@ -10198,6 +10547,7 @@ function displayWalletBalancesETH() {
 
                 const amountToSwapBN = ethers.BigNumber.from(amountToSwap.toString());
                 const minAmountOutBN = ethers.BigNumber.from(MinamountOut.toString());
+
                 await approveIfNeeded(Address_ZEROXBTC_TESTNETCONTRACT, contractAddress_Swapper, amountToSwapBN);
                 console.log("amountToSwapBN: ", amountToSwapBN);
                 console.log("minAmountOutBN: ", minAmountOutBN);
@@ -10219,10 +10569,11 @@ function displayWalletBalancesETH() {
                         userAddress
                     );
 
+                    showInfoNotification();
                     console.log("swapTokenTWOTOKENS transaction sent:", tx.hash);
                     await tx.wait();
                     console.log("Transaction confirmed!");
-                    alert("Successful Swap!")
+                    showSuccessNotification('Swap Complete!', 'Transaction complete, successfully swapped tokens', tx.hash);
 
                 } catch (error) {
                     console.error(`Error finding swapTokenTWOTOKENS stuff:`, error);
@@ -10253,11 +10604,13 @@ function displayWalletBalancesETH() {
                         HookAddress,
                         userAddress
                     );
-
+                    showInfoNotification();
                     console.log("swapTokenTWOTOKENS transaction sent:", tx.hash);
                     await tx.wait();
                     console.log("Transaction confirmed!");
-                    alert("Successful Swap!");
+                    //alert("Successful Swap!");
+
+                    showSuccessNotification('Swap Complete!', 'Transaction complete, successfully swapped tokens', tx.hash);
                     await new Promise(resolve => setTimeout(resolve, 3000));
                     await throttledGetSqrtRtAndPriceRatio("SwapFunction");
                     fetchBalances();
@@ -10361,6 +10714,9 @@ function displayWalletBalancesETH() {
                 depositFromV1toV2();
             }
 
+            fetchBalancesETH();
+
+
         }
 
 
@@ -10391,17 +10747,25 @@ function displayWalletBalancesETH() {
                 // Call approveAndCall function
                 console.log("Calling approveAndCall with amount:", amountOf_0xBTC_ToGive.toString());
                 
+                showInfoNotification('Depositing 0xBTC -> B0x + RightsTo0xBTC', 'Please confirm transaction in the wallet');
                 const tx = await contract.approveAndCall(
                     spenderAddress,           // address spender
                     amountOf_0xBTC_ToGive,   // uint tokens
                     "0x"                     // bytes data (empty data as hex)
-               ,{gasLimit:10000000} );
+                );
+
+                showInfoNotification();
+
+         
                 
                 console.log("Transaction sent:", tx.hash);
                 
                 // Wait for transaction confirmation
                 const receipt = await tx.wait();
                 
+                showSuccessNotification('Successfully converted!', 'Converted 0xBTC -> B0x + RightsTo0xBTC', tx.hash)
+
+
                 console.log("Transaction confirmed:", receipt.transactionHash);
                 
                 return {
@@ -10442,14 +10806,21 @@ function displayWalletBalancesETH() {
             // Call the withdraw function
             console.log("Calling withdrawFromV2toV1 with amount:", amountOf_0xBTC_ToReceive.toString());
             
+                showInfoNotification('Depositing B0x + RightsTo0xBTC -> 0xBitcoin', 'Please confirm transaction in the wallet');
             const tx = await contract.withdrawFromV2toV1(amountOf_0xBTC_ToReceive);
             
             console.log("Transaction sent:", tx.hash);
             
+                showInfoNotification();
             // Wait for transaction confirmation
             const receipt = await tx.wait();
             
+                showSuccessNotification('Successfully converted!', 'Converted B0x + RightsTo0xBTC -> 0xBitcoin', tx.hash)
             console.log("Transaction confirmed:", receipt.transactionHash);
+
+
+
+
             
             return {
                 success: true,
@@ -11023,7 +11394,7 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
                 console.log(`Current ${tokenName} allowance:`, ethers.utils.formatEther(currentAllowance));
                 if (tokenName == "0xBTC") {
 
-                    console.log(`Required ${tokenName} amount:`, ethers.utils.formatUnits(requiredAmount, 8));
+                    console.log(`Required11 ${tokenName} amount:`, ethers.utils.formatUnits(requiredAmount, 8));
                 } else {
 
                     console.log(`Required ${tokenName} amount:`, ethers.utils.formatEther(requiredAmount));
@@ -11170,10 +11541,11 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
                     return true;
                 }
 
+                showInfoNotification('Approve Token', 'Requesting approval for unlimited amount to avoid future approvals...');
                 // If not sufficient, request approval for max amount
-                alert("Requesting approval for unlimited amount to avoid future approvals...");
                 const approvalSuccess = await approveToken(tokenToApprove, spenderAddress, ethers.constants.MaxUint256);
-
+                approvalSuccess.wait();
+                showSuccessNotification('Approved Tokens!', 'Tokens have been approved on the contract successfully', approvalSuccess.hash());
                 return approvalSuccess;
 
             } catch (error) {
@@ -13926,6 +14298,8 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
                 var slippage = Math.floor(numberValueSlippage * 100);
                 console.log("Slippage = ", slippage);
                 console.log("Slippage % = ", (slippage / 100), "%");
+                
+                showInfoNotification('Confirm Create Position', 'Confirm the create position transaction in your wallet');
                 const tx = await tokenSwapperContract.createPositionWith2Tokens(
                     tokenAddress,
                     Address_ZEROXBTC_TESTNETCONTRACT,
@@ -13968,10 +14342,15 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
                 ratiozToSave = 10000 * amountToDepositBN / amountToDepositBN2;
 
+                    showInfoNotification();
+                    await tx.wait();
+                    console.log("Transaction confirmed!");
+                    //alert("Successful Swap!");
+                    showSuccessNotification('Create Position!', 'Transaction confirmed you have created a liquidity position', tx.hash);
+
                 console.log("create Position transaction sent:", tx.hash);
-                await tx.wait();
                 console.log("Transaction confirmed!");
-                alert("Successfully created position!");
+                //alert("Successfully created position!");
 
                 enableButton('getCreatePositionBtn', 'Create Position');
                 fetchBalances();
@@ -14598,9 +14977,13 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
                 console.log(`Withdrawing this NFT token ${id}...`);
 
 
+                showInfoNotification('Withdrawing NFT tokenID '+id, 'Please confirm transaction in the wallet');
+
+
                 // Step 2: Stake the NFT
                 const stakeTx = await LPStakingContract.withdraw(id);
 
+                showInfoNotification();
                 console.log("Staking transaction sent:", stakeTx.hash);
                 await stakeTx.wait(); // Wait for confirmation
                 console.log("NFT withdrew successfully!");
@@ -14608,7 +14991,8 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
                 await new Promise(resolve => setTimeout(resolve, 3000));
                 await getRewardStats();
-                alert("NFT withdrew success!");
+            showSuccessNotification('Withdrew Uniswap ID: '+approveThisToken+' successfully!', 'Transaction confirmed on blockchain', tx.hash)
+              //  alert("NFT withdrew success!");
                 if (WhereToStartSearch > id) {
                     WhereToStartSearch = id - 1;
                     if (WhereToStartSearch < 0) {
@@ -16605,6 +16989,162 @@ async function getMax(){
         } else {
             console.log('Create section not found');
         }
+
+
+
+
+
+
+
+
+
+
+ class MobileNotificationWidget {
+            constructor(position = 'bottom-right') {
+                this.container = document.getElementById('notificationContainer');
+                this.notifications = new Map();
+                this.counter = 0;
+                this.position = position;
+                this.setPosition(position);
+            }
+
+            setPosition(position) {
+                this.position = position;
+                this.container.className = `notification-container ${position}`;
+            }
+
+            show(type = 'info', title = '', message = '', duration = 10000000) { //10000 = 10 sec
+                const id = ++this.counter;
+                
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.setAttribute('data-id', id);
+                
+                const icons = {
+                    success: '✓',
+                    error: '✕',
+                    warning: '!',
+                    info: 'i'
+                };
+
+                notification.innerHTML = `
+                    <div class="notification-icon">${icons[type] || icons.info}</div>
+                    <div class="notification-content">
+                        <div class="notification-title">${title}</div>
+                        ${message ? `<div class="notification-message">${message}</div>` : ''}
+                    </div>
+                    <button class="notification-close" onclick="notificationWidget.hide(${id})">&times;</button>
+                    <div class="notification-progress"></div>
+                `;
+                this.container.appendChild(notification);
+                this.notifications.set(id, notification);
+
+                // Trigger animation
+                requestAnimationFrame(() => {
+                    notification.classList.add('show');
+                });
+
+                // Auto dismiss after 10 seconds
+                setTimeout(() => {
+                    this.hide(id);
+                }, duration);
+
+                return id;
+            }
+
+            hide(id) {
+                const notification = this.notifications.get(id);
+                if (notification) {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                        this.notifications.delete(id);
+                    }, 400);
+                }
+            }
+
+            success(title, message = '') {
+                return this.show('success', title, message);
+            }
+
+            error(title, message = '') {
+                return this.show('error', title, message);
+            }
+
+            warning(title, message = '') {
+                return this.show('warning', title, message);
+            }
+
+            info(title, message = '') {
+                return this.show('info', title, message);
+            }
+        }
+
+        // Initialize the notification widget
+        const notificationWidget = new MobileNotificationWidget('bottom-right');
+
+        // Demo functions
+        function setPosition(position) {
+            notificationWidget.setPosition(position);
+            
+            // Update active button
+            document.querySelectorAll('.position-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+     
+                    // Enhanced success notification with transaction hash and 30-second duration
+            function showSuccessNotification(msg='Swap Complete!', msg2='Transaction confirmed on blockchain', txHash = null) {
+                // If txHash is provided, add explorer link to the message and make it larger
+                let enhancedMessage = msg2;
+                let notificationId;
+                
+                if (txHash) {
+                    enhancedMessage = `${msg2} <br><a href="https://sepolia.basescan.org/tx/${txHash}" target="_blank" style="color: #10b981; text-decoration: underline; font-weight: 600;">View on Explorer →</a>`;
+                }
+                
+                // Show notification for 30 seconds (30000ms)
+                notificationId = notificationWidget.show('success', msg, enhancedMessage, 30000);
+                
+                // If txHash is provided, make the notification 1.7x larger
+                if (txHash) {
+                    setTimeout(() => {
+                        const notification = document.querySelector(`[data-id="${notificationId}"]`);
+                        if (notification) {
+                            notification.style.transform = 'scale(1.7)';
+                            notification.style.zIndex = '10001'; // Bring it to front
+                            notification.style.transformOrigin = 'bottom right'; // Scale from bottom-right corner
+                        }
+                    }, 50); // Small delay to ensure notification is rendered
+                }
+                
+                return notificationId;
+            }
+
+
+
+        function showErrorNotification(msg='Transaction Failed', msg2='Please check wallet and try again') {
+            notificationWidget.error(msg, msg2);
+        }
+
+        function showWarningNotification(msg='High Gas Fees', msg2= 'Network congestion detected') {
+            notificationWidget.warning(msg, msg2);
+        }
+
+        function showInfoNotification(msg='Processing...' ,msg2='Please wait for confirmation') {
+                notificationWidget.info(msg, msg2);
+        }
+
+
+
+
+
+
+
 
 
 
