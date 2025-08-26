@@ -1009,13 +1009,14 @@ var total_TOTAL_mint_count_HASH = 0;
     console.log("previous ended challenge is this, starting here");
     var mint_data = localStorage.getItem('mintData_EraBitcoin2_afbRAFFABC_B0x');
 
+    console.log('last_imported_mint_block: ',last_imported_mint_block);
     let localMinedBlocks = [];
     let localLatestBlock = 0;
 
     if (mint_data !== null) {
       localMinedBlocks = JSON.parse(mint_data);
       // Find the highest block number in local data
-      localLatestBlock = Math.max(...localMinedBlocks.map(block => block[0]));
+      localLatestBlock = last_imported_mint_block;
       console.log('Local storage has', localMinedBlocks.length, 'blocks, latest:', localLatestBlock);
     }
 
@@ -1062,7 +1063,7 @@ var total_TOTAL_mint_count_HASH = 0;
     console.log('imported', mined_blocks.length, 'transactions');
     mined_blocks.forEach(function(mintData) {
       if(mintData[3] == -1){return;}
-      console.log("Last diff start block: ",last_difficulty_start_block, "    Vs mintDataBlock: ",mintData[0])
+      //console.log("Last diff start block: ",last_difficulty_start_block, "    Vs mintDataBlock: ",mintData[0])
       if(mintData[3] !=0 && mintData[0] > last_difficulty_start_block){
         if (miner_block_countHASH[mintData[2]] === undefined) {
           miner_block_countHASH[mintData[2]] = mintData[3];
@@ -1261,10 +1262,16 @@ var total_TOTAL_mint_count_HASH = 0;
   });
   
   }
+
+  console.log("RUn = ", run);
+  console.log("RUn = ", mined_blocks[0]);
+  console.log("RUn = ", mined_blocks);
     if (run > 0) {
       localStorage.setItem('mintData_EraBitcoin2_afbRAFFABC_B0x', JSON.stringify(mined_blocks));
       localStorage.setItem('mintData_GreekWedding2_B0x', JSON.stringify(previousChallenge));
 		if (mined_blocks[0] !== undefined) {
+      console.log("RUNWorked");
+      console.log("Setting Currentethblock to it: ",current_eth_block);
 			localStorage.setItem('lastMintBlock_EraBitcoin2_afbRAFFABC_B0x', current_eth_block);
 		}
       localStorage.setItem('lastDifficultyStartBlock_EraBitcoin2_afbRAFFABC_B0x', last_difficulty_start_block.toString());
