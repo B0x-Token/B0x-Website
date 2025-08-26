@@ -3552,8 +3552,6 @@
                     <div class="form-group">
                         <label>Select Position</label>
                         <select>
-                            <option>STAKE - Staking Token</option>
-                            <option>DAI - Dai Stablecoin</option>
                         </select>
                     </div>
 
@@ -7287,7 +7285,129 @@ console.log("ICON URL: ",iconURL);
             }, 3000);
         }
 
+// Global variables for tracking user selection
+let userSelectedPosition = null;
+let hasUserMadeSelection = false;
+let functionCallCounter = 0;
+// Set up the user selection tracker (call this ONCE when your app starts)
+function setupUserSelectionTracking() {
+    const positionSelect = document.querySelector('#staking-main-page select');
+    if (positionSelect && !positionSelect.hasAttribute('data-user-tracker')) {
+        positionSelect.addEventListener('change', function(e) {
+            // Debug what we're actually getting
+            console.log('🔍 Change event details:', {
+                value: e.target.value,
+                selectedIndex: e.target.selectedIndex,
+                optionText: e.target.options[e.target.selectedIndex]?.textContent,
+                optionValue: e.target.options[e.target.selectedIndex]?.value
+            });
+            
+            // Only track if it's a real position (not the static HTML options)
+            if (e.target.value && e.target.value.startsWith('position_')) {
+                userSelectedPosition = e.target.value;
+                hasUserMadeSelection = true;
+                console.log('👤 USER MANUALLY SELECTED VALID POSITION:', userSelectedPosition);
+            } else {
+                console.log('⚠️ User selected static HTML option, ignoring:', e.target.value || e.target.options[e.target.selectedIndex]?.textContent);
+            }
+        });
+        positionSelect.setAttribute('data-user-tracker', 'true');
+        console.log('🎯 User selection tracker installed');
+    }
+}
 
+// Modified position update function
+function updatePositionDropdown() {
+    const positionSelect2 = document.querySelector('#staking-main-page select');
+    if (!positionSelect2) return;
+
+    functionCallCounter++;
+    console.log(`🔄 updatePositionDropdown call #${functionCallCounter}`);
+
+    // Check current state before clearing
+    console.log('🔍 Before clearing:', {
+        currentValue: positionSelect2.value,
+        currentText: positionSelect2.selectedIndex >= 0 ? positionSelect2.options[positionSelect2.selectedIndex].textContent : 'None',
+        allOptions: Array.from(positionSelect2.options).map(opt => ({ value: opt.value, text: opt.textContent }))
+    });
+
+    // Determine what selection to preserve - only use valid position values
+    let selectionToPreserve;
+    if (hasUserMadeSelection && userSelectedPosition && userSelectedPosition.startsWith('position_')) {
+        selectionToPreserve = userSelectedPosition;
+        console.log('🔒 Preserving user selection:', selectionToPreserve);
+    } else {
+        // Check if current DOM value is a valid position
+        const currentValue = positionSelect2.value;
+        if (currentValue && currentValue.startsWith('position_')) {
+            selectionToPreserve = currentValue;
+            console.log('📋 Using current valid DOM selection:', selectionToPreserve);
+        } else {
+            selectionToPreserve = null; // Don't try to preserve static HTML options
+            console.log('📋 No valid position to preserve, will default to first position');
+        }
+    }
+    
+    console.log('🔄 Updating dropdown with', Object.keys(positionData).length, 'positions');
+    
+    // IMPORTANT: Clear the static HTML options first
+    positionSelect2.innerHTML = '';
+    
+    // Add your dynamic position options
+    Object.values(positionData).forEach(position => {
+        const option = document.createElement('option');
+        option.value = position.id; // This should be like "position_3893"
+        option.textContent = `${position.pool} - ${position.feeTier} - Position #${position.id.split('_')[1]}`;
+        positionSelect2.appendChild(option);
+        console.log('➕ Added position option:', { value: option.value, text: option.textContent });
+    });
+
+    console.log('🎯 All available position values:', Array.from(positionSelect2.options).map(opt => opt.value));
+
+    // Restore the preserved selection
+    if (selectionToPreserve) {
+        const targetOption = positionSelect2.querySelector(`option[value="${selectionToPreserve}"]`);
+        if (targetOption) {
+            positionSelect2.value = selectionToPreserve;
+            console.log('✅ Restored selection to:', selectionToPreserve);
+        } else {
+            console.log('⚠️ Could not find preserved selection, using first option');
+            if (positionSelect2.options.length > 0) {
+                positionSelect2.selectedIndex = 0;
+            }
+        }
+    } else {
+        // No valid selection to preserve, select first option
+        if (positionSelect2.options.length > 0) {
+            positionSelect2.selectedIndex = 0;
+            console.log('📋 Selected first option:', positionSelect2.value);
+        }
+    }
+
+    // Add main change listener only once
+    if (!positionSelect2.hasAttribute('data-main-listener')) {
+        positionSelect2.addEventListener('change', function(e) {
+            console.log('🎯 Main change event fired:', e.target.value);
+            updatePositionInfoMAIN_STAKING();
+        });
+        positionSelect2.setAttribute('data-main-listener', 'true');
+    }
+    
+    updatePositionInfoMAIN_STAKING();
+}
+
+// Alternative: Remove the static HTML options from your HTML
+// Change your HTML to just:
+// <select></select>
+// 
+// Or give the static options proper values:
+// <option value="">STAKE - Staking Token</option>
+// <option value="">DAI - Dai Stablecoin</option>
+
+// Call this once when your app starts
+
+// Replace your existing position dropdown code with:
+// updatePositionDropdown();
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function () {
@@ -7324,22 +7444,7 @@ console.log("ICON URL: ",iconURL);
             }
 
 
-
-
-            const positionSelect2 = document.querySelector('#staking-main-page select');
-            if (positionSelect2) {
-                positionSelect2.innerHTML = '';
-                Object.values(positionData).forEach(position => {
-                    const option = document.createElement('option');
-                    option.value = position.id;
-                    option.textContent = `${position.pool} - ${position.feeTier} - Position #${position.id.split('_')[1]}`;
-                    positionSelect2.appendChild(option);
-                });
-
-                positionSelect2.addEventListener('change', updatePositionInfoMAIN_STAKING);
-                updatePositionInfoMAIN_STAKING();
-            }
-
+            updatePositionDropdown();
 
             const positionSelectMainPageWithdrawNFT = document.querySelector('#staking-main-page .form-group2 select');
             if (positionSelectMainPageWithdrawNFT) {
@@ -7529,6 +7634,7 @@ console.log("ICON URL: ",iconURL);
 
 
 
+setupUserSelectionTracking();
 
 
             let isProgrammaticUpdate = false;
@@ -11604,125 +11710,503 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
         }
 
 
-
-
+        // Global variable to track user's manual selection for withdraw NFT (add this at the top)
+        let userManualSelectionWithdraw = null;
+            // Global variable to track user's manual selection
+let userManualSelection = null;
+// Global variables to track user's manual selections (add these at the top)
+let userManualSelectionIncrease = null;
+let userManualSelectionDecrease = null;
+// Global variables to track user's manual selections for staking (add these at the top)
+let userManualSelectionStakeIncrease = null;
+let userManualSelectionStakeDecrease = null;
         function loadPositionsIntoDappSelections() {
-            // Set up position selector for regular increase
-            const positionSelect = document.querySelector('#increase select');
-            if (positionSelect) {
-                // Store current selection
-                const currentValue = positionSelect.value;
+           
 
-                positionSelect.innerHTML = '';
-                Object.values(positionData).forEach(position => {
-                    const option = document.createElement('option');
-                    option.value = position.id;
-                    option.textContent = `${position.pool} - ${position.feeTier} - Position #${position.id.split('_')[1]}`;
-                    positionSelect.appendChild(option);
+// Set up position selector for regular increase
+const positionSelect = document.querySelector('#increase select');
+console.log("increaseSelect: ", positionSelect);
+
+if (positionSelect) {
+    // Set up user selection tracking (only once)
+    if (!positionSelect.hasAttribute('data-selection-tracker')) {
+        positionSelect.addEventListener('change', function(e) {
+            if (e.target.value && e.target.value.startsWith('position_')) {
+                userManualSelectionIncrease = e.target.value;
+                console.log('👤 User manually selected increase position:', userManualSelectionIncrease);
+            }
+        });
+        positionSelect.setAttribute('data-selection-tracker', 'true');
+    }
+
+    // Determine what to preserve
+    let currentValue;
+    if (userManualSelectionIncrease) {
+        currentValue = userManualSelectionIncrease;
+        console.log('🔒 Using user manual selection (increase):', currentValue);
+    } else {
+        const domValue = positionSelect.value;
+        if (domValue && domValue.startsWith('position_')) {
+            currentValue = domValue;
+            console.log('📋 Using DOM position value (increase):', currentValue);
+        } else {
+            currentValue = null;
+            console.log('📋 No valid increase position to preserve');
+        }
+    }
+
+    // Clear ALL options
+    positionSelect.innerHTML = '';
+    
+    // Add dynamic position options
+    Object.values(positionData).forEach(position => {
+        const option = document.createElement('option');
+        option.value = position.id;
+        option.textContent = `${position.pool} - ${position.feeTier} - Position #${position.id.split('_')[1]}`;
+        positionSelect.appendChild(option);
+    });
+
+    // Use setTimeout to ensure DOM is updated before checking
+    setTimeout(() => {
+        console.log('🔍 Checking for increase target after DOM update...');
+        console.log('🎯 Available increase options:', Array.from(positionSelect.options).map(opt => opt.value));
+        
+        const targetExists = positionSelect.querySelector(`option[value="${currentValue}"]`);
+        console.log('🔍 Looking for increase position:', currentValue);
+        console.log('🔍 Increase target exists:', !!targetExists);
+
+        if (currentValue && targetExists) {
+            positionSelect.value = currentValue;
+            console.log('✅ Restored increase selection to:', currentValue);
+        } else if (currentValue) {
+            console.log('⚠️ Could not restore increase selection:', currentValue);
+            userManualSelectionIncrease = null;
+            console.log('🔓 Cleared invalid manual increase selection');
+        }
+        
+        updatePositionInfo();
+    }, 0);
+
+    // Add main change listener (only once)
+    if (!positionSelect.hasAttribute('data-main-listener')) {
+        positionSelect.addEventListener('change', updatePositionInfo);
+        positionSelect.setAttribute('data-main-listener', 'true');
+    }
+}
+
+// Set up position selector for decrease
+const positionSelect2 = document.querySelector('#decrease select');
+console.log("decreaseSelect: ", positionSelect2);
+
+if (positionSelect2) {
+    // Set up user selection tracking (only once)
+    if (!positionSelect2.hasAttribute('data-selection-tracker')) {
+        positionSelect2.addEventListener('change', function(e) {
+            if (e.target.value && e.target.value.startsWith('position_')) {
+                userManualSelectionDecrease = e.target.value;
+                console.log('👤 User manually selected decrease position:', userManualSelectionDecrease);
+            }
+        });
+        positionSelect2.setAttribute('data-selection-tracker', 'true');
+    }
+
+    // Determine what to preserve
+    let currentValue2;
+    if (userManualSelectionDecrease) {
+        currentValue2 = userManualSelectionDecrease;
+        console.log('🔒 Using user manual selection (decrease):', currentValue2);
+    } else {
+        const domValue = positionSelect2.value;
+        if (domValue && domValue.startsWith('position_')) {
+            currentValue2 = domValue;
+            console.log('📋 Using DOM position value (decrease):', currentValue2);
+        } else {
+            currentValue2 = null;
+            console.log('📋 No valid decrease position to preserve');
+        }
+    }
+
+    // Clear ALL options
+    positionSelect2.innerHTML = '';
+    
+    // Add dynamic position options
+    Object.values(positionData).forEach(position => {
+        const option = document.createElement('option');
+        option.value = position.id;
+        option.textContent = `${position.pool} - ${position.feeTier} - Position #${position.id.split('_')[1]}`;
+        positionSelect2.appendChild(option);
+    });
+
+    // Use setTimeout to ensure DOM is updated before checking
+    setTimeout(() => {
+        console.log('🔍 Checking for decrease target after DOM update...');
+        console.log('🎯 Available decrease options:', Array.from(positionSelect2.options).map(opt => opt.value));
+        
+        const targetExists = positionSelect2.querySelector(`option[value="${currentValue2}"]`);
+        console.log('🔍 Looking for decrease position:', currentValue2);
+        console.log('🔍 Decrease target exists:', !!targetExists);
+
+        if (currentValue2 && targetExists) {
+            positionSelect2.value = currentValue2;
+            console.log('✅ Restored decrease selection to:', currentValue2);
+        } else if (currentValue2) {
+            console.log('⚠️ Could not restore decrease selection:', currentValue2);
+            userManualSelectionDecrease = null;
+            console.log('🔓 Cleared invalid manual decrease selection');
+        }
+        
+        updateDecreasePositionInfo();
+    }, 0);
+
+    // Add main change listener (only once)
+    if (!positionSelect2.hasAttribute('data-main-listener')) {
+        positionSelect2.addEventListener('change', updateDecreasePositionInfo);
+        positionSelect2.setAttribute('data-main-listener', 'true');
+    }
+}
+
+
+
+
+
+
+
+
+        
+
+const positionSelect3 = document.querySelector('#staking-main-page select');
+console.log("stakingmianpageslect: ", positionSelect3);
+
+if (positionSelect3) {
+    // Set up user selection tracking (only once)
+    if (!positionSelect3.hasAttribute('data-selection-tracker')) {
+        positionSelect3.addEventListener('change', function(e) {
+            if (e.target.value && e.target.value.startsWith('position_')) {
+                userManualSelection = e.target.value;
+                console.log('👤 User manually selected:', userManualSelection);
+            }
+        });
+        positionSelect3.setAttribute('data-selection-tracker', 'true');
+    }
+
+    // Determine what to preserve
+    let currentValue3;
+    if (userManualSelection) {
+        currentValue3 = userManualSelection;
+        console.log('🔒 Using user manual selection:', currentValue3);
+    } else {
+        const domValue = positionSelect3.value;
+        if (domValue && domValue.startsWith('position_')) {
+            currentValue3 = domValue;
+            console.log('📋 Using DOM position value:', currentValue3);
+        } else {
+            currentValue3 = null;
+            console.log('📋 No valid position to preserve');
+        }
+    }
+
+    // Clear ALL options
+    positionSelect3.innerHTML = '';
+    
+    // Add dynamic position options
+    Object.values(positionData).forEach(position => {
+        const option = document.createElement('option');
+        option.value = position.id;
+        option.textContent = `${position.pool} - ${position.feeTier} - Position #${position.id.split('_')[1]}`;
+        positionSelect3.appendChild(option);
+    });
+
+    // IMPORTANT FIX: Use setTimeout to ensure DOM is updated before checking
+    setTimeout(() => {
+        console.log('🔍 Checking for target after DOM update...');
+        console.log('🎯 Available options:', Array.from(positionSelect3.options).map(opt => opt.value));
+        
+        // Check if the target position exists NOW
+        const targetExists = positionSelect3.querySelector(`option[value="${currentValue3}"]`);
+        console.log('🔍 Looking for:', currentValue3);
+        console.log('🔍 Target exists:', !!targetExists);
+
+        // Restore previous selection if it still exists
+        if (currentValue3 && targetExists) {
+            positionSelect3.value = currentValue3;
+            console.log('✅ Restored selection to:', currentValue3);
+        } else if (currentValue3) {
+            console.log('⚠️ Could not restore selection:', currentValue3);
+            // Clear invalid selection
+            userManualSelection = null;
+            console.log('🔓 Cleared invalid manual selection');
+        }
+        
+        // Update the UI after setting the value
+        updatePositionInfoMAIN_STAKING();
+    }, 0); // Even timeout 0 ensures this runs after current execution stack
+
+    // Add main change listener (only once)
+    if (!positionSelect3.hasAttribute('data-main-listener')) {
+        positionSelect3.addEventListener('change', updatePositionInfoMAIN_STAKING);
+        positionSelect3.setAttribute('data-main-listener', 'true');
+    }
+}
+
+
+
+
+
+
+
+// Alternative approach: Use requestAnimationFrame instead of setTimeout
+// requestAnimationFrame(() => {
+//     // restoration code here
+//     updatePositionInfoMAIN_STAKING();
+// });
+
+
+
+
+
+
+
+
+
+
+        const positionSelectMainPageWithdrawNFT = document.querySelector('#staking-main-page .form-group2 select');
+        console.log("withdrawNFTSelect: ", positionSelectMainPageWithdrawNFT);
+
+        if (positionSelectMainPageWithdrawNFT) {
+            // Set up user selection tracking (only once)
+            if (!positionSelectMainPageWithdrawNFT.hasAttribute('data-selection-tracker')) {
+                positionSelectMainPageWithdrawNFT.addEventListener('change', function(e) {
+                    if (e.target.value && e.target.value.startsWith('stake_position_')) {
+                        userManualSelectionWithdraw = e.target.value;
+                        console.log('👤 User manually selected withdraw position:', userManualSelectionWithdraw);
+                    }
                 });
+                positionSelectMainPageWithdrawNFT.setAttribute('data-selection-tracker', 'true');
+            }
 
-                // Restore previous selection if it still exists
-                if (currentValue && positionSelect.querySelector(`option[value="${currentValue}"]`)) {
-                    positionSelect.value = currentValue;
+            // Determine what to preserve
+            let currentValueWithdrawNFT;
+            if (userManualSelectionWithdraw) {
+                currentValueWithdrawNFT = userManualSelectionWithdraw;
+                console.log('🔒 Using user manual selection (withdraw):', currentValueWithdrawNFT);
+            } else {
+                const domValue = positionSelectMainPageWithdrawNFT.value;
+                if (domValue && domValue.startsWith('stake_position_')) {
+                    currentValueWithdrawNFT = domValue;
+                    console.log('📋 Using DOM position value (withdraw):', currentValueWithdrawNFT);
+                } else {
+                    currentValueWithdrawNFT = null;
+                    console.log('📋 No valid withdraw position to preserve');
                 }
             }
 
-            updatePositionInfo();// Set up position selector for decrease
-            const positionSelect2 = document.querySelector('#decrease select');
-            if (positionSelect2) {
-                // Store current selection
-                const currentValue2 = positionSelect2.value;
-                positionSelect2.innerHTML = '';
-                Object.values(positionData).forEach(position => {
-                    const option = document.createElement('option');
-                    option.value = position.id;
-                    option.textContent = `${position.pool} - ${position.feeTier} - Position #${position.id.split('_')[1]}`;
-                    positionSelect2.appendChild(option);
-                });
-                // Restore previous selection if it still exists
-                if (currentValue2 && positionSelect2.querySelector(`option[value="${currentValue2}"]`)) {
-                    positionSelect2.value = currentValue2;
-                }
-            }
-            updateDecreasePositionInfo();
+            // Clear ALL options
+            positionSelectMainPageWithdrawNFT.innerHTML = '';
+            
+            // Add dynamic position options
+            Object.values(stakingPositionData).forEach(position => {
+                const option = document.createElement('option');
+                option.value = position.id;
+                option.textContent = `${position.pool} - ${position.feeTier} - Stake Position #${position.id.split('_')[2]}`;
+                positionSelectMainPageWithdrawNFT.appendChild(option);
+            });
 
-            const positionSelect3 = document.querySelector('#staking-main-page select');
-            console.log("stakingmianpageslect: ", positionSelect3);
-            if (positionSelect3) {
-                // Store current selection
-                const currentValue3 = positionSelect3.value;
-                positionSelect3.innerHTML = '';
-                Object.values(positionData).forEach(position => {
-                    const option = document.createElement('option');
-                    option.value = position.id;
-                    option.textContent = `${position.pool} - ${position.feeTier} - Position #${position.id.split('_')[1]}`;
-                    positionSelect3.appendChild(option);
-                });
-                // Restore previous selection if it still exists
-                if (currentValue3 && positionSelect3.querySelector(`option[value="${currentValue3}"]`)) {
-                    positionSelect3.value = currentValue3;
-                }
-            }
-            updatePositionInfoMAIN_STAKING();
+            // IMPORTANT FIX: Use setTimeout to ensure DOM is updated before checking
+            setTimeout(() => {
+                console.log('🔍 Checking for withdraw target after DOM update...');
+                console.log('🎯 Available withdraw options:', Array.from(positionSelectMainPageWithdrawNFT.options).map(opt => opt.value));
+                
+                // Check if the target position exists NOW
+                const targetExists = positionSelectMainPageWithdrawNFT.querySelector(`option[value="${currentValueWithdrawNFT}"]`);
+                console.log('🔍 Looking for withdraw position:', currentValueWithdrawNFT);
+                console.log('🔍 Withdraw target exists:', !!targetExists);
 
-            const positionSelectMainPageWithdrawNFT = document.querySelector('#staking-main-page .form-group2 select');
-            if (positionSelectMainPageWithdrawNFT) {
-                // Store current selection
-                const currentValueWithdrawNFT = positionSelectMainPageWithdrawNFT.value;
-                positionSelectMainPageWithdrawNFT.innerHTML = '';
-                Object.values(stakingPositionData).forEach(position => {
-                    const option = document.createElement('option');
-                    option.value = position.id;
-                    option.textContent = `${position.pool} - ${position.feeTier} - Stake Position #${position.id.split('_')[2]}`;
-                    positionSelectMainPageWithdrawNFT.appendChild(option);
-                });
                 // Restore previous selection if it still exists
-                if (currentValueWithdrawNFT && positionSelectMainPageWithdrawNFT.querySelector(`option[value="${currentValueWithdrawNFT}"]`)) {
+                if (currentValueWithdrawNFT && targetExists) {
                     positionSelectMainPageWithdrawNFT.value = currentValueWithdrawNFT;
+                    console.log('✅ Restored withdraw selection to:', currentValueWithdrawNFT);
+                } else if (currentValueWithdrawNFT) {
+                    console.log('⚠️ Could not restore withdraw selection:', currentValueWithdrawNFT);
+                    // Clear invalid selection
+                    userManualSelectionWithdraw = null;
+                    console.log('🔓 Cleared invalid manual withdraw selection');
                 }
+                
+                // Update the UI after setting the value
+                updatePositionInfoMAIN_UNSTAKING();
+            }, 0);
+
+            // Add main change listener (only once)
+            if (!positionSelectMainPageWithdrawNFT.hasAttribute('data-main-listener')) {
+                positionSelectMainPageWithdrawNFT.addEventListener('change', updatePositionInfoMAIN_UNSTAKING);
+                positionSelectMainPageWithdrawNFT.setAttribute('data-main-listener', 'true');
             }
-            updatePositionInfoMAIN_UNSTAKING();
+        }
 
-            // Set up position selector for stake increase
-            const stakePositionSelect = document.querySelector('#stakeincrease select');
-            if (stakePositionSelect) {
-                // Store current selection
-                const currentValueStakeIncrease = stakePositionSelect.value;
-                stakePositionSelect.innerHTML = '';
-                Object.values(stakingPositionData).forEach(position => {
-                    const option = document.createElement('option');
-                    option.value = position.id;
-                    option.textContent = `${position.pool} - ${position.feeTier} - Stake Position #${position.id.split('_')[2]}`;
-                    stakePositionSelect.appendChild(option);
-                });
-                // Restore previous selection if it still exists
-                if (currentValueStakeIncrease && stakePositionSelect.querySelector(`option[value="${currentValueStakeIncrease}"]`)) {
-                    stakePositionSelect.value = currentValueStakeIncrease;
-                }
+
+
+
+
+// Set up position selector for stake increase
+const stakePositionSelect = document.querySelector('#stakeincrease select');
+console.log("stakeIncreaseSelect: ", stakePositionSelect);
+
+if (stakePositionSelect) {
+    // Set up user selection tracking (only once)
+    if (!stakePositionSelect.hasAttribute('data-selection-tracker')) {
+        stakePositionSelect.addEventListener('change', function(e) {
+            if (e.target.value && e.target.value.startsWith('stake_position_')) {
+                userManualSelectionStakeIncrease = e.target.value;
+                console.log('👤 User manually selected stake increase position:', userManualSelectionStakeIncrease);
             }
-            updateStakePositionInfo();
+        });
+        stakePositionSelect.setAttribute('data-selection-tracker', 'true');
+    }
+
+    // Determine what to preserve
+    let currentValueStakeIncrease;
+    if (userManualSelectionStakeIncrease) {
+        currentValueStakeIncrease = userManualSelectionStakeIncrease;
+        console.log('🔒 Using user manual selection (stake increase):', currentValueStakeIncrease);
+    } else {
+        const domValue = stakePositionSelect.value;
+        if (domValue && domValue.startsWith('stake_position_')) {
+            currentValueStakeIncrease = domValue;
+            console.log('📋 Using DOM position value (stake increase):', currentValueStakeIncrease);
+        } else {
+            currentValueStakeIncrease = null;
+            console.log('📋 No valid stake increase position to preserve');
+        }
+    }
+
+    // Clear ALL options
+    stakePositionSelect.innerHTML = '';
+    
+    // Add dynamic position options
+    Object.values(stakingPositionData).forEach(position => {
+        const option = document.createElement('option');
+        option.value = position.id;
+        option.textContent = `${position.pool} - ${position.feeTier} - Stake Position #${position.id.split('_')[2]}`;
+        stakePositionSelect.appendChild(option);
+    });
+
+    // Use setTimeout to ensure DOM is updated before checking
+    setTimeout(() => {
+        console.log('🔍 Checking for stake increase target after DOM update...');
+        console.log('🎯 Available stake increase options:', Array.from(stakePositionSelect.options).map(opt => opt.value));
+        
+        const targetExists = stakePositionSelect.querySelector(`option[value="${currentValueStakeIncrease}"]`);
+        console.log('🔍 Looking for stake increase position:', currentValueStakeIncrease);
+        console.log('🔍 Stake increase target exists:', !!targetExists);
+
+        if (currentValueStakeIncrease && targetExists) {
+            stakePositionSelect.value = currentValueStakeIncrease;
+            console.log('✅ Restored stake increase selection to:', currentValueStakeIncrease);
+        } else if (currentValueStakeIncrease) {
+            console.log('⚠️ Could not restore stake increase selection:', currentValueStakeIncrease);
+            userManualSelectionStakeIncrease = null;
+            console.log('🔓 Cleared invalid manual stake increase selection');
+        }
+        
+        updateStakePositionInfo();
+    }, 0);
+
+    // Add main change listener (only once)
+    if (!stakePositionSelect.hasAttribute('data-main-listener')) {
+        stakePositionSelect.addEventListener('change', updateStakePositionInfo);
+        stakePositionSelect.setAttribute('data-main-listener', 'true');
+    }
+}
 
 
 
-            // Set up position selector for stake decrease
-            const stakeDecreasePositionSelect = document.querySelector('#stake-decrease select');
-            if (stakeDecreasePositionSelect) {
-                // Store current selection
-                const currentValueStakeDecrease = stakeDecreasePositionSelect.value;
-                stakeDecreasePositionSelect.innerHTML = '';
-                Object.values(stakingPositionData).forEach(position => {
-                    const option = document.createElement('option');
-                    option.value = position.id;
-                    option.textContent = `${position.pool} - ${position.feeTier} - Stake Position #${position.id.split('_')[2]}`;
-                    stakeDecreasePositionSelect.appendChild(option);
-                });
-                // Restore previous selection if it still exists
-                if (currentValueStakeDecrease && stakeDecreasePositionSelect.querySelector(`option[value="${currentValueStakeDecrease}"]`)) {
-                    stakeDecreasePositionSelect.value = currentValueStakeDecrease;
-                }
-                stakeDecreasePositionSelect.addEventListener('change', updateStakeDecreasePositionInfo);
+
+// Set up position selector for stake decrease
+const stakeDecreasePositionSelect = document.querySelector('#stake-decrease select');
+console.log("stakeDecreaseSelect: ", stakeDecreasePositionSelect);
+
+if (stakeDecreasePositionSelect) {
+    // Set up user selection tracking (only once)
+    if (!stakeDecreasePositionSelect.hasAttribute('data-selection-tracker')) {
+        stakeDecreasePositionSelect.addEventListener('change', function(e) {
+            if (e.target.value && e.target.value.startsWith('stake_position_')) {
+                userManualSelectionStakeDecrease = e.target.value;
+                console.log('👤 User manually selected stake decrease position:', userManualSelectionStakeDecrease);
             }
-            updateStakeDecreasePositionInfo();
+        });
+        stakeDecreasePositionSelect.setAttribute('data-selection-tracker', 'true');
+    }
+
+    // Determine what to preserve
+    let currentValueStakeDecrease;
+    if (userManualSelectionStakeDecrease) {
+        currentValueStakeDecrease = userManualSelectionStakeDecrease;
+        console.log('🔒 Using user manual selection (stake decrease):', currentValueStakeDecrease);
+    } else {
+        const domValue = stakeDecreasePositionSelect.value;
+        if (domValue && domValue.startsWith('stakingposition_')) {
+            currentValueStakeDecrease = domValue;
+            console.log('📋 Using DOM position value (stake decrease):', currentValueStakeDecrease);
+        } else {
+            currentValueStakeDecrease = null;
+            console.log('📋 No valid stake decrease position to preserve');
+        }
+    }
+
+    // Clear ALL options
+    stakeDecreasePositionSelect.innerHTML = '';
+    
+    // Add dynamic position options
+    Object.values(stakingPositionData).forEach(position => {
+        const option = document.createElement('option');
+        option.value = position.id;
+        option.textContent = `${position.pool} - ${position.feeTier} - Stake Position #${position.id.split('_')[2]}`;
+        stakeDecreasePositionSelect.appendChild(option);
+    });
+
+    // Use setTimeout to ensure DOM is updated before checking
+    setTimeout(() => {
+        console.log('🔍 Checking for stake decrease target after DOM update...');
+        console.log('🎯 Available stake decrease options:', Array.from(stakeDecreasePositionSelect.options).map(opt => opt.value));
+        
+        const targetExists = stakeDecreasePositionSelect.querySelector(`option[value="${currentValueStakeDecrease}"]`);
+        console.log('🔍 Looking for stake decrease position:', currentValueStakeDecrease);
+        console.log('🔍 Stake decrease target exists:', !!targetExists);
+
+        if (currentValueStakeDecrease && targetExists) {
+            stakeDecreasePositionSelect.value = currentValueStakeDecrease;
+            console.log('✅ Restored stake decrease selection to:', currentValueStakeDecrease);
+        } else if (currentValueStakeDecrease) {
+            console.log('⚠️ Could not restore stake decrease selection:', currentValueStakeDecrease);
+            userManualSelectionStakeDecrease = null;
+            console.log('🔓 Cleared invalid manual stake decrease selection');
+        }
+        
+        updateStakeDecreasePositionInfo();
+    }, 0);
+
+    // Add main change listener (only once)
+    if (!stakeDecreasePositionSelect.hasAttribute('data-main-listener')) {
+        stakeDecreasePositionSelect.addEventListener('change', updateStakeDecreasePositionInfo);
+        stakeDecreasePositionSelect.setAttribute('data-main-listener', 'true');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             if (Object.keys(positionData).length === 0) {
                 console.log("hello world");
@@ -12102,7 +12586,7 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
                 const startId = startSearchAt + (maxLoopLookups * x);
                 const endId = Math.min(startId + maxLoopLookups - 1, maxTokenPossible_STAKING);
 
-                console.log("Looking at NFT ids in this search IDS:", startId, "to", endId);
+                console.log("22222Looking at NFT ids in this search IDS:", startId, "to", endId);
                 console.log("DOING FUNCTION getIDSofStakedTokensForUserwithMinimum ");
                 console.log("STAT((((((((((((((((((((((((((((((()))))))))))))))))))))))))))))) getIDSofStakedTokensForUserwithMinimum");
                 console.log("ADDRESSTOSEARCHOF: ", ADDRESSTOSEARCHOF);
@@ -12409,55 +12893,216 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
 
 
+                  
+                    try {
+                        const maxLoopLookups = 30;
+                        console.log("THIS333: WhereToStartSearch", WhereToStartSearch);
+                        var startSearchAt = maxTokenPossible; // Start searching from highest token ID
+                        var endSearchAt = WhereToStartSearch; // End searching at this token ID
+                        const totalRange = startSearchAt - endSearchAt; // Range from maxTokenPossible down to WhereToStartSearch
+                        const NumberOfLoops = Math.ceil(totalRange / maxLoopLookups);
+         // Initialize as empty arrays (not undefined)
+                        let ownedTokenIds = [];
+                        let OWNEDtOKEN1 = [];
+                        let OWNEDtOKEN2 = [];
+                        let liquidity = [];
+                        let feesOwedToken1 = [];
+                        let feesOwedToken2 = [];
+                        let poolKeyi = [];
+                        let poolInfoi = [];
+                        var endIdz = endSearchAt;
+               
+                        
+                        for (let x = 0; x < NumberOfLoops; x++) {
+                            // Calculate startId and endId for high-to-low search
+                            const endId = Math.max(startSearchAt - (maxLoopLookups * x), endSearchAt);
+                            const startId = Math.max(endId - maxLoopLookups + 1, endSearchAt);
+                            endIdz = startId;
+        
+                            console.log("1111Looking at NFT ids in this search IDS:", startId, "to", endId);
+
+                            updateLoadingStatusWidget('Loading All Positions for user:' + ADDRESSTOSEARCHOF + " Loop #:" + x + " MaxLoop #: " + NumberOfLoops);
+                            setLoadingProgress(Math.floor((x + 1) / (NumberOfLoops) * 100));
+                            
+                            const result = await tokenPositionFinderPro.findUserTokenIdswithMinimum(
+                                ADDRESSTOSEARCHOF,
+                                startId,
+                                endId,
+                                tokenAddress,
+                                Address_ZEROXBTC_TESTNETCONTRACT,
+                                HookAddress,
+                                minUserHoldings
+                            );
+                            
+                            console.log("result: ", result);
+                            
+                            // Concatenate arrays properly using spread operator or concat
+                           ownedTokenIds = result[0].concat(ownedTokenIds);
+                            OWNEDtOKEN1 = result[1].concat(OWNEDtOKEN1);
+                            OWNEDtOKEN2 = result[2].concat(OWNEDtOKEN2);
+                            liquidity = result[3].concat(liquidity);
+                            feesOwedToken1 = result[4].concat(feesOwedToken1);
+                            feesOwedToken2 = result[5].concat(feesOwedToken2);
+                            poolKeyi = result[6].concat(poolKeyi);
+                            poolInfoi = result[7].concat(poolInfoi);
 
 
-            try {
-                const maxLoopLookups = 30;
-                console.log("THIS333: WhereToStartSearch", WhereToStartSearch);
-                var startSearchAt = WhereToStartSearch; // Start searching from token ID 0
-                const totalRange = maxTokenPossible - startSearchAt;
-                const NumberOfLoops = Math.ceil(totalRange / maxLoopLookups);
 
-                // Initialize as empty arrays (not undefined)
-                let ownedTokenIds = [];
-                let OWNEDtOKEN1 = [];
-                let OWNEDtOKEN2 = [];
-                let liquidity = [];
-                let feesOwedToken1 = [];
-                let feesOwedToken2 = [];
-                let poolKeyi = [];
-                let poolInfoi = [];
-                var endIdz = maxTokenPossible;
-                for (let x = 0; x < NumberOfLoops; x++) {
-                    const startId = startSearchAt + (maxLoopLookups * x);
-                    const endId = Math.min(startId + maxLoopLookups - 1, maxTokenPossible - 1);
-                    endIdz = endId;
-                    console.log("Looking at NFT ids in this search IDS:", startId, "to", endId);
+                            if(x%30==0){
 
-                    updateLoadingStatusWidget('Loading All Positions for user:' + ADDRESSTOSEARCHOF + " Loop #:" + x + " MaxLoop #: " + NumberOfLoops);
-                    setLoadingProgress(Math.floor((x + 1) / (NumberOfLoops) * 100));
-                    const result = await tokenPositionFinderPro.findUserTokenIdswithMinimum(
-                        ADDRESSTOSEARCHOF,
-                        startId,
-                        endId,
-                        tokenAddress,
-                        Address_ZEROXBTC_TESTNETCONTRACT,
-                        HookAddress,
-                        minUserHoldings
-                    );
-                    console.log("result: ", result);
-                    // Concatenate arrays properly using spread operator or concat
-                    ownedTokenIds = ownedTokenIds.concat(result[0]);
-                    OWNEDtOKEN1 = OWNEDtOKEN1.concat(result[1]);
-                    OWNEDtOKEN2 = OWNEDtOKEN2.concat(result[2]);
-                    liquidity = liquidity.concat(result[3]);
-                    feesOwedToken1 = feesOwedToken1.concat(result[4]);
-                    feesOwedToken2 = feesOwedToken2.concat(result[5]);
-                    poolKeyi = poolKeyi.concat(result[6]);
-                    poolInfoi = poolInfoi.concat(result[7]);
 
+
+                                    // Now loop through each token ID to get position details
+                                    for (let i = 0; i < ownedTokenIds.length; i++) {
+                                        const tokenId = ownedTokenIds[i];
+                                        if (i == 0) {
+
+                                            console.log("THIS4444: WhereToStartSearch", WhereToStartSearch);
+                                            WhereToStartSearch = ownedTokenIds[0]
+
+                                            console.log("THIS5555: WhereToStartSearch", WhereToStartSearch);
+                                        }
+                                        try {
+                                            // Get pool and position info using V4 method with corrected types
+                                            // const [poolKey, info2] = await positionManager.getPoolAndPositionInfo(tokenId);
+                                            poolKey = poolKeyi[i];
+                                            info2 = poolInfoi[i];
+                                            console.log(`Token ID ${tokenId.toString()}:`);
+                                            console.log(" Pool Key:");
+                                            console.log("   Currency0:", poolKey.currency0);     // Now properly typed as address
+                                            console.log("   Currency1:", poolKey.currency1);     // Now properly typed as address
+                                            console.log("   Fee:", poolKey.fee.toString());
+                                            console.log("   Tick Spacing:", poolKey.tickSpacing.toString());
+                                            console.log("   Hooks:", poolKey.hooks);             // Now properly typed as address
+                                            console.log(" Position Info (packed):", info2.toString());
+
+
+
+                                            const decodedInfo = {
+                                                tickLower: TOtickLower(info2.toString()),
+                                                tickUpper: TOtickUpper(info2.toString())
+                                            };
+
+                                            var feeVariable = (parseInt(poolKey.fee.toString()) / 10000).toFixed(2) + "%";
+                                            if ("8388608" == poolKey.fee.toString()) {
+                                                feeVariable = "Dynamic Fee";
+
+                                            }
+                                            console.log("   Fee:", poolKey.fee.toString());
+                                            console.log(" Decoded Position Info:");
+                                            console.log("   Tick Lower:", decodedInfo.tickLower);
+                                            console.log("   Tick Upper:", decodedInfo.tickUpper);
+                                            console.log("   tOKEN 1 AMOUNT:", OWNEDtOKEN1[i].toString(), " address: ", poolKey.currency0);
+                                            console.log("   tOKEN 2 AMOUNT:", OWNEDtOKEN2[i].toString(), " address: ", poolKey.currency1);
+                                            console.log("   Liquidity:", liquidity[i].toString());
+                                            console.log("   FEES OWED Token 1 AMOUNT:", feesOwedToken1[i].toString());
+                                            console.log("   FEES OWED Token 2 AMOUNT:", feesOwedToken2[i].toString());
+
+
+                                            var tokenASymbol = getSymbolFromAddress(poolKey.currency0);
+                                            var tokenBSymbol = getSymbolFromAddress(poolKey.currency1);
+
+                                            var tokenAIcon = tokenASymbol ? tokenASymbol[0] : "?"
+                                            var tokenBIcon = tokenBSymbol ? tokenBSymbol[0] : "?"
+
+                                            console.log("   Token A Symbol :", tokenASymbol);
+                                            console.log("   Token B Symbol :", tokenBSymbol);
+                                            console.log("   tokenAIcon:", tokenAIcon);
+
+                                            console.log("   tokenBIcon:", tokenBIcon);
+
+                                            var poolNamepool = tokenASymbol + "/" + tokenBSymbol;
+                                            console.log("   pool:", poolNamepool);
+                                            var idNameID = `position_` + tokenId.toString();
+                                            console.log("   id:", idNameID);
+
+                                            var decimalsTokenA = tokenAddressesDecimals[tokenASymbol];
+                                            var decimalsTokenB = tokenAddressesDecimals[tokenBSymbol];
+
+                                            console.log("   decimalsTokenA:", decimalsTokenA);
+                                            console.log("   decimalsTokenB:", decimalsTokenB);
+                                            var formattedToken1 = ethers.utils.formatUnits(OWNEDtOKEN1[i], decimalsTokenA);
+                                            var formattedToken2 = ethers.utils.formatUnits(OWNEDtOKEN2[i], decimalsTokenB);
+                                            console.log("   formattedToken1:", formattedToken1);
+                                            console.log("   formattedToken2:", formattedToken2);
+                                            var formattedToken1FEESOWED = ethers.utils.formatUnits(feesOwedToken1[i], decimalsTokenA);
+                                            var formattedToken2FEESOWED = ethers.utils.formatUnits(feesOwedToken2[i], decimalsTokenB);
+                                            console.log("   ")
+
+
+                                            if (decodedInfo.tickUpper == 887220 && decodedInfo.tickLower == -887220) {
+                                                console.log("Valid position entering it into positionData");
+                                                // Add the new position to positionData
+                                                positionData[idNameID] = {
+                                                    id: idNameID,
+                                                    pool: poolNamepool,
+                                                    feeTier: feeVariable,
+                                                    tokenA: tokenASymbol,
+                                                    tokenB: tokenBSymbol,
+                                                    currentLiquidity: parseFloat(liquidity[i].toString()),
+                                                    currentTokenA: formattedToken1,
+                                                    currentTokenB: formattedToken2,
+                                                    unclaimedFeesTokenA: formattedToken1FEESOWED,
+                                                    unclaimedFeesTokenB: formattedToken2FEESOWED,
+                                                    tokenAIcon: tokenAIcon,
+                                                    tokenBIcon: tokenBIcon
+                                                };
+                                            } else {
+                                                console.log("Ticks outside of acceptable range for staking not included is this ID in our interface, sorry it doesnt work");
+                                            }
+
+
+                                        } catch (e) {
+                                            console.error(`Error tokenIDsOwnedByUser :`, e);
+                                        }
+                                                console.log("THinker");
+                                    await loadPositionsIntoDappSelections();
+                                    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            }
+                        }
+                
+
+
+            Object.keys(positionData).forEach(key => {
+                const idNumber = parseInt(key.split('_')[1]);
+                if (idNumber > 0) {
+                    delete positionData[key];
                 }
-
+            });
 
 
                 WhereToStartSearch = -1;
@@ -12470,7 +13115,7 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
                     if (i == 0) {
 
                         console.log("THIS4444: WhereToStartSearch", WhereToStartSearch);
-                        WhereToStartSearch = tokenId - 1;
+                        WhereToStartSearch = ownedTokenIds[ownedTokenIds.length]
 
                         console.log("THIS5555: WhereToStartSearch", WhereToStartSearch);
                     }
@@ -12579,9 +13224,6 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
                 console.log("THISffff: WhereToStartSearch", WhereToStartSearch);
 
-            } catch (error) {
-                console.error(`Error findUserTokenIds:`, error);
-            }
 
 
             console.log("Calling getIDSofStakedTokensForUser of tokenAddress_Swapper");
@@ -12592,6 +13234,9 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
 
 
+        } catch (e) {
+            console.error(`Error getting globalTokenIDS by user: `, e);
+        }
 
 
 
