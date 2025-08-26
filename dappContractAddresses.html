@@ -604,7 +604,7 @@
         color: rgba(255, 255, 255, 0.9) !important;
         border: 1px solid rgba(255, 255, 255, 0.15) !important;
         cursor: not-allowed;
-        padding: 16px 0px !important;
+        padding: 16px 16px !important;
         border-radius: 12px !important;
         font-size: 1rem !important;
         backdrop-filter: blur(10px) !important;
@@ -619,6 +619,39 @@
     }
 
     input[readonly]:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+
+
+
+
+
+
+
+
+
+
+    #contract-info input[readonly] {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        cursor: not-allowed;
+        padding: 16px 0px !important;
+        border-radius: 12px !important;
+        font-size: 1rem !important;
+        backdrop-filter: blur(10px) !important;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    #contract-info input[readonly]:focus {
+        background: rgba(255, 255, 255, 0.12) !important;
+        border-color: rgba(120, 119, 198, 0.3) !important;
+        box-shadow: 0 0 0 3px rgba(120, 119, 198, 0.1) !important;
+        outline: none !important;
+    }
+
+    #contract-info input[readonly]:hover {
         background: rgba(255, 255, 255, 0.1) !important;
         border-color: rgba(255, 255, 255, 0.2) !important;
     }
@@ -2562,6 +2595,20 @@
     }
 }
     /*END CSS FOr contractInfo*/
+
+
+    /*tokenicon css begins*/
+    .token-icon222 {
+    width: 35px;
+    height: 35px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.form-group select option {
+    color: black !important;
+    background-color: white !important;
+}
 </style>
 </head>
 
@@ -2797,7 +2844,7 @@
 
                     <div class="form-group">
                         <label>Estimated Output</label>
-                        <input type="text" class="input-class" value="0.0" readonly style="background: #f8f9fa;">
+                        <input type="text" class="input-class" value="0.0" readonly style="background: #f8f9fa; padding-left: 10px;">
                     </div>
 
 
@@ -2985,8 +3032,8 @@
                     <div class="form-group">
                         <label>From Token</label>
                         <div class="token-selector">
-                            <div class="token-icon" id="fromTokenIcon">B</div>
-                            <select id="fromToken" onchange="updateTokenIcon('fromToken', 'fromTokenIcon')">
+                            <div class="token-icon" id="fromTokenIcon22">B</div>
+                            <select id="fromToken22" onchange="updateTokenIcon('fromToken22', 'fromTokenIcon22')">
                                 <option value="B0x">B0x - B Zero X Token</option>
                                 <option value="0xBTC">0xBTC - 0xBitcoin Token</option>
                             </select>
@@ -3006,8 +3053,8 @@
                     <div class="form-group">
                         <label>To Token</label>
                         <div class="token-selector">
-                            <div class="token-icon" id="toTokenIcon">0</div>
-                            <select id="toToken" onchange="updateTokenIcon('toToken', 'toTokenIcon')">
+                            <div class="token-icon" id="toTokenIcon11">0</div>
+                            <select id="toToken22" onchange="updateTokenIcon('toToken22', 'toTokenIcon11')">
                                 <option value="0xBTC">0xBTC - 0xBitcoin Token</option>
                                 <option value="B0x">B0x - B Zero X Token</option>
                             </select>
@@ -3016,7 +3063,7 @@
 
                     <div class="form-group">
                         <label>Estimated Output</label>
-                        <input type="text" value="0.0" readonly style="background: #f8f9fa;">
+                        <input type="text" class="input-class" value="0.0" readonly style="background: #f8f9fa; padding-left: 10px;">
                     </div>
 
                     <div class="form-group">
@@ -3588,13 +3635,6 @@
             '0xBTC': '0xb3c03EAa69e38dbde03474901337991cE939B49e',
             'RightsTo0xBTC': '0x4f404695CF5531271a0698b746225867B4C0a89c',
         };
-
-
-
-
-
-
-
 
 
 
@@ -5435,12 +5475,13 @@
 
 
 
-
         function updateTokenIcon(selectId, iconId) {
             const select = document.getElementById(selectId);
             const icon = document.getElementById(iconId);
             const selectedValue = select.value;
-
+            console.log("ICON SELECTED : ",selectedValue);
+var iconURL = tokenIconsBase[selectedValue]; 
+console.log("ICON URL: ",iconURL);
             // Map token symbols to their first letter
             const tokenIcons = {
                 'ETH': 'E',
@@ -5449,7 +5490,12 @@
                 'WBTC': 'W'
             };
 
-            icon.textContent = tokenIcons[selectedValue] || selectedValue.charAt(0);
+                if (iconURL) {
+                    icon.innerHTML = `<img src="${iconURL}" alt="${selectedValue}" class="token-icon222" onerror="this.style.display='none'">`;
+                } else {
+                    icon.textContent = tokenIcons[selectedValue] || selectedValue.charAt(0);
+                }
+               
         }
 
 
@@ -6934,6 +6980,9 @@
             document.addEventListener('DOMContentLoaded', renderContracts);
 
 
+                    updateTokenIcon('toToken22', 'toTokenIcon11');
+                    updateTokenIcon('fromToken22', 'fromTokenIcon22');
+
 
         });
 
@@ -7381,8 +7430,7 @@
         const TOKEN_ORDERETH = ['ETH', '0xBTC', 'B0x', 'RightsTo0xBTC', 'DAI', 'WBTC'];
 
 
-
-        // Updated function with consistent ordering
+        // Updated function with consistent ordering and icons
         function displayWalletBalances() {
             const balancesContainer = document.getElementById('walletBalancesDisplay');
             const balancesContainer2 = document.getElementById('walletBalancesDisplay2');
@@ -7397,24 +7445,28 @@
             // Method 1: Use predefined order
             TOKEN_ORDER.forEach(token => {
                 if (walletBalances[token] !== undefined) {
+                    const iconUrl = tokenIconsBase[token] || ''; // Get icon URL or empty string if not found
                     balancesHTML += `
-                <div class="balance-item">
-                    <span class="token-name">${token}</span>
-                    <span class="token-amount">${formatExactNumber(walletBalances[token])}</span>
-                </div>
-            `;
+                        <div class="balance-item">
+                            ${iconUrl ? `<img src="${iconUrl}" alt="${token}" class="token-icon222" onerror="this.style.display='none'">` : ''}
+                            <span class="token-name">${token}</span>
+                            <span class="token-amount">${formatExactNumber(walletBalances[token])}</span>
+                        </div>
+                    `;
                 }
             });
 
             // Add any tokens not in the predefined order (in case you add new tokens)
             for (const [token, balance] of Object.entries(walletBalances)) {
                 if (!TOKEN_ORDER.includes(token)) {
+                    const iconUrl = tokenIconsBase[token] || ''; // Get icon URL or empty string if not found
                     balancesHTML += `
-                <div class="balance-item">
-                    <span class="token-name">${token}</span>
-                    <span class="token-amount">${formatExactNumber(balance)}</span>
-                </div>
-            `;
+                        <div class="balance-item">
+                            ${iconUrl ? `<img src="${iconUrl}" alt="${token}" class="token-icon222" onerror="this.style.display='none'">` : ''}
+                            <span class="token-name">${token}</span>
+                            <span class="token-amount">${formatExactNumber(balance)}</span>
+                        </div>
+                    `;
                 }
             }
 
@@ -7426,43 +7478,83 @@
         }
 
 
-        // Updated function with consistent ordering
-        function displayWalletBalancesETH() {
-            const balancesContainer = document.getElementById('walletBalancesDisplay5');
 
-            if (!balancesContainer) return;
+        var bbaseurlBASE = "https://raw.githubusercontent.com/B0x-Token/B0x-Website/refs/heads/main/images/";
+         var ethbase = bbaseurlBASE + "ETHonBase.png";
+         var Zeroxbtcbase = bbaseurlBASE + "0xBTConBase.png";
+         var B0xbase = bbaseurlBASE + "B0xonBase.png";
+         var RightsTo0xBTCbase  = bbaseurlBASE + "RightsTo0xBTConBase.png";
+         var WETHbase = bbaseurlBASE + "WETHonBase.png";
+         var USDCbase = bbaseurlBASE + "USDConBase.png";
+        // Token addresses mapping
+        const tokenIconsBase = {
+            'ETH': ethbase, // Example addresses
+            'B0x': B0xbase,
+            '0xBTC':Zeroxbtcbase,
+            'WETH': WETHbase,
+            'RightsTo0xBTC': RightsTo0xBTCbase,
+            'USDC': USDCbase,
+        };
 
-            // Create HTML with consistent token order
-            let balancesHTML = '';
 
-            // Method 1: Use predefined order
-            TOKEN_ORDERETH.forEach(token => {
-                if (walletBalancesETH[token] !== undefined) {
-                    balancesHTML += `
+        var bbaseurl = "https://raw.githubusercontent.com/B0x-Token/B0x-Website/refs/heads/main/images/";
+         var etheth = bbaseurl + "ETHonETH.png";
+         var Zeroxbtceth = bbaseurl + "0xBTConETH.png";
+         var B0xeth = bbaseurl + "B0xonETH.png";
+         var RightsTo0xBTCeth = bbaseurl + "RightsTo0xBTConETH.png";
+         var WETHeth = bbaseurl + "WETHonETH.png";
+        // Token addresses mapping
+        const tokenIconsETH = {
+            'ETH': etheth, // Example addresses
+            'B0x': B0xeth,
+            '0xBTC': Zeroxbtceth,
+            'WETH': WETHeth,
+            'RightsTo0xBTC': RightsTo0xBTCeth,
+        };
+
+
+
+
+// Updated function with consistent ordering and icons
+function displayWalletBalancesETH() {
+    const balancesContainer = document.getElementById('walletBalancesDisplay5');
+
+    if (!balancesContainer) return;
+
+    // Create HTML with consistent token order
+    let balancesHTML = '';
+
+    // Method 1: Use predefined order
+    TOKEN_ORDERETH.forEach(token => {
+        if (walletBalancesETH[token] !== undefined) {
+            const iconUrl = tokenIconsETH[token] || ''; // Get icon URL or empty string if not found
+            balancesHTML += `
                 <div class="balance-item">
+                    ${iconUrl ? `<img src="${iconUrl}" alt="${token}" class="token-icon222" onerror="this.style.display='none'">` : ''}
                     <span class="token-name">${token}</span>
                     <span class="token-amount">${formatExactNumber(walletBalancesETH[token])}</span>
                 </div>
             `;
-                }
-            });
+        }
+    });
 
-            // Add any tokens not in the predefined order (in case you add new tokens)
-            for (const [token, balance] of Object.entries(walletBalancesETH)) {
-                if (!TOKEN_ORDERETH.includes(token)) {
-                    balancesHTML += `
+    // Add any tokens not in the predefined order (in case you add new tokens)
+    for (const [token, balance] of Object.entries(walletBalancesETH)) {
+        if (!TOKEN_ORDERETH.includes(token)) {
+            const iconUrl = tokenIconsETH[token] || ''; // Get icon URL or empty string if not found
+            balancesHTML += `
                 <div class="balance-item">
+                    ${iconUrl ? `<img src="${iconUrl}" alt="${token}" class="token-icon222" onerror="this.style.display='none'">` : ''}
                     <span class="token-name">${token}</span>
                     <span class="token-amount">${formatExactNumber(balance)}</span>
                 </div>
             `;
-                }
-            }
-
-            // Update all containers
-            balancesContainer.innerHTML = balancesHTML;
         }
+    }
 
+    // Update all containers
+    balancesContainer.innerHTML = balancesHTML;
+}
 
 
         // Settings object to hold our values
@@ -15578,8 +15670,8 @@
         // Filter options to hide selected fromToken in toToken dropdown only
         function filterTokenOptionsSwap() {
 
-            const fromToken = document.querySelector('#swap #fromToken');
-            const toToken = document.querySelector('#swap #toToken');
+            const fromToken = document.querySelector('#swap #fromToken22');
+            const toToken = document.querySelector('#swap #toToken22');
             const fromValue = fromToken.value;
             const toValue = toToken.value;
 
@@ -15604,11 +15696,10 @@
                 );
                 if (availableOptions.length > 0) {
                     toToken.value = availableOptions[0].value;
-                    updateTokenIcon('toToken', 'toTokenIcon');
+                    updateTokenIcon('toToken22', 'toTokenIcon11');
                 }
             }
         }
-
 
 
 
@@ -15654,9 +15745,17 @@
             const select = document.getElementById(selectId);
             const token = select.value;
 
-            // Update the icon (your existing code)
+            // Update the icon with image URL
             const icon = document.getElementById(iconId);
-            icon.textContent = token.charAt(0); // First letter of token
+            const iconURL = tokenIconsBase[token]; // Get the icon URL
+            
+            if (iconURL) {
+                // Use image if URL exists
+                icon.innerHTML = `<img src="${iconURL}" alt="${token}" class="token-icon222" onerror="this.parentElement.textContent='${token.charAt(0)}'">`;
+            } else {
+                // Fallback to first letter if no URL
+                icon.textContent = token.charAt(0);
+            }
 
             // Clear the amount input field in the same form group
             const formGroup = select.closest('.form-group').nextElementSibling;
@@ -15666,6 +15765,7 @@
                     amountInput.value = '0.0';
                 }
             }
+
             filterTokenOptionsSwap();
         }
 
@@ -15785,9 +15885,12 @@
                     'B0x': 'B'
                 };
 
-                fromIcon.textContent = tokenIcons[fromSelect.value] || fromSelect.value.charAt(0);
-                toIcon.textContent = tokenIcons[toSelect.value] || toSelect.value.charAt(0);
+            const iconUrlfrom = tokenIconsETH[fromSelect.value] || ''; // Get icon URL or empty string if not found
+            const iconUrlto = tokenIconsETH[toSelect.value] || ''; // Get icon URL or empty string if not found
 
+            // Use innerHTML for HTML content, and handle both icons consistently
+            fromIcon.innerHTML = iconUrlfrom ? `<img src="${iconUrlfrom}" alt="${fromSelect.value}" class="token-icon222" onerror="this.style.display='none'">` : '';
+            toIcon.innerHTML = iconUrlto ? `<img src="${iconUrlto}" alt="${toSelect.value}" class="token-icon222" onerror="this.style.display='none'">` : '';
 
             }
             getEstimate();
