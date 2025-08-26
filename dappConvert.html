@@ -2636,15 +2636,15 @@
 
 
 /*SOCIAL MEDIA CSS Start*/
-/* Social Media Tab Styles - Scoped to #SocialMedia */
-#SocialMedia .social-grid {
+/* Social Media Tab Styles - Scoped to #socials */
+#socials .social-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
     margin-top: 20px;
 }
 
-#SocialMedia .social-link {
+#socials .social-link {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2661,7 +2661,7 @@
     overflow: hidden;
 }
 
-#SocialMedia .social-link:before {
+#socials .social-link:before {
     content: '';
     position: absolute;
     top: 0;
@@ -2672,17 +2672,17 @@
     transition: left 0.5s;
 }
 
-#SocialMedia .social-link:hover:before {
+#socials .social-link:hover:before {
     left: 100%;
 }
 
-#SocialMedia .social-link:hover {
+#socials .social-link:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     border-color: rgba(255, 255, 255, 0.3);
 }
 
-#SocialMedia .social-icon {
+#socials .social-icon {
     width: 24px;
     height: 24px;
     margin-right: 10px;
@@ -2690,49 +2690,49 @@
 }
 
 /* Platform-specific hover colors for Social Media tab */
-#SocialMedia .social-link.github:hover {
+#socials .social-link.github:hover {
     background: linear-gradient(135deg, rgba(36, 41, 47, 0.8) 0%, rgba(36, 41, 47, 0.6) 100%);
     border-color: #24292f;
 }
 
-#SocialMedia .social-link.twitter:hover {
+#socials .social-link.twitter:hover {
     background: linear-gradient(135deg, rgba(29, 161, 242, 0.8) 0%, rgba(29, 161, 242, 0.6) 100%);
     border-color: #1da1f2;
 }
 
-#SocialMedia .social-link.reddit:hover {
+#socials .social-link.reddit:hover {
     background: linear-gradient(135deg, rgba(255, 69, 0, 0.8) 0%, rgba(255, 69, 0, 0.6) 100%);
     border-color: #ff4500;
 }
 
-#SocialMedia .social-link.telegram:hover {
+#socials .social-link.telegram:hover {
     background: linear-gradient(135deg, rgba(0, 136, 204, 0.8) 0%, rgba(0, 136, 204, 0.6) 100%);
     border-color: #0088cc;
 }
 
-#SocialMedia .social-link.website:hover {
+#socials .social-link.website:hover {
     background: linear-gradient(135deg, rgba(0, 212, 255, 0.8) 0%, rgba(0, 212, 255, 0.6) 100%);
     border-color: #00d4ff;
 }
 
-#SocialMedia .social-link.medium:hover {
+#socials .social-link.medium:hover {
     background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 100%);
     border-color: #000000;
 }
 
-#SocialMedia .social-link.bitcointalk:hover {
+#socials .social-link.bitcointalk:hover {
     background: linear-gradient(135deg, rgba(255, 165, 0, 0.8) 0%, rgba(255, 165, 0, 0.6) 100%);
     border-color: #ffa500;
 }
 
-#SocialMedia .social-link.discord:hover {
+#socials .social-link.discord:hover {
     background: linear-gradient(135deg, rgba(114, 137, 218, 0.8) 0%, rgba(114, 137, 218, 0.6) 100%);
     border-color: #7289da;
 }
 
 /* Mobile responsiveness for Social Media tab */
 @media (max-width: 600px) {
-    #SocialMedia .social-grid {
+    #socials .social-grid {
         grid-template-columns: 1fr;
     }
 }
@@ -2744,7 +2744,7 @@
     100% { opacity: 1; }
 }
 
-#SocialMedia .social-link:active {
+#socials .social-link:active {
     animation: socialPulse 0.2s;
 }
 /*SOCIAL MEDIA CSS END*/
@@ -3142,7 +3142,7 @@
             <button class="nav-tab" onclick="switchTab('increase')">Increase Liquidity</button>
             <button class="nav-tab" onclick="switchTab('decrease')">Decrease Liquidity</button>
             <button class="nav-tab" onclick="switchTab('staking-main-page')">Staking</button>
-            <button class="nav-tab" onclick="switchTab('stakeincrease')">Stake Increase</button>
+            <button class="nav-tab" onclick="switchTab('stake-increase')">Stake Increase</button>
             <button class="nav-tab" onclick="switchTab('stake-decrease')">Stake Decrease</button>
             <button class="nav-tab" onclick="switchTab('convert')">Convert 0xBTC <-> B0x</button>
             <button class="nav-tab" onclick="switchTab('settings')">Settings</button>
@@ -3150,7 +3150,7 @@
             <button class="nav-tab" onclick="switchTab('testnet-faucet')">Testnet Token Faucet</button>
             <button class="nav-tab" onclick="switchTab('contract-info')">Contract Info</button>
             <button class="nav-tab" onclick="switchTab('stats')">Live Statistics</button>
-            <button class="nav-tab" onclick="switchTab('SocialMedia')">Social Media</button>
+            <button class="nav-tab" onclick="switchTab('socials')">Social Media</button>
         </div>
         <div id="stats" class="page">
             <div class="info-card">
@@ -3184,7 +3184,7 @@
                 <button class="nav-tab" onclick="switchTab('increase')">Increase Liquidity</button>
                 <button class="nav-tab" onclick="switchTab('decrease')">Decrease Liquidity</button>
                 <button class="nav-tab" onclick="switchTab('staking-main-page')">Staking</button>
-                <button class="nav-tab" onclick="switchTab('stakeincrease')">Stake Increase</button>
+                <button class="nav-tab" onclick="switchTab('stake-increase')">Stake Increase</button>
                 <button class="nav-tab" onclick="switchTab('stake-decrease')">Stake Decrease</button>
                 <button class="nav-tab" onclick="switchTab('convert')">Convert 0xBTC <-> B0x</button>
                 <button class="nav-tab" onclick="switchTab('settings')">Settings</button>
@@ -3192,7 +3192,7 @@
                 <button class="nav-tab" onclick="switchTab('testnet-faucet')">Testnet Token Faucet</button>
                 <button class="nav-tab" onclick="switchTab('contract-info')">Contract Info</button>
                 <button class="nav-tab" onclick="switchTab('stats')">Live Statistics</button>
-                <button class="nav-tab" onclick="switchTab('SocialMedia')">Social Media</button>
+                <button class="nav-tab" onclick="switchTab('socials')">Social Media</button>
             </div>
             <center>
                 <div class="wallet-section">
@@ -3833,7 +3833,7 @@
 
                 <!-- Staking Increase Liquidity Page -->
                 <!-- Staking Increase Liquidity Page -->
-                <div id="stakeincrease" class="page">
+                <div id="stake-increase" class="page">
                     <div class="info-card">
                         <h3>Increase Staking Liquidity</h3>
                         <p>Add more funds to your existing staking position to earn more rewards.</p>
@@ -3960,7 +3960,7 @@
 
 
                 <!-- SOCIAL MEDIA PAGE -->
-       <div id="SocialMedia" class="page">
+       <div id="socials" class="page">
             <div class="info-card">
                 <h3>Connect With Us</h3>
                 <p>Join our community across all platforms and stay updated with the latest developments!</p>
@@ -4154,21 +4154,40 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
 const USDCToken = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
 const positionManager_address = "0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80";
-const contractAddress_PositionFinderPro = '0xC688886ca562915DcbBD3C297aA611b438429E1C'; // Replace with actual contract address
-const contractAddress_Swapper = '0xcb6d55E105b2d1004bd89c1016C331dFF104884f'; // Replace with actual contract address
-const contractAddressLPRewardsStaking = '0xe1F1bCB735791c566db881913E388475edAF000A';
-const hookAddress = '0x30635A1fA4AFFb1Db26E6f88A04911d3b2769000';
-const ProofOfWorkAddresss = '0xE09d0f77E63860cAb61e0b9DebD97Dc30aec32F5';
+const contractAddress_PositionFinderPro = '0x2F7980DaFaA7F3679D5a7AbfAF3070aAAa11B230'; // Replace with actual contract address
+const contractAddress_Swapper = '0x2F6204d15f7Bfd7cdfE1b58FCF957B39c1e7EA50'; // Replace with actual contract address
+const contractAddressLPRewardsStaking = '0x1132DB8EbEF2e9DF200234f5c7Cbd433839d028e';
+const hookAddress = '0x32e852240d18041C4B886b12c8aD2145b5C89000';
+const ProofOfWorkAddresss = '0x4571a464d2c24424B8756ba6D240e1A3e738887a';
 
 // Token addresses mapping
 const tokenAddresses = {
 'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
-'B0x': '0xb50F524182061e705Dfe88396bb92DB08752Adb6',
-'0xBTC': '0xa868D17f7eD3Ba5b9792b4cd784F5bE52F93BBF7',
+'B0x': '0x5A6BD09eF2e6021f8E77676059b49191E4b2112e',
+'0xBTC': '0x33646a4592Ad25c4adBc7bE1B268BB20fC2EB689',
 'WETH': '0x4200000000000000000000000000000000000006',
-'RightsTo0xBTC': '0x38Dce15Cc8BB62DB8aF6ad65279cfBEE19465cD5', //temp until mainnet
+'RightsTo0xBTC': '0x7F22096b686e5E8c71F7147dF74434129db23a88', //temp until mainnet
 'USDC': '0x036CbD53842c5426634e7929541eC2318f3dCF7e', //temp until mainnet
 };
 
@@ -4177,9 +4196,9 @@ const tokenAddresses = {
     const tokenMap = {
         "0x4200000000000000000000000000000000000006": "WETH",
         "0x0000000000000000000000000000000000000000": "ETH",
-        "0xb50F524182061e705Dfe88396bb92DB08752Adb6": "B0x",
-        "0xa868D17f7eD3Ba5b9792b4cd784F5bE52F93BBF7": "0xBTC",
-        "0x38Dce15Cc8BB62DB8aF6ad65279cfBEE19465cD5": "RightsTo0xBTC", //temp until mainnet
+        "0x5A6BD09eF2e6021f8E77676059b49191E4b2112e": "B0x",
+        "0x33646a4592Ad25c4adBc7bE1B268BB20fC2EB689": "0xBTC",
+        "0x7F22096b686e5E8c71F7147dF74434129db23a88": "RightsTo0xBTC", //temp until mainnet
         "0x036CbD53842c5426634e7929541eC2318f3dCF7e": "USDC", //temp until mainnet
         // Add more token mappings as needed
     };
@@ -4191,10 +4210,11 @@ const tokenAddresses = {
 // Token addresses mapping FOR ETHEREUM MAINNET ONLY but using testnet base sepolia instead of mainnet ETH
   const tokenAddressesETH = {
       'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
-      'B0x': '0xb50F524182061e705Dfe88396bb92DB08752Adb6',
-      '0xBTC': '0xa868D17f7eD3Ba5b9792b4cd784F5bE52F93BBF7',
-      'RightsTo0xBTC': '0x38Dce15Cc8BB62DB8aF6ad65279cfBEE19465cD5',
+      'B0x': '0x5A6BD09eF2e6021f8E77676059b49191E4b2112e',
+      '0xBTC': '0x33646a4592Ad25c4adBc7bE1B268BB20fC2EB689',
+      'RightsTo0xBTC': '0x7F22096b686e5E8c71F7147dF74434129db23a88',
       };
+
 
 
 
@@ -4256,7 +4276,7 @@ const tokenAddresses = {
 
         async function fetchPriceData() {
             try {
-                const response = await fetch('https://raw.githubusercontent.com/B0x-Token/B0x-Website/refs/heads/main/graphing/price_data_bwork.json');
+                const response = await fetch('https://data.bzerox.org/graph/price_data_bwork.json');
                 const data = await response.json();
 
                 // Extract the prices array from the JSON structure
@@ -4913,8 +4933,107 @@ const tokenAddresses = {
 
 
 
+// Function to get URL parameters
+function getURLParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
 
+// Function to switch tab on page load based on URL parameter
+function initializeTabFromURL() {
+    // Check for 'tab' parameter in URL (e.g., ?tab=convert)
+    const tabParam = getURLParameter('tab');
+    
+    if (tabParam) {
+        // List of valid tab names to prevent invalid tab switching
+        const validTabs = [
+            'swap',
+            'create',
+            'increase',
+            'decrease',
+            'staking-main-page',
+            'stake-increase',
+            'stake-decrease',
+            'convert',
+            'settings',
+            'staking-management',
+            'testnet-faucet',
+            'contract-info',
+            'stats',
+            'socials'
+        ];
+        
+        // Check if the tab parameter is valid
+        if (validTabs.includes(tabParam)) {
+            switchTab(tabParam);
+        } else {
+            console.warn(`Invalid tab parameter: ${tabParam}`);
+            // Optionally switch to default tab
+            switchTab('swap');
+        }
+    }
+    // If no tab parameter, the default active tab will remain (swap)
+}
 
+// Alternative function if you prefer to use just the parameter name without 'tab='
+// For URLs like ?convert instead of ?tab=convert
+function initializeTabFromDirectParam() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Valid tab names
+    const validTabs = [
+        'swap',
+        'create',
+        'increase',
+        'decrease',
+        'staking-main-page',
+        'stake-increase',
+        'stake-decrease',
+        'convert',
+        'settings',
+        'staking-management',
+        'testnet-faucet',
+        'contract-info',
+        'stats',
+        'socials'
+    ];
+    
+    // Check if any of the valid tab names exist as parameters
+    for (const tab of validTabs) {
+        if (urlParams.has(tab)) {
+            switchTab(tab);
+            return; // Exit after first match to prevent multiple tab switches
+        }
+    }
+}
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Use this for URLs like ?tab=convert
+    initializeTabFromURL();
+    
+    // AND use this for URLs like ?convert
+    initializeTabFromDirectParam();
+});
+
+// Optional: Function to update URL when tab is switched manually
+function updateURL(tabName) {
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tabName);
+    window.history.replaceState(null, '', url);
+}
+
+// Enhanced switchTab function that also updates the URL (optional)
+// If you want to modify your existing switchTab function:
+/*
+function switchTab(tabName) {
+    // Your existing tab switching logic here
+    // ...
+    
+    // Update URL to reflect current tab
+    updateURL(tabName);
+}
+*/
 
 
 
@@ -6031,8 +6150,8 @@ const tokenAddresses = {
         document.addEventListener('DOMContentLoaded', function () {
 
             setTimeout(() => {
-                document.querySelector('#stakeincrease #tokenAAmount').value = '0';
-                document.querySelector('#stakeincrease #tokenBAmount').value = '0';
+                document.querySelector('#stake-increase #tokenAAmount').value = '0';
+                document.querySelector('#stake-increase #tokenBAmount').value = '0';
             }, 500); // Wait for your init code to finish
             //checkWalletConnection();
         });
@@ -6691,7 +6810,7 @@ console.log("ICON URL: ",iconURL);
 
         function updateTotalLiqIncreaseSTAKING() {
 
-            const positionSelect = document.querySelector('#stakeincrease select');
+            const positionSelect = document.querySelector('#stake-increase select');
             const selectedPositionId = positionSelect.value;
             const position = stakingPositionData[selectedPositionId];
             console.log("Postion Staking Udpate Liq: ", position);
@@ -6712,7 +6831,7 @@ console.log("ICON URL: ",iconURL);
             var inputTokenA = 0;
             var inputTokenB = 0;
             // Update form labels and placeholders
-            const formGroups = document.querySelectorAll('#stakeincrease .form-row .form-group');
+            const formGroups = document.querySelectorAll('#stake-increase .form-row .form-group');
             formGroups.forEach(group => {
                 const label = group.querySelector('label');
                 const input = group.querySelector('input'); // Get the input element
@@ -6734,7 +6853,7 @@ console.log("ICON URL: ",iconURL);
             });
 
             // Update new total liquidity field
-            const totalLiquidityInput = document.querySelector('#stakeincrease input[readonly]');
+            const totalLiquidityInput = document.querySelector('#stake-increase input[readonly]');
             totalLiquidityInput.value = `${(parseFloat(position.currentTokenA) + parseFloat(inputTokenA)).toFixed(4)} ${position.tokenA} & ${(parseFloat(position.currentTokenB) + parseFloat(inputTokenB)).toFixed(4)} ${position.tokenB}`;
 
 
@@ -6751,14 +6870,14 @@ console.log("ICON URL: ",iconURL);
 
 
         function updateStakePositionInfo() {
-            const positionSelect = document.querySelector('#stakeincrease select');
+            const positionSelect = document.querySelector('#stake-increase select');
             const selectedPositionId = positionSelect.value;
             const position = stakingPositionData[selectedPositionId];
             console.log("Staked Position: ", position);
             if (!position) {
 
                 // Update current position info card
-                const infoCard = document.querySelector('#stakeincrease .info-card:nth-child(4)');
+                const infoCard = document.querySelector('#stake-increase .info-card:nth-child(4)');
                 infoCard.innerHTML = `
                 <h3>Current Selected Position</h3>
                 <p>Create position then Stake it in order to decrease liquidity of position.  No position Staked currently.</p>
@@ -6777,7 +6896,7 @@ console.log("ICON URL: ",iconURL);
             }
 
             // Update current position info card
-            const infoCard = document.querySelector('#stakeincrease .info-card:nth-child(4)');
+            const infoCard = document.querySelector('#stake-increase .info-card:nth-child(4)');
             infoCard.innerHTML = `
         <h3>Current Selected Position</h3>
         <p><strong>Pool:</strong> ${position.pool} (${position.feeTier})</p>
@@ -6797,8 +6916,8 @@ console.log("ICON URL: ",iconURL);
 
 
         // Just directly update each span - much cleaner!
-        const tokenASpan = document.querySelector('#stakeincrease #tokenALabelINC');
-        const tokenBSpan = document.querySelector('#stakeincrease #tokenBLabelINC');
+        const tokenASpan = document.querySelector('#stake-increase #tokenALabelINC');
+        const tokenBSpan = document.querySelector('#stake-increase #tokenBLabelINC');
 
         if (tokenASpan) {
             const iconURL = tokenIconsBase[position.tokenA];
@@ -6824,10 +6943,10 @@ console.log("ICON URL: ",iconURL);
 
 
             // Update new total liquidity field
-            const totalLiquidityInput = document.querySelector('#stakeincrease input[readonly]');
+            const totalLiquidityInput = document.querySelector('#stake-increase input[readonly]');
             totalLiquidityInput.value = `${parseFloat(position.currentTokenA).toFixed(4)} ${position.tokenA} & ${parseFloat(position.currentTokenB).toFixed(4)} ${position.tokenB}`;
             // Clear input values when position changes
-            const inputs = document.querySelectorAll('#stakeincrease input[type="number"]');
+            const inputs = document.querySelectorAll('#stake-increase input[type="number"]');
             inputs.forEach(input => input.value = '0');
 
 
@@ -7476,7 +7595,7 @@ function updatePositionDropdown() {
             }
 
             // Set up position selector for stake increase
-            const stakePositionSelect = document.querySelector('#stakeincrease select');
+            const stakePositionSelect = document.querySelector('#stake-increase select');
             if (stakePositionSelect) {
                 stakePositionSelect.innerHTML = '';
                 Object.values(stakingPositionData).forEach(position => {
@@ -7537,8 +7656,8 @@ function updatePositionDropdown() {
 
 
             // Add event listeners to both inputs in the form-row
-            const ethInput2 = document.querySelector('#stakeincrease .form-row .form-group:first-child input');
-            const usdcInput2 = document.querySelector('#stakeincrease .form-row .form-group:last-child input');
+            const ethInput2 = document.querySelector('#stake-increase .form-row .form-group:first-child input');
+            const usdcInput2 = document.querySelector('#stake-increase .form-row .form-group:last-child input');
 
             console.log("Eth input2: ", ethInput2);
             if (ethInput2) {
@@ -7722,7 +7841,7 @@ setupUserSelectionTracking();
             let isProgrammaticUpdateD = false;
 
             // Target the create section
-            const increaseStaking = document.getElementById('stakeincrease');
+            const increaseStaking = document.getElementById('stake-increase');
             console.log("increase staking doc: ", increaseStaking);
             if (increaseStaking) {
                 // Get both number inputs in the create section
@@ -9469,12 +9588,12 @@ function displayWalletBalancesETH() {
 
 
             // Get token types from labels within increase page
-            const tokenALabel = document.querySelector('#stakeincrease #tokenALabelINC');
-            const tokenBLabel = document.querySelector('#stakeincrease #tokenBLabelINC');
+            const tokenALabel = document.querySelector('#stake-increase #tokenALabelINC');
+            const tokenBLabel = document.querySelector('#stake-increase #tokenBLabelINC');
 
             // Get input amounts from inputs within increase page  
-            const tokenAInput = document.querySelector('#stakeincrease #tokenAAmount');
-            const tokenBInput = document.querySelector('#stakeincrease #tokenBAmount');
+            const tokenAInput = document.querySelector('#stake-increase #tokenAAmount');
+            const tokenBInput = document.querySelector('#stake-increase #tokenBAmount');
             // Get the token values from the label text content
             const tokenAValue = tokenALabel.textContent; // Gets "ETH"
             const tokenBValue = tokenBLabel.textContent; // Gets "USDC"
@@ -9500,7 +9619,7 @@ function displayWalletBalancesETH() {
             console.log("tokenB InputAddresstoken", tokenBinputAddress);
 
             // Simple and reliable approach - select all number inputs in create page
-            const createInputs = document.querySelectorAll('#stakeincrease input[type="number"]');
+            const createInputs = document.querySelectorAll('#stake-increase input[type="number"]');
             const amountInputA = createInputs[0]; // First number input (Amount A)
             const amountInputB = createInputs[1]; // Second number input (Amount B)
 
@@ -9514,7 +9633,7 @@ function displayWalletBalancesETH() {
             console.log("Currently amountInputA value:", tokenAAmount);
             console.log("Currently amountInputB value:", tokenBAmount);
 
-            const positionSelect = document.querySelector('#stakeincrease select');
+            const positionSelect = document.querySelector('#stake-increase select');
 
             const selectedPositionId = positionSelect.value;
             const position = stakingPositionData[selectedPositionId];
@@ -12048,7 +12167,7 @@ if (positionSelect3) {
 
 
 // Set up position selector for stake increase
-const stakePositionSelect = document.querySelector('#stakeincrease select');
+const stakePositionSelect = document.querySelector('#stake-increase select');
 console.log("stakeIncreaseSelect: ", stakePositionSelect);
 
 if (stakePositionSelect) {
@@ -13759,7 +13878,7 @@ if (stakeDecreasePositionSelect) {
             // Get position data to include unclaimed fees
             var positionSelect = document.querySelector('#increase select');
             if (StakeSection == true) {
-                positionSelect = document.querySelector('#stakeincrease select');
+                positionSelect = document.querySelector('#stake-increase select');
             }
             console.log("Test positionSelect ", positionSelect);
             const selectedPositionId = positionSelect.value;
@@ -14022,13 +14141,13 @@ if (stakeDecreasePositionSelect) {
         // Example of how to use this in your max button handlers
         function handleMaxButtonClickStakeIncrease(tokenSymbol, inputElement) {
             // Get current token configuration
-            const tokenALabel = document.querySelector('#stakeincrease #tokenALabelINC');
-            const tokenBLabel = document.querySelector('#stakeincrease #tokenBLabelINC');
+            const tokenALabel = document.querySelector('#stake-increase #tokenALabelINC');
+            const tokenBLabel = document.querySelector('#stake-increase #tokenBLabelINC');
             const tokenAValue = tokenALabel.textContent;
             const tokenBValue = tokenBLabel.textContent;
 
             // Get position data for unclaimed fees
-            const positionSelect = document.querySelector('#stakeincrease select');
+            const positionSelect = document.querySelector('#stake-increase select');
             const selectedPositionId = positionSelect.value;
             const position = positionData[selectedPositionId];
             console.log(" handleMaxButtonClick position: ", position);
@@ -14043,7 +14162,7 @@ if (stakeDecreasePositionSelect) {
             }
 
             // Update both inputs with the proper amounts
-            const createInputs = document.querySelectorAll('#stakeincrease input[type="number"]');
+            const createInputs = document.querySelectorAll('#stake-increase input[type="number"]');
             const amountInputA = createInputs[0];
             const amountInputB = createInputs[1];
 
@@ -14257,17 +14376,17 @@ if (stakeDecreasePositionSelect) {
             if (!walletConnected) {
                 await connectWallet();
             }
-            const tokenALabel = document.querySelector('#stakeincrease #tokenALabelINC');
-            const tokenBLabel = document.querySelector('#stakeincrease #tokenBLabelINC');
-            const tokenAInput = document.querySelector('#stakeincrease #tokenAAmount');
-            const tokenBInput = document.querySelector('#stakeincrease #tokenBAmount');
+            const tokenALabel = document.querySelector('#stake-increase #tokenALabelINC');
+            const tokenBLabel = document.querySelector('#stake-increase #tokenBLabelINC');
+            const tokenAInput = document.querySelector('#stake-increase #tokenAAmount');
+            const tokenBInput = document.querySelector('#stake-increase #tokenBAmount');
 
             const tokenAValue = tokenALabel.textContent;
             const tokenBValue = tokenBLabel.textContent;
             const tokenAAmount = tokenAInput ? tokenAInput.value : '0';
             const tokenBAmount = tokenBInput ? tokenBInput.value : '0';
 
-            const createInputs = document.querySelectorAll('#stakeincrease input[type="number"]');
+            const createInputs = document.querySelectorAll('#stake-increase input[type="number"]');
             const amountInputA = createInputs[0];
             const amountInputB = createInputs[1];
 
@@ -14317,7 +14436,7 @@ if (stakeDecreasePositionSelect) {
                 if (needsAdjustment) {
                     console.log(`Adjusted amounts due to ${limitingFactor} being limiting factor`);
 
-                    const positionSelect = document.querySelector('#stakeincrease select');
+                    const positionSelect = document.querySelector('#stake-increase select');
                     const selectedPositionId = positionSelect.value;
                     const position = stakingPositionData[selectedPositionId];
                     console.log("Position Stake Increase: ", position);
@@ -14361,10 +14480,10 @@ if (stakeDecreasePositionSelect) {
 
 
             // Get token types from labels within increase page
-            const tokenALabel = document.querySelector('#stakeincrease #tokenALabelINC');
-            const tokenBLabel = document.querySelector('#stakeincrease #tokenBLabelINC');
-            const tokenAInput = document.querySelector('#stakeincrease #tokenAAmount');
-            const tokenBInput = document.querySelector('#stakeincrease #tokenBAmount');
+            const tokenALabel = document.querySelector('#stake-increase #tokenALabelINC');
+            const tokenBLabel = document.querySelector('#stake-increase #tokenBLabelINC');
+            const tokenAInput = document.querySelector('#stake-increase #tokenAAmount');
+            const tokenBInput = document.querySelector('#stake-increase #tokenBAmount');
 
             // Get the token values from the label text content
             const tokenAValue = tokenALabel.textContent;
@@ -14386,7 +14505,7 @@ if (stakeDecreasePositionSelect) {
             console.log("tokenB InputAddresstoken", tokenBinputAddress);
 
             // Simple and reliable approach - select all number inputs in increase page
-            const createInputs = document.querySelectorAll('#stakeincrease input[type="number"]');
+            const createInputs = document.querySelectorAll('#stake-increase input[type="number"]');
             const amountInputA = createInputs[0]; // First number input (Amount A)
             const amountInputB = createInputs[1]; // Second number input (Amount B)
 
@@ -14446,7 +14565,7 @@ if (stakeDecreasePositionSelect) {
                 if (needsAdjustment) {
                     console.log(`Adjusted amounts due to ${limitingFactor} being limiting factor`);
 
-                    const positionSelect = document.querySelector('#stakeincrease select');
+                    const positionSelect = document.querySelector('#stake-increase select');
                     const selectedPositionId = positionSelect.value;
                     const position = stakingPositionData[selectedPositionId];
                     console.log("Position Stake Increase: ", position);
@@ -16696,13 +16815,13 @@ if (stakeDecreasePositionSelect) {
 
             // Add click handler with proper context
             maxButton.addEventListener('click', function () {
-                const positionSelect = document.querySelector('#stakeincrease select');
+                const positionSelect = document.querySelector('#stake-increase select');
                 const selectedPositionId = positionSelect.value;
                 const position = stakingPositionData[selectedPositionId];
 
                 const swapSection = document.getElementById('stakeincrease');
                 if (!swapSection || !swapSection.contains(inputElement)) {
-                    console.log("Not in stakeincrease section, returning early");
+                    console.log("Not in stake-increase section, returning early");
                     return;
                 }
 
@@ -17180,10 +17299,10 @@ if (stakeDecreasePositionSelect) {
 
 
             // INCREASE LIQUIDITY PAGE - The two token amount fields
-            const increaseInputsStaking = document.querySelectorAll('#stakeincrease .form-row input[type="number"]');
+            const increaseInputsStaking = document.querySelectorAll('#stake-increase .form-row input[type="number"]');
             increaseInputsStaking.forEach((input, index) => {
                 const getIncreaseToken = (inputIndex) => {
-                    const labels = document.querySelectorAll('#stakeincrease .form-row label');
+                    const labels = document.querySelectorAll('#stake-increase .form-row label');
                     if (labels[inputIndex]) {
                         const labelText = labels[inputIndex].textContent;
                         return labelText.replace('Add ', '');
@@ -17194,7 +17313,7 @@ if (stakeDecreasePositionSelect) {
                 addMaxButtonToField(input, getIncreaseToken(index));
 
                 // Update when position changes (since tokens change based on selected position)
-                const positionSelect = document.querySelector('#stakeincrease select');
+                const positionSelect = document.querySelector('#stake-increase select');
                 if (positionSelect) {
                     positionSelect.addEventListener('change', () => {
                         // Small delay to let the labels update first
