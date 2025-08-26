@@ -13,7 +13,7 @@ el('#footerversion').innerHTML = version;
 
 var ethblockstart = 30219008;
 const ShowStats = true; //Removes my excessive stats
-const API_zkBTC_Users_tx_transactions = "https://raw.githubusercontent.com/BasedWorkToken/Based-Work-Token-General/main/api/BWORK_statsPage_stats.html"
+const API_zkBTC_Users_tx_transactions = "https://data.bzerox.org/graph/mined_blocks_testnet.json"
 const Forge_Pool_efficeny = 150/32 + 1  //150 min solves and 32 min on Forge only
 /* intrinsic values */
 /* intrinsic values */
