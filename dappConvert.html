@@ -7789,15 +7789,15 @@ console.log("ICON URL: ",iconURL);
                 address: contractAddressLPRewardsStaking,
                 isToken: false,
                 chain: "baseSepolia"
+            },{
+                name: "B0x Uniswap Router",
+                address: contractAddress_Swapper,
+                isToken: false,
+                chain: "baseSepolia"
             },
             {
                 name: "Hook Address for Uniswap ",
                 address: hookAddress,
-                isToken: false,
-                chain: "baseSepolia"
-            },{
-                name: "B0x Uniswap Router",
-                address: contractAddress_Swapper,
                 isToken: false,
                 chain: "baseSepolia"
             },
@@ -10694,6 +10694,7 @@ function displayWalletBalancesETH() {
 
         async function executeConvert(){
 
+                 await switchToEthereum();
 
             const fromSelect = document.querySelector('#convert .form-group:nth-child(3) select');
 
@@ -10715,6 +10716,8 @@ function displayWalletBalancesETH() {
             }
 
             fetchBalancesETH();
+                    await switchToBaseSepolia();
+            fetchBalances();
 
 
         }
@@ -11800,13 +11803,8 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
             cleanupPositionData();
 
-            const minStaking = document.getElementById('minStaking').value || 0;
-            const minUserHoldings = document.getElementById('minUserHoldings').value || 0;
 
 
-            console.log("Global Settings variables to prevent spam!:minStaking: ", minStaking, "  &&&&& minUserHoldings: ", minUserHoldings);
-
-            // Compact ABI for findUserTokenIdswithMinimum function
 
             positionFinderABI = [
                 {
@@ -11979,239 +11977,25 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
 
 
-            console.log("getting getMaxUniswapIDPossible!");
-            var MAXTOKENPOSSIBLE = 0;
-            var maxTokenPossible = 0;
-            try {
-
-
-                showLoadingWidget('Loading all positions from Uniswap');
-                updateLoadingStatusWidget('Loading All Positions for user:' + ADDRESSTOSEARCHOF);
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-
-
-                // Call the view function
-                const result = await tokenPositionFinderPro.getMaxUniswapIDPossible();
-
-
-
-                // First debug what we're getting back
-                console.log("Raw result type:", typeof result);
-                console.log("Raw result structure:", Object.keys(result).join(", "));
-
-                if (typeof result === 'bigint' || typeof result === 'number') {
-                    // If it's already a primitive value
-                    MAXTOKENPOSSIBLE = result;
-                } else if (result._isBigNumber || result instanceof ethers.BigNumber) {
-                    // For ethers v5 BigNumber
-                    MAXTOKENPOSSIBLE = result;
-                } else if (typeof result === 'object' && result !== null) {
-                    // For objects, try to extract the value
-                    // With ethers v6, we might get the value directly
-                    if (typeof result.toString === 'function' && result.toString().match(/^[0-9]+$/)) {
-                        MAXTOKENPOSSIBLE = result;
-                    } else {
-                        // Attempt to extract value based on common patterns
-                        MAXTOKENPOSSIBLE = result[0] || result.amountOut || result._hex || result.value || result;
-                    }
-                }
-
-                console.log(`Found valid Uniswap v4 MAXTOKEN POSSIBLE: ${MAXTOKENPOSSIBLE.toString()}`);
-
-                // CONVERT TO REGULAR NUMBER FOR LOOP
-                if (typeof MAXTOKENPOSSIBLE === 'bigint') {
-                    maxTokenPossible = Number(MAXTOKENPOSSIBLE);
-                } else if (MAXTOKENPOSSIBLE._isBigNumber || MAXTOKENPOSSIBLE instanceof ethers.BigNumber) {
-                    // For ethers v5
-                    maxTokenPossible = MAXTOKENPOSSIBLE.toNumber();
-                } else if (typeof MAXTOKENPOSSIBLE.toString === 'function') {
-                    // For ethers v6 or other BigInt-like objects
-                    maxTokenPossible = Number(MAXTOKENPOSSIBLE.toString());
-                } else {
-                    maxTokenPossible = Number(MAXTOKENPOSSIBLE);
-                }
-
-                console.log(`Converted to number for loop: ${maxTokenPossible}`);
-            } catch (error) {
-                console.error(`Error finding valid getMaxUniswapIDPossible for swap:`, error);
-            }
 
 
 
 
 
-            try {
-                const maxLoopLookups = 30;
-                console.log("THIS333: WhereToStartSearch", WhereToStartSearch);
-                var startSearchAt = WhereToStartSearch; // Start searching from token ID 0
-                const totalRange = maxTokenPossible - startSearchAt;
-                const NumberOfLoops = Math.ceil(totalRange / maxLoopLookups);
-
-                // Initialize as empty arrays (not undefined)
-                let ownedTokenIds = [];
-                let OWNEDtOKEN1 = [];
-                let OWNEDtOKEN2 = [];
-                let liquidity = [];
-                let feesOwedToken1 = [];
-                let feesOwedToken2 = [];
-                let poolKeyi = [];
-                let poolInfoi = [];
-                var endIdz = maxTokenPossible;
-                for (let x = 0; x < NumberOfLoops; x++) {
-                    const startId = startSearchAt + (maxLoopLookups * x);
-                    const endId = Math.min(startId + maxLoopLookups - 1, maxTokenPossible - 1);
-                    endIdz = endId;
-                    console.log("Looking at NFT ids in this search IDS:", startId, "to", endId);
-
-                    updateLoadingStatusWidget('Loading All Positions for user:' + ADDRESSTOSEARCHOF + " Loop #:" + x + " MaxLoop #: " + NumberOfLoops);
-                    setLoadingProgress(Math.floor((x + 1) / (NumberOfLoops) * 100));
-                    const result = await tokenPositionFinderPro.findUserTokenIdswithMinimum(
-                        ADDRESSTOSEARCHOF,
-                        startId,
-                        endId,
-                        tokenAddress,
-                        Address_ZEROXBTC_TESTNETCONTRACT,
-                        HookAddress,
-                        minUserHoldings
-                    );
-                    console.log("result: ", result);
-                    // Concatenate arrays properly using spread operator or concat
-                    ownedTokenIds = ownedTokenIds.concat(result[0]);
-                    OWNEDtOKEN1 = OWNEDtOKEN1.concat(result[1]);
-                    OWNEDtOKEN2 = OWNEDtOKEN2.concat(result[2]);
-                    liquidity = liquidity.concat(result[3]);
-                    feesOwedToken1 = feesOwedToken1.concat(result[4]);
-                    feesOwedToken2 = feesOwedToken2.concat(result[5]);
-                    poolKeyi = poolKeyi.concat(result[6]);
-                    poolInfoi = poolInfoi.concat(result[7]);
-
-                }
 
 
 
-                WhereToStartSearch = -1;
-                console.log("Number of tokens user owns that fit criteria for staking:", ownedTokenIds.length);
-                console.log("NFTs owned by user :", ownedTokenIds.map(id => id.toString()));
-
-                // Now loop through each token ID to get position details
-                for (let i = 0; i < ownedTokenIds.length; i++) {
-                    const tokenId = ownedTokenIds[i];
-                    if (i == 0) {
-
-                        console.log("THIS4444: WhereToStartSearch", WhereToStartSearch);
-                        WhereToStartSearch = tokenId - 1;
-
-                        console.log("THIS5555: WhereToStartSearch", WhereToStartSearch);
-                    }
-                    try {
-                        // Get pool and position info using V4 method with corrected types
-                        // const [poolKey, info2] = await positionManager.getPoolAndPositionInfo(tokenId);
-                        poolKey = poolKeyi[i];
-                        info2 = poolInfoi[i];
-                        console.log(`Token ID ${tokenId.toString()}:`);
-                        console.log(" Pool Key:");
-                        console.log("   Currency0:", poolKey.currency0);     // Now properly typed as address
-                        console.log("   Currency1:", poolKey.currency1);     // Now properly typed as address
-                        console.log("   Fee:", poolKey.fee.toString());
-                        console.log("   Tick Spacing:", poolKey.tickSpacing.toString());
-                        console.log("   Hooks:", poolKey.hooks);             // Now properly typed as address
-                        console.log(" Position Info (packed):", info2.toString());
 
 
 
-                        const decodedInfo = {
-                            tickLower: TOtickLower(info2.toString()),
-                            tickUpper: TOtickUpper(info2.toString())
-                        };
-
-                        var feeVariable = (parseInt(poolKey.fee.toString()) / 10000).toFixed(2) + "%";
-                        if ("8388608" == poolKey.fee.toString()) {
-                            feeVariable = "Dynamic Fee";
-
-                        }
-                        console.log("   Fee:", poolKey.fee.toString());
-                        console.log(" Decoded Position Info:");
-                        console.log("   Tick Lower:", decodedInfo.tickLower);
-                        console.log("   Tick Upper:", decodedInfo.tickUpper);
-                        console.log("   tOKEN 1 AMOUNT:", OWNEDtOKEN1[i].toString(), " address: ", poolKey.currency0);
-                        console.log("   tOKEN 2 AMOUNT:", OWNEDtOKEN2[i].toString(), " address: ", poolKey.currency1);
-                        console.log("   Liquidity:", liquidity[i].toString());
-                        console.log("   FEES OWED Token 1 AMOUNT:", feesOwedToken1[i].toString());
-                        console.log("   FEES OWED Token 2 AMOUNT:", feesOwedToken2[i].toString());
 
 
-                        var tokenASymbol = getSymbolFromAddress(poolKey.currency0);
-                        var tokenBSymbol = getSymbolFromAddress(poolKey.currency1);
-
-                        var tokenAIcon = tokenASymbol ? tokenASymbol[0] : "?"
-                        var tokenBIcon = tokenBSymbol ? tokenBSymbol[0] : "?"
-
-                        console.log("   Token A Symbol :", tokenASymbol);
-                        console.log("   Token B Symbol :", tokenBSymbol);
-                        console.log("   tokenAIcon:", tokenAIcon);
-
-                        console.log("   tokenBIcon:", tokenBIcon);
-
-                        var poolNamepool = tokenASymbol + "/" + tokenBSymbol;
-                        console.log("   pool:", poolNamepool);
-                        var idNameID = `position_` + tokenId.toString();
-                        console.log("   id:", idNameID);
-
-                        var decimalsTokenA = tokenAddressesDecimals[tokenASymbol];
-                        var decimalsTokenB = tokenAddressesDecimals[tokenBSymbol];
-
-                        console.log("   decimalsTokenA:", decimalsTokenA);
-                        console.log("   decimalsTokenB:", decimalsTokenB);
-                        var formattedToken1 = ethers.utils.formatUnits(OWNEDtOKEN1[i], decimalsTokenA);
-                        var formattedToken2 = ethers.utils.formatUnits(OWNEDtOKEN2[i], decimalsTokenB);
-                        console.log("   formattedToken1:", formattedToken1);
-                        console.log("   formattedToken2:", formattedToken2);
-                        var formattedToken1FEESOWED = ethers.utils.formatUnits(feesOwedToken1[i], decimalsTokenA);
-                        var formattedToken2FEESOWED = ethers.utils.formatUnits(feesOwedToken2[i], decimalsTokenB);
-                        console.log("   ")
 
 
-                        if (decodedInfo.tickUpper == 887220 && decodedInfo.tickLower == -887220) {
-                            console.log("Valid position entering it into positionData");
-                            // Add the new position to positionData
-                            positionData[idNameID] = {
-                                id: idNameID,
-                                pool: poolNamepool,
-                                feeTier: feeVariable,
-                                tokenA: tokenASymbol,
-                                tokenB: tokenBSymbol,
-                                currentLiquidity: parseFloat(liquidity[i].toString()),
-                                currentTokenA: formattedToken1,
-                                currentTokenB: formattedToken2,
-                                unclaimedFeesTokenA: formattedToken1FEESOWED,
-                                unclaimedFeesTokenB: formattedToken2FEESOWED,
-                                tokenAIcon: tokenAIcon,
-                                tokenBIcon: tokenBIcon
-                            };
-                        } else {
-                            console.log("Ticks outside of acceptable range for staking not included is this ID in our interface, sorry it doesnt work");
-                        }
 
 
-                    } catch (positionError) {
-                        console.error(`Error getting position details for token ${tokenId}:`, positionError);
-                    }
 
-                }
-                if (WhereToStartSearch == -1) {
-                    WhereToStartSearch = endIdz - 1;
-                }
 
-                if (WhereToStartSearch < 0) {
-                    WhereToStartSearch = 0;
-                }
-
-                console.log("THISffff: WhereToStartSearch", WhereToStartSearch);
-
-            } catch (error) {
-                console.error(`Error findUserTokenIds:`, error);
-            }
 
 
             console.log("Calling getIDSofStakedTokensForUser of tokenAddress_Swapper");
@@ -12221,6 +12005,19 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
             const currentTimeInSeconds = Math.floor(Date.now() / 1000);
             console.log("Current Time in seconds since epoch", currentTimeInSeconds); // e.g., 1717974123
 
+
+
+            
+
+            const minStaking = document.getElementById('minStaking').value || 0;
+            const minUserHoldings = document.getElementById('minUserHoldings').value || 0;
+
+
+            console.log("Global Settings variables to prevent spam!:minStaking: ", minStaking, "  &&&&& minUserHoldings: ", minUserHoldings);
+
+            // Compact ABI for findUserTokenIdswithMinimum function
+
+          
 
 
 
@@ -12521,6 +12318,288 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
                 }
                 console.log("DONE FINDINGI USER IDS and Stakeded IDs in getTokenIDsOwnedByUser");
             }
+
+
+
+
+            await loadPositionsIntoDappSelections();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            console.log("getting getMaxUniswapIDPossible!");
+            var MAXTOKENPOSSIBLE = 0;
+            var maxTokenPossible = 0;
+            try {
+
+
+                showLoadingWidget('Loading all positions from Uniswap');
+                updateLoadingStatusWidget('Loading All Positions for user:' + ADDRESSTOSEARCHOF);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+
+
+                // Call the view function
+                const result = await tokenPositionFinderPro.getMaxUniswapIDPossible();
+
+
+
+                // First debug what we're getting back
+                console.log("Raw result type:", typeof result);
+                console.log("Raw result structure:", Object.keys(result).join(", "));
+
+                if (typeof result === 'bigint' || typeof result === 'number') {
+                    // If it's already a primitive value
+                    MAXTOKENPOSSIBLE = result;
+                } else if (result._isBigNumber || result instanceof ethers.BigNumber) {
+                    // For ethers v5 BigNumber
+                    MAXTOKENPOSSIBLE = result;
+                } else if (typeof result === 'object' && result !== null) {
+                    // For objects, try to extract the value
+                    // With ethers v6, we might get the value directly
+                    if (typeof result.toString === 'function' && result.toString().match(/^[0-9]+$/)) {
+                        MAXTOKENPOSSIBLE = result;
+                    } else {
+                        // Attempt to extract value based on common patterns
+                        MAXTOKENPOSSIBLE = result[0] || result.amountOut || result._hex || result.value || result;
+                    }
+                }
+
+                console.log(`Found valid Uniswap v4 MAXTOKEN POSSIBLE: ${MAXTOKENPOSSIBLE.toString()}`);
+
+                // CONVERT TO REGULAR NUMBER FOR LOOP
+                if (typeof MAXTOKENPOSSIBLE === 'bigint') {
+                    maxTokenPossible = Number(MAXTOKENPOSSIBLE);
+                } else if (MAXTOKENPOSSIBLE._isBigNumber || MAXTOKENPOSSIBLE instanceof ethers.BigNumber) {
+                    // For ethers v5
+                    maxTokenPossible = MAXTOKENPOSSIBLE.toNumber();
+                } else if (typeof MAXTOKENPOSSIBLE.toString === 'function') {
+                    // For ethers v6 or other BigInt-like objects
+                    maxTokenPossible = Number(MAXTOKENPOSSIBLE.toString());
+                } else {
+                    maxTokenPossible = Number(MAXTOKENPOSSIBLE);
+                }
+
+                console.log(`Converted to number for loop: ${maxTokenPossible}`);
+            } catch (error) {
+                console.error(`Error finding valid getMaxUniswapIDPossible for swap:`, error);
+            }
+
+
+
+
+
+            try {
+                const maxLoopLookups = 30;
+                console.log("THIS333: WhereToStartSearch", WhereToStartSearch);
+                var startSearchAt = WhereToStartSearch; // Start searching from token ID 0
+                const totalRange = maxTokenPossible - startSearchAt;
+                const NumberOfLoops = Math.ceil(totalRange / maxLoopLookups);
+
+                // Initialize as empty arrays (not undefined)
+                let ownedTokenIds = [];
+                let OWNEDtOKEN1 = [];
+                let OWNEDtOKEN2 = [];
+                let liquidity = [];
+                let feesOwedToken1 = [];
+                let feesOwedToken2 = [];
+                let poolKeyi = [];
+                let poolInfoi = [];
+                var endIdz = maxTokenPossible;
+                for (let x = 0; x < NumberOfLoops; x++) {
+                    const startId = startSearchAt + (maxLoopLookups * x);
+                    const endId = Math.min(startId + maxLoopLookups - 1, maxTokenPossible - 1);
+                    endIdz = endId;
+                    console.log("Looking at NFT ids in this search IDS:", startId, "to", endId);
+
+                    updateLoadingStatusWidget('Loading All Positions for user:' + ADDRESSTOSEARCHOF + " Loop #:" + x + " MaxLoop #: " + NumberOfLoops);
+                    setLoadingProgress(Math.floor((x + 1) / (NumberOfLoops) * 100));
+                    const result = await tokenPositionFinderPro.findUserTokenIdswithMinimum(
+                        ADDRESSTOSEARCHOF,
+                        startId,
+                        endId,
+                        tokenAddress,
+                        Address_ZEROXBTC_TESTNETCONTRACT,
+                        HookAddress,
+                        minUserHoldings
+                    );
+                    console.log("result: ", result);
+                    // Concatenate arrays properly using spread operator or concat
+                    ownedTokenIds = ownedTokenIds.concat(result[0]);
+                    OWNEDtOKEN1 = OWNEDtOKEN1.concat(result[1]);
+                    OWNEDtOKEN2 = OWNEDtOKEN2.concat(result[2]);
+                    liquidity = liquidity.concat(result[3]);
+                    feesOwedToken1 = feesOwedToken1.concat(result[4]);
+                    feesOwedToken2 = feesOwedToken2.concat(result[5]);
+                    poolKeyi = poolKeyi.concat(result[6]);
+                    poolInfoi = poolInfoi.concat(result[7]);
+
+                }
+
+
+
+                WhereToStartSearch = -1;
+                console.log("Number of tokens user owns that fit criteria for staking:", ownedTokenIds.length);
+                console.log("NFTs owned by user :", ownedTokenIds.map(id => id.toString()));
+
+                // Now loop through each token ID to get position details
+                for (let i = 0; i < ownedTokenIds.length; i++) {
+                    const tokenId = ownedTokenIds[i];
+                    if (i == 0) {
+
+                        console.log("THIS4444: WhereToStartSearch", WhereToStartSearch);
+                        WhereToStartSearch = tokenId - 1;
+
+                        console.log("THIS5555: WhereToStartSearch", WhereToStartSearch);
+                    }
+                    try {
+                        // Get pool and position info using V4 method with corrected types
+                        // const [poolKey, info2] = await positionManager.getPoolAndPositionInfo(tokenId);
+                        poolKey = poolKeyi[i];
+                        info2 = poolInfoi[i];
+                        console.log(`Token ID ${tokenId.toString()}:`);
+                        console.log(" Pool Key:");
+                        console.log("   Currency0:", poolKey.currency0);     // Now properly typed as address
+                        console.log("   Currency1:", poolKey.currency1);     // Now properly typed as address
+                        console.log("   Fee:", poolKey.fee.toString());
+                        console.log("   Tick Spacing:", poolKey.tickSpacing.toString());
+                        console.log("   Hooks:", poolKey.hooks);             // Now properly typed as address
+                        console.log(" Position Info (packed):", info2.toString());
+
+
+
+                        const decodedInfo = {
+                            tickLower: TOtickLower(info2.toString()),
+                            tickUpper: TOtickUpper(info2.toString())
+                        };
+
+                        var feeVariable = (parseInt(poolKey.fee.toString()) / 10000).toFixed(2) + "%";
+                        if ("8388608" == poolKey.fee.toString()) {
+                            feeVariable = "Dynamic Fee";
+
+                        }
+                        console.log("   Fee:", poolKey.fee.toString());
+                        console.log(" Decoded Position Info:");
+                        console.log("   Tick Lower:", decodedInfo.tickLower);
+                        console.log("   Tick Upper:", decodedInfo.tickUpper);
+                        console.log("   tOKEN 1 AMOUNT:", OWNEDtOKEN1[i].toString(), " address: ", poolKey.currency0);
+                        console.log("   tOKEN 2 AMOUNT:", OWNEDtOKEN2[i].toString(), " address: ", poolKey.currency1);
+                        console.log("   Liquidity:", liquidity[i].toString());
+                        console.log("   FEES OWED Token 1 AMOUNT:", feesOwedToken1[i].toString());
+                        console.log("   FEES OWED Token 2 AMOUNT:", feesOwedToken2[i].toString());
+
+
+                        var tokenASymbol = getSymbolFromAddress(poolKey.currency0);
+                        var tokenBSymbol = getSymbolFromAddress(poolKey.currency1);
+
+                        var tokenAIcon = tokenASymbol ? tokenASymbol[0] : "?"
+                        var tokenBIcon = tokenBSymbol ? tokenBSymbol[0] : "?"
+
+                        console.log("   Token A Symbol :", tokenASymbol);
+                        console.log("   Token B Symbol :", tokenBSymbol);
+                        console.log("   tokenAIcon:", tokenAIcon);
+
+                        console.log("   tokenBIcon:", tokenBIcon);
+
+                        var poolNamepool = tokenASymbol + "/" + tokenBSymbol;
+                        console.log("   pool:", poolNamepool);
+                        var idNameID = `position_` + tokenId.toString();
+                        console.log("   id:", idNameID);
+
+                        var decimalsTokenA = tokenAddressesDecimals[tokenASymbol];
+                        var decimalsTokenB = tokenAddressesDecimals[tokenBSymbol];
+
+                        console.log("   decimalsTokenA:", decimalsTokenA);
+                        console.log("   decimalsTokenB:", decimalsTokenB);
+                        var formattedToken1 = ethers.utils.formatUnits(OWNEDtOKEN1[i], decimalsTokenA);
+                        var formattedToken2 = ethers.utils.formatUnits(OWNEDtOKEN2[i], decimalsTokenB);
+                        console.log("   formattedToken1:", formattedToken1);
+                        console.log("   formattedToken2:", formattedToken2);
+                        var formattedToken1FEESOWED = ethers.utils.formatUnits(feesOwedToken1[i], decimalsTokenA);
+                        var formattedToken2FEESOWED = ethers.utils.formatUnits(feesOwedToken2[i], decimalsTokenB);
+                        console.log("   ")
+
+
+                        if (decodedInfo.tickUpper == 887220 && decodedInfo.tickLower == -887220) {
+                            console.log("Valid position entering it into positionData");
+                            // Add the new position to positionData
+                            positionData[idNameID] = {
+                                id: idNameID,
+                                pool: poolNamepool,
+                                feeTier: feeVariable,
+                                tokenA: tokenASymbol,
+                                tokenB: tokenBSymbol,
+                                currentLiquidity: parseFloat(liquidity[i].toString()),
+                                currentTokenA: formattedToken1,
+                                currentTokenB: formattedToken2,
+                                unclaimedFeesTokenA: formattedToken1FEESOWED,
+                                unclaimedFeesTokenB: formattedToken2FEESOWED,
+                                tokenAIcon: tokenAIcon,
+                                tokenBIcon: tokenBIcon
+                            };
+                        } else {
+                            console.log("Ticks outside of acceptable range for staking not included is this ID in our interface, sorry it doesnt work");
+                        }
+
+
+                    } catch (positionError) {
+                        console.error(`Error getting position details for token ${tokenId}:`, positionError);
+                    }
+
+                }
+                if (WhereToStartSearch == -1) {
+                    WhereToStartSearch = endIdz - 1;
+                }
+
+                if (WhereToStartSearch < 0) {
+                    WhereToStartSearch = 0;
+                }
+
+                console.log("THISffff: WhereToStartSearch", WhereToStartSearch);
+
+            } catch (error) {
+                console.error(`Error findUserTokenIds:`, error);
+            }
+
+
+            console.log("Calling getIDSofStakedTokensForUser of tokenAddress_Swapper");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
             await loadPositionsIntoDappSelections();
