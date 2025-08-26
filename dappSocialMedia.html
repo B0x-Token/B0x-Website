@@ -9904,7 +9904,7 @@ function displayWalletBalancesETH() {
             'WBTC': '8',
             'B0x': '18',
             '0xBTC': '8',
-            'RightsTo0xBTC': '8'
+            'RightsTo0xBTC': '18'
         };
 
 
@@ -10234,24 +10234,40 @@ function displayWalletBalancesETH() {
         }
 
 
-        async function getConvertTotal() {
+        async function getConvertTotal(usemetamask) {
 
 
-            if (!walletConnected) {
-                await connectWallet();
+            if (!walletConnected && usemetamask) {
+                try{
+                    await connectWallet();
+                    
+                } catch (error) {
+                    console.error(`Error connecting wallet on convertTotal:`, error);
+                }
             }
 
             const fromSelect = document.querySelector('#convert .form-group:nth-child(3) select');
+            const toSelect = document.querySelector('#convert .form-group:nth-child(6) select');
 
 
             // Get the currently selected value
             const selectedValue = fromSelect.value;
+            const selectedValueTO = toSelect.value;
             console.log("Currently selected value:", selectedValue);
 
             // Or get the selected option element itself
             const selectedOption = fromSelect.options[fromSelect.selectedIndex];
+            const TOOption = toSelect.options[toSelect.selectedIndex];
             console.log("Selected option text:", selectedOption.text);
             console.log("Selected option value:", selectedOption.value);
+            console.log("Selected option text TOOption:", TOOption.text);
+            console.log("Selected option value TOOption:", TOOption.value);
+
+
+                var balanceOfInput0xBTC = walletBalancesETH['0xBTC'];
+                var balanceOfInputB0x = walletBalancesETH['B0x'];
+                var balanceOfInputRightsTo0xBTC = walletBalancesETH['RightsTo0xBTC'];
+
 
 
             var tokenInputAddress = tokenAddresses[selectedValue];
@@ -10260,19 +10276,27 @@ function displayWalletBalancesETH() {
             // Get the currently selected value
             const selectedValue2 = amountInput.value;
             console.log("Currently amountInput value:", selectedValue2);
-            var amountToSwap = ethers.utils.parseUnits(selectedValue2, 18);  // Correctly represents 12 * 10^8
-            if (amountToSwap == 0) {
-                console.log("AmountToSwap 0 returning");
-                return;
-            }
+            var decimalsOfToken = tokenAddressesDecimals[selectedOption.value];
+            var amountToSwap = ethers.utils.parseUnits(selectedValue2, decimalsOfToken);  // Correctly represents 12 * 10^8
+     
+
             const tokenInputTwo = document.querySelector('#convert input[readonly]');
 
-            const formattedResult = ethers.utils.formatEther(amountToSwap);
+            var decimalsOfToken2 = tokenAddressesDecimals[TOOption.value];
             if (selectedOption.value == '0xBTC') {
 
+            const formattedResult = ethers.utils.formatUnits(amountToSwap, 8);
                 tokenInputTwo.value = `${formattedResult} B0x Tokens & ${formattedResult} RightsTo0xBitcoin Tokens`;
+                if(true){
+
+                    console.log("Check here: decimalsOfToken2: ",decimalsOfToken2, " vs balanceOfInputB0x: ", balanceOfInputB0x);
+                }
             } else {
-                tokenInputTwo.value = `${formattedResult} 0xBTC Tokens`;
+                console.log("amoutn to swap : ",amountToSwap);
+            const formattedResult = ethers.utils.formatUnits(amountToSwap,18 );
+
+
+                tokenInputTwo.value = `${formattedResult} 0xBitcoin Tokens`;
 
             }
 
@@ -10483,8 +10507,7 @@ function displayWalletBalancesETH() {
         amountInput.addEventListener('change', handleAmountChange);
 
 
-
-        const amountInputETH = document.querySelector('#convert input');
+const amountInputETH = document.querySelector('#convert input[type="number"]');
 
         let debounceTimerSwapETH;
 
@@ -10494,13 +10517,13 @@ function displayWalletBalancesETH() {
             console.log("Amount changed:", amount);
 
             // Clear the previous timer
-            clearTimeout(debounceTimerSwap);
+            clearTimeout(debounceTimerSwapETH);
 
             // Only call getEstimate if amount > 0
             if (amount > 0) {
                 // Set a new timer for 1 second delay
                 debounceTimerSwap = setTimeout(() => {
-                    getConvertTotal();
+                    getConvertTotal(true);
                 }, 1000); // 1000ms = 1 second delay
             }
         }
@@ -16093,7 +16116,7 @@ function displayWalletBalancesETH() {
             const toToken = document.querySelector('#convert #toToken');
             const fromValue = fromToken.value;
             const toValue = toToken.value;
-            console.log("fromToken", fromToken);
+           // console.log("fromToken", fromToken);
             // Reset all toToken options to visible first
             Array.from(toToken.options).forEach(option => {
                 option.style.display = '';
@@ -16160,17 +16183,23 @@ function displayWalletBalancesETH() {
         });
 
 
-
-
         // Function to update token icon and clear amount field
         function updateTokenIconETH(selectId, iconId) {
             // Get the selected token
             const select = document.getElementById(selectId);
             const token = select.value;
 
-            // Update the icon (your existing code)
+            // Update the icon with image URL
             const icon = document.getElementById(iconId);
-            icon.textContent = token.charAt(0); // First letter of token
+            const iconURL = tokenIconsETH[token]; // Get the icon URL
+            
+            if (iconURL) {
+                // Use image if URL exists
+                icon.innerHTML = `<img src="${iconURL}" alt="${token}" class="token-icon222" onerror="this.parentElement.textContent='${token.charAt(0)}'">`;
+            } else {
+                // Fallback to first letter if no URL
+                icon.textContent = token.charAt(0);
+            }
 
             // Clear the amount input field in the same form group
             const formGroup = select.closest('.form-group').nextElementSibling;
@@ -16180,9 +16209,9 @@ function displayWalletBalancesETH() {
                     amountInput.value = '0.0';
                 }
             }
+
             filterTokenOptionsSwapETH();
         }
-
 
 
         // Add event listener to token selector
@@ -16191,7 +16220,7 @@ function displayWalletBalancesETH() {
         });
 
 
-function swapTokensConvert() {
+async function swapTokensConvert() {
     const formGroups = document.querySelectorAll('#convert .form-group');
     let fromSelect, toSelect, fromIcon, toIcon;
 
@@ -16262,6 +16291,7 @@ function swapTokensConvert() {
         // Update both icons
         updateIcon(fromIcon, fromSelect.value);
         updateIcon(toIcon, toSelect.value);
+        await getConvertTotal(false);
     }
 }
 
