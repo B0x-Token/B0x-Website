@@ -630,32 +630,6 @@
 
 
 
-
-
-    #contract-info input[readonly] {
-        background: rgba(255, 255, 255, 0.08) !important;
-        color: rgba(255, 255, 255, 0.9) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        cursor: not-allowed;
-        padding: 16px 0px !important;
-        border-radius: 12px !important;
-        font-size: 1rem !important;
-        backdrop-filter: blur(10px) !important;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    }
-
-    #contract-info input[readonly]:focus {
-        background: rgba(255, 255, 255, 0.12) !important;
-        border-color: rgba(120, 119, 198, 0.3) !important;
-        box-shadow: 0 0 0 3px rgba(120, 119, 198, 0.1) !important;
-        outline: none !important;
-    }
-
-    #contract-info input[readonly]:hover {
-        background: rgba(255, 255, 255, 0.1) !important;
-        border-color: rgba(255, 255, 255, 0.2) !important;
-    }
-
     /*end first part of css code*/
 
 
@@ -690,6 +664,12 @@
         padding: 40px;
         min-height: 500px;
         background: rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 767px) {
+        .content {
+            padding: 0;
+        }
     }
 
     .page {
@@ -2066,10 +2046,6 @@
         position: relative;
     }
 
-    .content {
-        padding: 40px;
-        background: rgba(0, 0, 0, 0.1);
-    }
 
     @font-face {
         font-family: 'MegaPunchItalic';
@@ -2343,7 +2319,7 @@
     @media (max-width: 499px) {
         .address {
             width: 100%;
-        min-width: 200px;
+        min-width: 0px;
             /* Full width on mobile */
             font-size: 0.9rem;
         min-height: calc(1.4em * 3);
@@ -3670,6 +3646,7 @@
             '0xBTC': '0xb3c03EAa69e38dbde03474901337991cE939B49e',
             'WETH': '0x4200000000000000000000000000000000000006',
             'RightsTo0xBTC': '0x4200000000000000000000000000000000000006',
+            'USDC': '0x4200000000000000000000000000000000000006',
         };
 
 
@@ -3680,6 +3657,7 @@
             "0xbA472ac3c91b3b82dDb53106F7E8d42941b4d975": "B0x",
             "0xb3c03EAa69e38dbde03474901337991cE939B49e": "0xBTC",
             "0x4200000000000000000000000000000000000006": "RightsTo0xBTC", //temp
+            "0x4200000000000000000000000000000000000006": "USDC", //temp
             // Add more token mappings as needed
         };
 
@@ -7285,7 +7263,7 @@ console.log("ICON URL: ",iconURL);
         // CORRECTED: Function expects contractData, not chain
         function getExplorerUrl(contractData) {
             const chain = chainConfig[contractData.chain];
-            console.log("CHAIN: ", chain);
+           // console.log("CHAIN: ", chain);
             return `${chain.explorerUrl}${contractData.address}`;
         }
 
@@ -9734,7 +9712,8 @@ function displayWalletBalancesETH() {
             'WBTC': '8',
             'B0x': '18',
             '0xBTC': '8',
-            'WETH': '18'
+            'WETH': '18',
+            'RightsTo0xBTC': '18'
         };
 
 
@@ -14350,9 +14329,7 @@ function displayWalletBalancesETH() {
 
 
 
-
         async function fetchBalances() {
-
             const walletAddress = userAddress;
             if (!walletAddress) {
                 showStatus('Please enter a wallet address', 'error');
@@ -14374,9 +14351,16 @@ function displayWalletBalancesETH() {
 
             try {
                 const promises = Object.entries(tokenAddresses).map(async ([symbol, address]) => {
+                    // Skip RightsTo0xBTC
+                    if (symbol === 'RightsTo0xBTC') {
+                        return;
+                    }
+                    if(symbol === 'USDC'){
+                        return;
+                    }
+                    
                     const balance = await fetchTokenBalanceWithEthers(address, tokenAddressesDecimals[symbol]);
                     walletBalances[symbol] = balance;
-
                 });
 
                 await Promise.all(promises);
@@ -14390,6 +14374,8 @@ function displayWalletBalancesETH() {
                 // fetchBtn.textContent = 'Check Balances';
             }
         }
+
+
 
 
         walletBalancesETH = {};
