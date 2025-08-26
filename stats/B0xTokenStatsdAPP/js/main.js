@@ -11,9 +11,9 @@ log('B0x Stats', version);
 el('#footerversion').innerHTML = version;
 
 
-var ethblockstart = 30219008;
+var ethblockstart = 30219563;
 const ShowStats = true; //Removes my excessive stats
-const API_zkBTC_Users_tx_transactions = "https://data.bzerox.org/graph/mined_blocks_testnet.json"
+const API_zkBTC_Users_tx_transactions = "https://raw.githubusercontent.com/BasedWorkToken/Based-Work-Token-General/main/api/BWORK_statsPage_stats.html"
 const Forge_Pool_efficeny = 150/32 + 1  //150 min solves and 32 min on Forge only
 /* intrinsic values */
 /* intrinsic values */
@@ -1058,7 +1058,7 @@ var total_TOTAL_mint_count_HASH = 0;
     let remoteLatestBlock = 0;
     
     try {
-      const response = await fetch('https://raw.githubusercontent.com/B0x-Token/B0x-Website/refs/heads/main/data/mined_blocks.json');
+      const response = await fetch('https://data.bzerox.org/graph/mined_blocks_testnet.json');
       if (response.ok) {
         const remoteData = await response.json();
         remoteMinedBlocks = remoteData.mined_blocks;
