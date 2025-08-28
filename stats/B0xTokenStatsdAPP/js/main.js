@@ -1036,11 +1036,11 @@ var total_TOTAL_mint_count_HASH = 0;
   // don't use the data, though, if it's from an old difficulty period
     try {
     // Load local storage data first
-    var last_diff_block_storage = Number(localStorage.getItem('lastDifficultyStartBlock_EraBitcoin2_afbRAFFABC_B0x'));
-    last_imported_mint_block = Number(localStorage.getItem('lastMintBlock_EraBitcoin2_afbRAFFABC_B0x'));
-    previousChallenge = JSON.parse(localStorage.getItem('mintData_GreekWedding2_B0x'));
+    var last_diff_block_storage = Number(localStorage.getItem('lastDifficultyStartBlock_EraBitcoin2_afbRAFFABC_B0x1'));
+    last_imported_mint_block = Number(localStorage.getItem('lastMintBlock_EraBitcoin2_afbRAFFABC_B0x1'));
+    previousChallenge = JSON.parse(localStorage.getItem('mintData_GreekWedding2_B0x1'));
     console.log("previous ended challenge is this, starting here");
-    var mint_data = localStorage.getItem('mintData_EraBitcoin2_afbRAFFABC_B0x');
+    var mint_data = localStorage.getItem('mintData_EraBitcoin2_afbRAFFABC_B0x1');
 
     console.log('last_imported_mint_block: ',last_imported_mint_block);
     let localMinedBlocks = [];
@@ -1081,10 +1081,10 @@ var total_TOTAL_mint_count_HASH = 0;
       last_imported_mint_block = remoteLatestBlock;
       
       // Update localStorage with remote data
-      localStorage.setItem('mintData_EraBitcoin2_afbRAFFABC_B0x', JSON.stringify(remoteMinedBlocks));
-      localStorage.setItem('lastMintBlock_EraBitcoin2_afbRAFFABC_B0x', remoteLatestBlock.toString());
+      localStorage.setItem('mintData_EraBitcoin2_afbRAFFABC_B0x1', JSON.stringify(remoteMinedBlocks));
+      localStorage.setItem('lastMintBlock_EraBitcoin2_afbRAFFABC_B0x1', remoteLatestBlock.toString());
       if (previousChallenge) {
-        localStorage.setItem('mintData_GreekWedding2_B0x', JSON.stringify(previousChallenge));
+        localStorage.setItem('mintData_GreekWedding2_B0x1', JSON.stringify(previousChallenge));
       }
     } else {
       console.log('Using LOCAL data');
@@ -1300,14 +1300,14 @@ var total_TOTAL_mint_count_HASH = 0;
   console.log("RUn = ", mined_blocks[0]);
   console.log("RUn = ", mined_blocks);
     if (run > 0) {
-      localStorage.setItem('mintData_EraBitcoin2_afbRAFFABC_B0x', JSON.stringify(mined_blocks));
-      localStorage.setItem('mintData_GreekWedding2_B0x', JSON.stringify(previousChallenge));
+      localStorage.setItem('mintData_EraBitcoin2_afbRAFFABC_B0x1', JSON.stringify(mined_blocks));
+      localStorage.setItem('mintData_GreekWedding2_B0x1', JSON.stringify(previousChallenge));
 		if (mined_blocks[0] !== undefined) {
       console.log("RUNWorked");
       console.log("Setting Currentethblock to it: ",current_eth_block);
-			localStorage.setItem('lastMintBlock_EraBitcoin2_afbRAFFABC_B0x', current_eth_block);
+			localStorage.setItem('lastMintBlock_EraBitcoin2_afbRAFFABC_B0x1', current_eth_block);
 		}
-      localStorage.setItem('lastDifficultyStartBlock_EraBitcoin2_afbRAFFABC_B0x', last_difficulty_start_block.toString());
+      localStorage.setItem('lastDifficultyStartBlock_EraBitcoin2_afbRAFFABC_B0x1', last_difficulty_start_block.toString());
     }
 
     log("processed blocks:",
