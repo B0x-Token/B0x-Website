@@ -24,7 +24,7 @@ const _ZERO_BN = new Eth.BN(0, 10);
 /* todo: move these into some kind of contract helper class */
 const _CONTRACT_NAME = "BZEROXToken";
 const _CONTRACT_SYMBOL = "B0x";
-const _CONTRACT_ADDRESS = "0x4571a464d2c24424B8756ba6D240e1A3e738887a"; // main Mining contract for B0x Token Contract
+const _CONTRACT_ADDRESS = "0x9863EA71038BE19E4E64Af3fd2d161703a6bd68A"; // main Mining contract for B0x Token Contract
 const Main_CONTRACT_ADDRESS = "0x5A6BD09eF2e6021f8E77676059b49191E4b2112e"; // main B0x Token Contract
 
 
