@@ -15,40 +15,79 @@ MAX_DATA_POINTS = 4 * 30  # 30 days worth of 4 daily intervals
 # Define the target times for data collection (in UTC)
 TARGET_HOURS = [0, 6, 12, 18]  # Midnight, 6am, noon, 6pm
 
+# File paths
+LOCAL_DATA_FILE = "price_data_bwork.json"
+WEB_DATA_FILE = "/var/www/html/data.bzerox.org/graph/price_data_bwork.json"
+
 def save_data(timestamps, blocks, prices):
-    """Save the arrays to a JSON file"""
+    """Save the arrays to JSON files in both local and web directories"""
     data = {
         "timestamps": timestamps,
         "blocks": blocks,
         "prices": prices,
         "last_updated": time.time()
     }
-    with open(DATA_FILE, 'w') as f:
-        json.dump(data, f, indent=2)
-    print(f"Data saved to {DATA_FILE}")
+    
+    # Save locally
+    try:
+        with open(LOCAL_DATA_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+        print(f"Data saved locally to {LOCAL_DATA_FILE}")
+    except Exception as e:
+        print(f"Error saving local file: {e}")
+    
+    # Save to web directory
+    try:
+        # Create directory if it doesn't exist
+        web_dir = os.path.dirname(WEB_DATA_FILE)
+        os.makedirs(web_dir, exist_ok=True)
+        
+        with open(WEB_DATA_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+        print(f"Data saved to web directory: {WEB_DATA_FILE}")
+    except Exception as e:
+        print(f"Error saving web file: {e}")
+        print(f"Make sure you have write permissions to {web_dir}")
 
 def load_data():
-    """Load the arrays from JSON file, return empty arrays if file doesn't exist"""
-    if os.path.exists(DATA_FILE):
+    """Load the arrays from JSON file, try local first, then web directory"""
+    # Try local file first
+    if os.path.exists(LOCAL_DATA_FILE):
         try:
-            with open(DATA_FILE, 'r') as f:
+            with open(LOCAL_DATA_FILE, 'r') as f:
                 data = json.load(f)
             timestamps = data.get("timestamps", [])
             blocks = data.get("blocks", [])
             prices = data.get("prices", [])
             last_updated = data.get("last_updated", 0)
-            print(f"Loaded {len(timestamps)} data points from {DATA_FILE}")
+            print(f"Loaded {len(timestamps)} data points from {LOCAL_DATA_FILE}")
             if last_updated > 0:
                 last_updated_dt = datetime.fromtimestamp(last_updated, tz=timezone.utc)
                 print(f"Last updated: {last_updated_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}")
             return timestamps, blocks, prices
         except Exception as e:
-            print(f"Error loading data file: {e}")
-            return [], [], []
-    else:
-        print("No existing data file found, starting fresh")
-        return [], [], []
-        
+            print(f"Error loading local data file: {e}")
+    
+    # Try web file if local doesn't exist
+    elif os.path.exists(WEB_DATA_FILE):
+        try:
+            with open(WEB_DATA_FILE, 'r') as f:
+                data = json.load(f)
+            timestamps = data.get("timestamps", [])
+            blocks = data.get("blocks", [])
+            prices = data.get("prices", [])
+            last_updated = data.get("last_updated", 0)
+            print(f"Loaded {len(timestamps)} data points from {WEB_DATA_FILE}")
+            if last_updated > 0:
+                last_updated_dt = datetime.fromtimestamp(last_updated, tz=timezone.utc)
+                print(f"Last updated: {last_updated_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+            return timestamps, blocks, prices
+        except Exception as e:
+            print(f"Error loading web data file: {e}")
+    
+    print("No existing data file found in either location, starting fresh")
+    return [], [], []
+
 def is_target_time(timestamp, tolerance_minutes=30):
     """Check if a timestamp is close to a target time (midnight, 6am, noon, 6pm)"""
     dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
@@ -67,17 +106,58 @@ def is_target_time(timestamp, tolerance_minutes=30):
     
     return False
 
-def clean_non_target_data(timestamps, blocks, prices):
-    """Remove data points that are not on target times (6-hour marks)"""
-    print("Cleaning non-target time data points...")
+def clean_data_keep_targets_and_current(timestamps, blocks, prices):
+    """Keep only target time data points + optionally the most recent non-target point"""
+    if not timestamps:
+        return timestamps, blocks, prices
     
-    cleane
+    print("Cleaning data to keep only 6-hour targets + current price...")
+    
+    # Separate target time data points from non-target ones
+    target_data = []
+    non_target_data = []
+    
+    for i in range(len(timestamps)):
+        if is_target_time(timestamps[i]):
+            target_data.append((timestamps[i], blocks[i], prices[i]))
+        else:
+            non_target_data.append((timestamps[i], blocks[i], prices[i]))
+    
+    print(f"Found {len(target_data)} target time data points")
+    print(f"Found {len(non_target_data)} non-target time data points")
+    
+    # Start with all target data points
+    cleaned_timestamps = [item[0] for item in target_data]
+    cleaned_blocks = [item[1] for item in target_data]
+    cleaned_prices = [item[2] for item in target_data]
+    
+    # Add only the most recent non-target data point if it exists
+    if non_target_data:
+        # Sort non-target data by timestamp and take the most recent
+        non_target_data.sort(key=lambda x: x[0])
+        most_recent = non_target_data[-1]
+        
+        # Insert in correct chronological position
+        insert_pos = len(cleaned_timestamps)
+        for i, ts in enumerate(cleaned_timestamps):
+            if most_recent[0] < ts:
+                insert_pos = i
+                break
+        
+        cleaned_timestamps.insert(insert_pos, most_recent[0])
+        cleaned_blocks.insert(insert_pos, most_recent[1])
+        cleaned_prices.insert(insert_pos, most_recent[2])
+        
+        print(f"Kept most recent current price data point")
+    
+    print(f"Cleaned data: {len(cleaned_timestamps)} total points (targets + current)")
+    return cleaned_timestamps, cleaned_blocks, cleaned_prices
 
 def get_storage_with_retry(address, slot, block, retries=5, delay=2):
     attempt = 0
     while attempt < retries:
         try:
-            data = w3.eth.get_storage_at(address, slot, block_identifier=block)
+            data = w3.eth.getStorageAt(address, slot, block_identifier=block)
             print("Data: ", data)
             bytes32_hex = "0x" + data.hex().rjust(64, "0")  # pad to 32 bytes (64 hex chars)
             print("Data hex: ", bytes32_hex)
@@ -129,8 +209,8 @@ def getSlot0(block):
 def get_current_block_and_timestamp():
     """Get the current block number and timestamp"""
     try:
-        current_block = w3.eth.block_number
-        block_data = w3.eth.get_block(current_block)
+        current_block = w3.eth.blockNumber
+        block_data = w3.eth.getBlock(current_block)
         current_timestamp = block_data["timestamp"]
         return current_block, current_timestamp
     except Exception as e:
@@ -145,7 +225,7 @@ def estimate_block_from_timestamp(target_timestamp, current_block, current_times
         sample_block_24h_ago = max(1, current_block - blocks_24h_ago_estimate)
         
         # Get the actual timestamp for that block
-        sample_block_data = w3.eth.get_block(sample_block_24h_ago)
+        sample_block_data = w3.eth.getBlock(sample_block_24h_ago)
         sample_timestamp_24h_ago = sample_block_data["timestamp"]
         
         # Calculate actual seconds per block over the 24 hour period
@@ -192,7 +272,10 @@ def get_target_timestamps_for_day(day_timestamp):
 def get_missing_timestamps(timestamps, current_timestamp, target_days=30):
     """Find all missing target timestamps for the past target_days"""
     # Convert existing timestamps to set for faster lookup
-    existing_set = set(timestamps)
+    existing_target_times = set()
+    for ts in timestamps:
+        if is_target_time(ts):
+            existing_target_times.add(ts)
     
     missing_timestamps = []
     
@@ -203,10 +286,10 @@ def get_missing_timestamps(timestamps, current_timestamp, target_days=30):
         
         for target_ts in target_timestamps:
             # Only include timestamps that are in the past and not already collected
-            if target_ts < current_timestamp and target_ts not in existing_set:
+            if target_ts < current_timestamp and target_ts not in existing_target_times:
                 # Allow some tolerance (within 30 minutes) for existing timestamps
                 found_close = False
-                for existing_ts in existing_set:
+                for existing_ts in existing_target_times:
                     if abs(existing_ts - target_ts) < 30 * 60:  # 30 minutes tolerance
                         found_close = True
                         break
@@ -238,7 +321,7 @@ def collect_historical_data(timestamps, blocks, prices, target_days=30):
             estimated_block = estimate_block_from_timestamp(target_timestamp, current_block, current_timestamp)
             
             # Get actual block data to verify timestamp
-            block_data = w3.eth.get_block(estimated_block)
+            block_data = w3.eth.getBlock(estimated_block)
             actual_timestamp = block_data["timestamp"]
             
             # Fine-tune block number if needed
@@ -249,7 +332,7 @@ def collect_historical_data(timestamps, blocks, prices, target_days=30):
                 else:
                     estimated_block -= int((actual_timestamp - target_timestamp) / 2)
                 
-                block_data = w3.eth.get_block(estimated_block)
+                block_data = w3.eth.getBlock(estimated_block)
                 actual_timestamp = block_data["timestamp"]
                 attempts += 1
             
@@ -290,54 +373,32 @@ def collect_historical_data(timestamps, blocks, prices, target_days=30):
     print("Historical data collection complete!")
     return timestamps, blocks, prices
 
-def is_target_time(timestamp, tolerance_minutes=30):
-    """Check if a timestamp is close to a target time (midnight, 6am, noon, 6pm)"""
-    dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
-    hour = dt.hour
-    minute = dt.minute
+def update_current_price(timestamps, blocks, prices, current_timestamp, current_block, current_price):
+    """Update or add the current price data point, maintaining only targets + 1 current"""
     
-    # Check if it's within tolerance of any target hour
-    for target_hour in TARGET_HOURS:
-        # Calculate minutes from target hour
-        minutes_from_target = abs((hour * 60 + minute) - (target_hour * 60))
-        # Handle wrap-around (e.g., 23:45 is close to 00:00)
-        minutes_from_target = min(minutes_from_target, 24 * 60 - minutes_from_target)
-        
-        if minutes_from_target <= tolerance_minutes:
-            return True
+    # Remove any existing non-target data points (keep only target times)
+    target_timestamps = []
+    target_blocks = []
+    target_prices = []
     
-    return False
-
-def add_data_point(timestamps, blocks, prices, new_timestamp, new_block, new_price, is_target=False):
-    """Add a new data point in chronological order and remove oldest if over limit"""
-    # If this is not a target time, remove the last non-target data point if it exists
-    if not is_target and timestamps:
-        # Check if the last data point is also not a target time
-        last_timestamp = timestamps[-1]
-        if not is_target_time(last_timestamp):
-            print("Removing previous non-target data point before adding new current block data")
-            timestamps.pop()
-            blocks.pop()
-            prices.pop()
+    for i in range(len(timestamps)):
+        if is_target_time(timestamps[i]):
+            target_timestamps.append(timestamps[i])
+            target_blocks.append(blocks[i])
+            target_prices.append(prices[i])
     
-    # Find correct insertion position
-    insert_pos = len(timestamps)
-    for i, existing_ts in enumerate(timestamps):
-        if new_timestamp < existing_ts:
+    # Add the current price data point in the correct chronological position
+    insert_pos = len(target_timestamps)
+    for i, ts in enumerate(target_timestamps):
+        if current_timestamp < ts:
             insert_pos = i
             break
     
-    timestamps.insert(insert_pos, new_timestamp)
-    blocks.insert(insert_pos, new_block)
-    prices.insert(insert_pos, new_price)
+    target_timestamps.insert(insert_pos, current_timestamp)
+    target_blocks.insert(insert_pos, current_block)
+    target_prices.insert(insert_pos, current_price)
     
-    # Remove oldest data points if over limit
-    while len(timestamps) > MAX_DATA_POINTS:
-        timestamps.pop(0)
-        blocks.pop(0)
-        prices.pop(0)
-    
-    return timestamps, blocks, prices
+    return target_timestamps, target_blocks, target_prices
 
 def get_next_target_time(current_timestamp):
     """Get the next target time (midnight, 6am, noon, or 6pm)"""
@@ -357,6 +418,11 @@ def get_next_target_time(current_timestamp):
 def main():
     # Load existing data
     ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices = load_data()
+    
+    # Clean the loaded data first to remove any accumulated non-target data points
+    ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices = clean_data_keep_targets_and_current(
+        ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices
+    )
     
     # Get current block and timestamp
     current_block, current_timestamp = get_current_block_and_timestamp()
@@ -400,98 +466,44 @@ def main():
             print(f"CURRENT BWORK PRICE: ${current_price:.8f}")
             print(f"Block: {current_block}")
             
-            # ADD CURRENT BLOCK DATA TO STORED ARRAYS
-            # Always add current block data, but mark if it's a target time
-            is_current_target = is_target_time(current_timestamp)
+            # Check if we're at a target time
+            is_current_target = is_target_time(current_timestamp, tolerance_minutes=30)
             
-            # Check if this timestamp is significantly different from the last stored one
-            should_add_current = True
-            if ArrayOfTimestamps:
-                last_timestamp = ArrayOfTimestamps[-1]
-                # Only add if it's been at least 4 minutes since last data point
-                # This prevents duplicate entries during the same monitoring cycle
-                if current_timestamp - last_timestamp < 4 * 60:
-                    should_add_current = False
-            
-            if should_add_current:
-                if is_current_target:
-                    print(f"Adding current block data (TARGET TIME) to storage...")
-                else:
-                    print(f"Adding current block data (temporary) to storage...")
+            if is_current_target:
+                print("🎯 TARGET TIME REACHED! Adding permanent data point...")
+                # Add as a permanent target time data point
+                insert_pos = len(ArrayOfTimestamps)
+                for i, ts in enumerate(ArrayOfTimestamps):
+                    if current_timestamp < ts:
+                        insert_pos = i
+                        break
                 
-                ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices = add_data_point(
+                ArrayOfTimestamps.insert(insert_pos, current_timestamp)
+                ArrayOfBlocksSearched.insert(insert_pos, current_block)
+                ArrayOfActualPrices.insert(insert_pos, current_price)
+                
+                # Remove oldest data points if over limit
+                while len(ArrayOfTimestamps) > MAX_DATA_POINTS:
+                    ArrayOfTimestamps.pop(0)
+                    ArrayOfBlocksSearched.pop(0)
+                    ArrayOfActualPrices.pop(0)
+                
+                save_data(ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices)
+                print("✅ Target time data point saved permanently!")
+            
+            else:
+                print("📈 Updating current price (temporary until next target time)...")
+                # Update current price, keeping only targets + this current price
+                ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices = update_current_price(
                     ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices,
-                    current_timestamp, current_block, current_price, is_target=is_current_target
+                    current_timestamp, current_block, current_price
                 )
                 save_data(ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices)
-                
-                if is_current_target:
-                    print(f"Target time data point added and saved!")
-                else:
-                    print(f"Temporary current data point added (will be replaced by next update if not target time)")
-            else:
-                print("Current data point too close to last entry, skipping to avoid duplicates")
+                print("📱 Current price updated (will be replaced until target time)")
             
-            # Check if we're at or past a target time
+            # Show next target time info
             next_target_time = get_next_target_time(current_timestamp)
             next_target_dt = datetime.fromtimestamp(next_target_time, tz=timezone.utc)
-            
-            # Check if we missed any target times
-            if ArrayOfTimestamps:
-                last_timestamp = ArrayOfTimestamps[-1]
-                
-                # Find target times between last data point and now
-                target_times_to_collect = []
-                for days_back in range(2):  # Check today and yesterday
-                    day_timestamp = current_timestamp - (days_back * 24 * 60 * 60)
-                    day_targets = get_target_timestamps_for_day(day_timestamp)
-                    
-                    for target_ts in day_targets:
-                        if last_timestamp < target_ts <= current_timestamp:
-                            # Check if we're close enough to the target time (within 30 minutes)
-                            if abs(current_timestamp - target_ts) <= 30 * 60:
-                                target_times_to_collect.append(target_ts)
-                
-                # Collect any missed target times
-                for target_ts in target_times_to_collect:
-                    target_dt = datetime.fromtimestamp(target_ts, tz=timezone.utc)
-                    print(f"\nCollecting data for target time: {target_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}")
-                    
-                    # Find the best block for this target time
-                    estimated_block = estimate_block_from_timestamp(target_ts, current_block, current_timestamp)
-                    
-                    try:
-                        block_data = w3.eth.get_block(estimated_block)
-                        actual_timestamp = block_data["timestamp"]
-                        
-                        # Fine-tune if needed
-                        attempts = 0
-                        while abs(actual_timestamp - target_ts) > 10 * 60 and attempts < 10:  # 10 minute tolerance
-                            if actual_timestamp < target_ts:
-                                estimated_block += int((target_ts - actual_timestamp) / 2)
-                            else:
-                                estimated_block -= int((actual_timestamp - target_ts) / 2)
-                            
-                            block_data = w3.eth.get_block(estimated_block)
-                            actual_timestamp = block_data["timestamp"]
-                            attempts += 1
-                        
-                        price = getSlot0(estimated_block)
-                        
-                        ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices = add_data_point(
-                            ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices,
-                            actual_timestamp, estimated_block, price, is_target=True
-                        )
-                        
-                        actual_dt = datetime.fromtimestamp(actual_timestamp, tz=timezone.utc)
-                        print(f"Added data point for {actual_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}")
-                        print(f"Price: ${price:.8f}")
-                        
-                        save_data(ArrayOfTimestamps, ArrayOfBlocksSearched, ArrayOfActualPrices)
-                        
-                    except Exception as e:
-                        print(f"Error collecting target time data: {e}")
-            
             time_to_next_target = next_target_time - current_timestamp
             hours_to_next = time_to_next_target // 3600
             minutes_to_next = (time_to_next_target % 3600) // 60
@@ -499,6 +511,12 @@ def main():
             print(f"Next target time: {next_target_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}")
             print(f"Time until next target: {int(hours_to_next)}h {int(minutes_to_next)}m")
             print(f"Total stored data points: {len(ArrayOfTimestamps)}")
+            
+            # Count target vs current data points
+            target_count = sum(1 for ts in ArrayOfTimestamps if is_target_time(ts))
+            current_count = len(ArrayOfTimestamps) - target_count
+            print(f"  - Target time points: {target_count}")
+            print(f"  - Current price points: {current_count}")
             print("=" * 40)
                     
         except Exception as e:
@@ -514,5 +532,4 @@ if __name__ == "__main__":
             main()
         except Exception as e:
             print("ERROR e: ",e)
-            time.sleep(200)  
-        
+            time.sleep(200)
