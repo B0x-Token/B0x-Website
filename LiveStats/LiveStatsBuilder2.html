@@ -14768,7 +14768,7 @@ var epochsMined = epochCount; // Add this at the start of forEach
       if (previousEpochCount !== null) {
           epochsMined = epochCount - previousEpochCount;
       }
-      console.log("epochsMined: ",epochsMined);
+     // console.log("epochsMined: ",epochsMined);
       // Update previous epoch count for next iteration
       previousEpochCount = epochCount;
 //console.log("DATAAMT: ", dataAmt);
@@ -15449,9 +15449,8 @@ async function GetContractStats(){
 
 
     var hashrate = await getHashrate(diff,avgRewardTime);
-
     estHashrate=hashrate;
-    var hashrateFormatted = convertHashRateToReadable(hashrate);
+    var hashrateFormatted = await convertHashRateToReadable(hashrate);
     var hashrateunit = hashrateFormatted.units;
     var hashRates = hashrateFormatted.value;
 
