@@ -14571,7 +14571,7 @@ var total_TOTAL_mint_count_HASH = 0;
     // Fetch remote data
     let remoteMinedBlocks = [];
     let remoteLatestBlock = 0;
-    
+    var EpochCountBeforeCall = 0;
     try {
       const response = await fetch('https://data.bzerox.org/graph/mined_blocks_testnet.j2son');
       if (response.ok) {
@@ -14609,16 +14609,28 @@ var total_TOTAL_mint_count_HASH = 0;
 
     // Process the chosen mined_blocks array
     console.log('imported', mined_blocks.length, 'transactions');
-    mined_blocks.forEach(function(mintData) {
-        var epochCount = mintData[4];
-      if (previousEpochCount !== null) {
-          epochsMined = epochCount - previousEpochCount;
-      }else{
-        epochsMined = epochCount;
-      }
 
-      previousEpochCount = mintData[4];
-      console.log("Previous Total Epochs = ",previousEpochCount );
+    EpochCountBeforeCall = await getEpochCount(providerTempStats);
+    var idnex2=0;
+    mined_blocks.forEach(function(mintData) {
+
+
+    // Get the next block's epoch count
+        var epochCount = mintData[4];
+    var nextEpochCnt = null;
+    if (idnex2 + 1 < mined_blocks.length) {
+        nextEpochCnt = mined_blocks[index + 1][4];
+    }
+    
+    if (nextEpochCnt !== null) {  // Added check for nextEpochCnt !== 0
+        // Use next transaction's epoch count
+        epchCount = epochCount - nextEpochCnt;
+    } 
+    idnex2 =idnex2+1;
+
+    var epochsMined = epchCount;
+      console.log("EpochMined: ",epochsMined);
+     // console.log("Previous Total Epochs = ",previousEpochCount );
 
       if(mintData[3] == -1){return;}
       //console.log("Last diff start block: ",last_difficulty_start_block, "    Vs mintDataBlock: ",mintData[0])
@@ -14706,14 +14718,7 @@ var total_TOTAL_mint_count_HASH = 0;
   var run = 0
   var attempts = 0
 
-async function getEpochCount(providera) {
-   const contractABI = [{"inputs":[],"name":"epochCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}];
-   const contract = new ethers.Contract(ProofOfWorkAddresss, contractABI, providera);
-   const epochCount = await contract.epochCount();
-   return epochCount.toString();
-}
 
-    var EpochCountBeforeCall = "1";
   while (run < iterations) {
     console.log('run', run + 1);
     if(run +1 == iterations){
@@ -14763,7 +14768,7 @@ var epochsMined = epochCount; // Add this at the start of forEach
       if (previousEpochCount !== null) {
           epochsMined = epochCount - previousEpochCount;
       }
-      
+      console.log("epochsMined: ",epochsMined);
       // Update previous epoch count for next iteration
       previousEpochCount = epochCount;
 //console.log("DATAAMT: ", dataAmt);
@@ -14783,7 +14788,7 @@ var epochsMined = epochCount; // Add this at the start of forEach
 							tx_hash,
 							miner_address,
 							-1,
-                            0
+                            previousEpochCount
 						];
 					
 					mined_blocks.unshift(newBlock);
@@ -14795,7 +14800,7 @@ var epochsMined = epochCount; // Add this at the start of forEach
 		
 		if(dataAmt !=0 && block_number > last_difficulty_start_block ){
 			
-			 total_TOTAL_mint_count_HASH+=dataAmt/25;
+			 total_TOTAL_mint_count_HASH+=epochsMined;
 			 if(miner_block_countHASH[miner_address] === undefined) {
 				miner_block_countHASH[miner_address] = dataAmt;
 			  } else {
@@ -15018,6 +15023,13 @@ console.log("Combined Addresses: ", combinedAddresses);
         delete miner_block_count2[miner_addr]
       }
     });
+	
+	/* delete miners with zero blocks (due to collapse op above) */
+    Object.keys(miner_block_count2).forEach((miner_addr) => {
+      if(miner_block_count2[miner_addr] == 0) {
+        delete miner_block_count2[miner_addr]
+      }
+    });
     /* delete miners with zero blocks (due to collapse op above) */
     Object.keys(totalZKBTC_Mined).forEach((miner_addr) => {
       if(totalZKBTC_Mined[miner_addr] == 0) {
@@ -15211,16 +15223,19 @@ const formattedNumberfffff23 = new Intl.NumberFormat(navigator.language).format(
         nextEpochCnt = mined_blocks[index + 1][4];
     }
     
-   if(epochCnt == 0){
-    epchCount = 0;  // Difficulty period marker
-} else if (index === 0) {
+   if (index === 0) {
     // First transaction (most recent), use current epoch count
     epchCount = EpochCountBeforeCall - epochCnt;  // Changed from nextEpochCnt
-} else if (nextEpochCnt !== null && nextEpochCnt !== 0) {  // Added check for nextEpochCnt !== 0
+} else if (nextEpochCnt !== null) {  // Added check for nextEpochCnt !== 0
     // Use next transaction's epoch count
     epchCount = epochCnt - nextEpochCnt;
 } 
     index =index+1;
+
+   // console.log("\n\n\n\nEpoch Count: " , epchCount);
+   // console.log("nextEpochCnt: " , nextEpochCnt);
+   // console.log("Eindex: " , index);
+   // console.log("Epoch Count: " , epchCount);
 
 
         
@@ -15231,6 +15246,7 @@ const formattedNumberfffff = new Intl.NumberFormat(navigator.language).format(da
       var transaction_url = _BLOCK_EXPLORER_TX_URL + tx_hash;
       var block_url = _BLOCK_EXPLORER_BLOCK_URL + eth_block;
 
+    totalzkBTCMinted += parseFloat(epchCount);
       //log('hexcolor:', hexcolor, address_url);
 		if(formattedNumberfffff == -1 ){
 			
@@ -15239,7 +15255,7 @@ const formattedNumberfffff = new Intl.NumberFormat(navigator.language).format(da
 			var parzedint = parseInt(totalzkBTCMinted);
     totalzkBTCMinted = 0.0;
             if(parzedint > 2016){
-                parzedint = 2016;
+                //parzedint = 2016;
             }
 			
     console.log("  totalzkBTCMinted on -1:", parzedint);
@@ -15283,7 +15299,6 @@ const formattedNumberparzedint = new Intl.NumberFormat(navigator.language).forma
 		{
 
     // Only add to total for actual mining transactions
-    totalzkBTCMinted += parseFloat(epchCount);
 			
 		  innerhtml_buffer  += '<tr><td align="right" style="text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">'
 			+ get_date_from_eth_block(eth_block) + '</td><td>'
