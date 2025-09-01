@@ -14773,7 +14773,7 @@ var total_TOTAL_mint_count_HASH = 0;
      //   console.log(" totalZKBTC_Mined_HASH[mintData[2]]: ", totalZKBTC_Mined_HASH[mintData[2]]);
          //     console.log("Epochs Mined miner_block_count[mintData[2]]: ",  miner_block_count[mintData[2]]);
 
-		console.log("miner_block_count[miner_address]",miner_block_count[mintData[2]], " vs epochsMined",epochsMined)
+		//console.log("miner_block_count[miner_address]",miner_block_count[mintData[2]], " vs epochsMined",epochsMined)
 
     
     });
@@ -14821,6 +14821,10 @@ previousEpochCount = maxMinedBlocksEpoch;
     start_log_search_at_loop = start_log_search_at + (run * 500)
     run++;
     stop_log_search_at_loop = start_log_search_at_loop + 499
+    if(stop_log_search_at_loop >current_eth_block ){
+        console.log("Search too long trimmed");
+        stop_log_search_at_loop = current_eth_block;
+    }
     console.log('searching from block', start_log_search_at_loop, 'to block', stop_log_search_at_loop);
     if(attempts > 25){
       console.log("Errored too many attempts at block");
