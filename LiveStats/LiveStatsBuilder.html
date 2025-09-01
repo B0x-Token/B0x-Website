@@ -15520,20 +15520,57 @@ async function GetContractStats(){
     if(!walletConnected){
         provids=providerTempStats;
     }
+    console.log("Connect done");
 
 
-    var price =  await getCurrentPrice(provids);
+        console.log("Connect done");
+
+    // Alchemy recommends concurrent requests, so let's use them!
+    // Group into logical batches under 50 requests each
+    
+    // Batch 1: Core mining stats (6 calls)
+    const [price, Era, EpochCount, nextDiff, target, diff] = await Promise.all([
+        getCurrentPrice(provids),
+        getRewardEra(provids),
+        getEpochCount(provids),
+        getNextDifficulty(provids),
+        getTarget(provids),
+        getDifficulty(provids)
+    ]);
+    
+    // Batch 2: Timing & reward stats (6 calls)  
+    const [avgRewardTimeTotals, blocksToGo, timeEmergency, lastDiffStartBlock, lastDiffStartTime, lastBaseBlock2] = await Promise.all([
+        getAvgRewardTime(provids),
+        getBlocksToReadjust(provids),
+        getTimeEmergency(provids),
+        getLastDiffStartBlock(provids),
+        getLastDiffStartime(provids),
+        getLastBaseBlock(provids)
+    ]);
+lastBaseBlock=lastBaseBlock2;
+    
+    // Batch 3: Supply & social stats (5 calls)
+    const [totalDistributedMining, maxperEra, TokenHolders, Transfers, TotalOperations] = await Promise.all([
+        getTokensMinted(provids),
+        getMaxSupplyForEra(provids),
+        getTokenHolders(provids),
+        getTransfers(provids),
+        getTotalOperations(provids)
+    ]);
+
+    
+  /*  var price =  await getCurrentPrice(provids);
     var Era =  await getRewardEra(provids);
     var EpochCount =  await getEpochCount(provids);
     var nextDiff =  await getNextDifficulty(provids);
     var target =  await getTarget(provids);
     var diff = await  getDifficulty(provids);
 
+*/
 
 
 
-
-    var avgRewardTimeTotals =  await getAvgRewardTime(provids);
+   // var avgRewardTimeTotals =  await getAvgRewardTime(provids);
     
     var avgRewardTime = avgRewardTimeTotals.TimePerEpoch;
 
@@ -15551,24 +15588,24 @@ async function GetContractStats(){
     var rewardPerSolve = currentRewardPerSolve/1e18;
 
 
-    var blocksToGo =  await getBlocksToReadjust(provids);
+   // var blocksToGo =  await getBlocksToReadjust(provids);
 
-    var timeEmergency =  await getTimeEmergency(provids);
+  //  var timeEmergency =  await getTimeEmergency(provids);
     var timeEmergencyBreakdown = await getTimeUnits(timeEmergency);
     var timeEmergencyTime = timeEmergencyBreakdown.avgTime;
     var timeEmergencyTimeUnits = timeEmergencyBreakdown.units;
 
-    var lastDiffStartBlock=  await getLastDiffStartBlock(provids);
+   // var lastDiffStartBlock=  await getLastDiffStartBlock(provids);
     lastDifficultyStartBlock = lastDiffStartBlock;
-    var lastDiffStartTime=  await getLastDiffStartime(provids);
-    var totalDistributedMining = await getTokensMinted(provids);
-
-    var maxperEra = await getMaxSupplyForEra(provids);
+  //  var lastDiffStartTime=  await getLastDiffStartime(provids);
+  //  var totalDistributedMining = await getTokensMinted(provids);
+//
+  //  var maxperEra = await getMaxSupplyForEra(provids);
     var remainingSupplyINERA=  await getRemainingSupplyINERA(provids, totalDistributedMining, maxperEra);
     var avgBlocksRemainingInEra=  await getRemainingBlocksInEra(rewardPerSolve,  totalDistributedMining, maxperEra);
-    var TokenHolders=  await getTokenHolders(provids);
-    var Transfers=  await getTransfers(provids);
-    var TotalOperations= await  getTotalOperations(provids);
+  //  var TokenHolders=  await getTokenHolders(provids);
+ //   var Transfers=  await getTransfers(provids);
+ //   var TotalOperations= await  getTotalOperations(provids);
     lastBaseBlock=  await getLastBaseBlock(provids);
     currentBlock = lastBaseBlock;
     var nextEraInfo = await getDaysUntilNextEra(provids);
