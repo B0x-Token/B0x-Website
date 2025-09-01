@@ -185,7 +185,7 @@ async function switchToBaseMainnet() {
             symbol: 'ETH',
             decimals: 18
         },
-        rpcUrls: ['https://base.org'],
+        rpcUrls: ['https://mainnet.base.org'],
         blockExplorerUrls: ['https://basescan.org/']
     };
     
@@ -202,11 +202,11 @@ async function switchToBaseMainnet() {
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: baseMainnetConfig.chainId }]
         });
-        console.log('Switched to Base Sepolia network');
+        console.log('Switched to Base Mainnet network');
         
     } catch (error) {
-        console.error('Error with Base Sepolia network:', error);
-        throw new Error(`Failed to setup Base Sepolia network: ${error.message}`);
+        console.error('Error with Base Mainnet network:', error);
+        throw new Error(`Failed to setup Base Mainnet network: ${error.message}`);
     }
 }
 
