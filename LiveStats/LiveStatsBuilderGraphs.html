@@ -535,6 +535,78 @@ async batchGetStorageAt(blockNumbers, batchSize = 20) {
 }
 
 
+
+
+  function getHashrateDataFromDifficultyAndErasPerBlockData(difficulty_data, eras_per_block_data) {
+    var expected_eras_per_block = 1/80; //76.5/* should be 40 times slower than ethereum (with 15-second eth blocks) */
+    var difficulty_data_index = 0;
+    var difficulty_change_block_num = 0;
+    var chart_data = []
+    for (var step = 0; step < eras_per_block_data.length; step++) {
+      var current_eth_block = eras_per_block_data[step].x;
+      var current_eras_per_block = eras_per_block_data[step].y;
+
+      while(difficulty_data_index < difficulty_data.length - 1
+            && difficulty_data[difficulty_data_index+1].x < current_eth_block) {
+        difficulty_change_block_num = difficulty_data[difficulty_data_index+1].x;
+        difficulty_data_index += 1;
+      }
+
+      //console.log('diff chg @', difficulty_change_block_num);
+	var difficulty =0
+	try{
+      var difficulty = difficulty_data[difficulty_data_index].y.toNumber();
+	}catch{
+	}
+      /* if difficulty change occurs within this step window */
+      if (step != 0
+          && difficulty_data_index != 0
+          && eras_per_block_data[step].x > difficulty_change_block_num
+          && eras_per_block_data[step-1].x < difficulty_change_block_num) {
+
+        /* make a new half-way difficulty that takes the duration of each 
+           seperate difficulty into accout  */
+
+        var step_size_in_eth_blocks = eras_per_block_data[step].x - eras_per_block_data[step-1].x;
+        var diff1_duration = eras_per_block_data[step].x - difficulty_change_block_num;
+        var diff2_duration = difficulty_change_block_num - eras_per_block_data[step-1].x;
+	var current_difficulty =0
+	try{
+        current_difficulty = difficulty_data[difficulty_data_index].y.toNumber();
+	}catch{
+	}
+        /* NOTE: since the data is stored kind-of oddly (two values per
+           difficulty: both the first and last known block at that value), we
+           index difficulty_data as step-1 instead of step-2, skipping a
+           value. */
+        var last_difficulty = difficulty_data[difficulty_data_index-1].y.toNumber();
+        difficulty = (current_difficulty * (diff1_duration/step_size_in_eth_blocks))
+                     + (last_difficulty * (diff2_duration/step_size_in_eth_blocks));
+        // console.log('step size', step_size_in_eth_blocks);
+        // console.log('dif', difficulty);
+        // console.log('d curr', eras_per_block_data[step].x, diff1_duration, current_difficulty);
+        // console.log('d  old', eras_per_block_data[step-1].x, diff2_duration, last_difficulty);
+        // console.log('d', difficulty);
+      }
+
+      var unadjusted_network_hashrate = difficulty * _HASHRATE_MULTIPLIER / _IDEAL_BLOCK_TIME_SECONDS;
+      var network_hashrate = unadjusted_network_hashrate * (current_eras_per_block/expected_eras_per_block);
+      //log('for block', current_eth_block, 'diff', difficulty.toFixed(1), 'uhr', unadjusted_network_hashrate, 'hr', network_hashrate)
+	if(current_eth_block > ethblockstart){
+      chart_data.push({
+        x: current_eth_block,
+        y: network_hashrate,
+      })
+}
+      //console.log('log', era_values[step][0], value_mod_function(era_values[step][1]))
+      //labels.push(era_values[step][0]);
+      //chart_data.push(_MAXIMUM_TARGET_BN.div(values[step][1]));
+    }
+    return chart_data;
+  }
+
+
+
         function generateHashrateAndBlocktimeGraph(web3Instance, target_cv_obj, era_cv_obj, price_cv_obj, price_cv_obj3, tokens_minted_cv_obj) {
           el('#difficultystats').innerHTML = '<canvas id="chart-hashrate-difficulty" width="4rem" height="2rem"></canvas>';
           el('#blocktimestats').innerHTML =  '<canvas id="chart-rewardtime" width="4rem" height="2rem"></canvas>';
@@ -643,6 +715,27 @@ async batchGetStorageAt(blockNumbers, batchSize = 20) {
             }
           }
 
+  var hashrate_data = getHashrateDataFromDifficultyAndErasPerBlockData(difficulty_data, eras_per_block_data);
+
+console.log("hashrate_data :", hashrate_data);
+var max_hashrate_value = 0
+
+  for (var i = 0; i < hashrate_data.length; i += 1) {
+	//console.log("max_hashrate_value22 ", hashrate_data[i].y)
+
+    /* get max hashrate data, note - not a BN */
+    if (hashrate_data[i].y > max_hashrate_value) {
+console.log("max_hashrate_value ", hashrate_data[i].y)
+
+      max_hashrate_value = hashrate_data[i].y;
+    }
+  }
+	  // Check if the last value in hashrate_data is 0 and remove it if true
+if (hashrate_data.length > 0 && hashrate_data[hashrate_data.length - 1].y === 0) {
+    hashrate_data.pop();
+}
+
+
           var datasetCopy = [
             average_reward_time_data.slice(0, 1)[0], 
             average_reward_time_data.slice(average_reward_time_data.length-1, average_reward_time_data.length)[0],
@@ -673,53 +766,82 @@ async batchGetStorageAt(blockNumbers, batchSize = 20) {
           }
 
           // Create Difficulty Chart
-          var hr_diff_chart = new Chart.Scatter(document.getElementById('chart-hashrate-difficulty').getContext('2d'), {
-            type: 'line',
-            data: {
-                datasets: [{
-                    label: "Difficulty",
-                    showLine: true,
-                    steppedLine: 'before',
-                    backgroundColor: 'rgb(255, 99, 132)',
-                    borderColor: 'rgb(255, 99, 132)',
-                    data: difficulty_data,
-                    fill: false,
-                }]
-            },
-            options: { 
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    xAxes: [{
-                        gridLines: {
-                            color: 'rgb(97, 97, 97)',
-                            zeroLineColor: 'rgb(97, 97, 97)',
-                        },
-                        ticks: {
-                            callback: function(value, index, values) {
-                                return BWORKethBlockNumberToDateStr(value);
-                            },
-                        }
-                    }],
-                    yAxes: [{
-                        gridLines: {
-                            color: 'rgb(97, 97, 97)',
-                            zeroLineColor: 'rgb(97, 97, 97)',
-                        },
-                        scaleLabel: {
-                            display: true,
-                            labelString: 'Difficulty',
-                            fontColor: 'rgb(255, 99, 132)',
-                        },
-                        ticks: {
-                            callback: function(value, index, values) {
-                                return toReadableThousandsLong(value);
-                            },
-                        }
-                    }]
+          // Create Difficulty Chart
+var hr_diff_chart = new Chart.Scatter(document.getElementById('chart-hashrate-difficulty').getContext('2d'), {
+    type: 'line',
+    data: {
+        datasets: [{
+            label: "Difficulty",
+            showLine: true,
+            steppedLine: 'before',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: difficulty_data,
+            fill: false,
+        }, {
+            label: "Based Work Token Hashrate",
+            showLine: true,
+            backgroundColor: 'rgb(156, 204, 101)',
+            borderColor: 'rgb(156, 204, 101)',
+            data: hashrate_data,
+            fill: false,
+            yAxisID: 'y-axis-2', // Changed from 'second-y-axis'
+        }]
+    },
+    options: { 
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+            xAxes: [{
+                gridLines: {
+                    color: 'rgb(97, 97, 97)',
+                    zeroLineColor: 'rgb(97, 97, 97)',
+                },
+                ticks: {
+                    callback: function(value, index, values) {
+                        return BWORKethBlockNumberToDateStr(value);
+                    },
                 }
-            }
-          });
+            }],
+            yAxes: [{
+                id: 'y-axis-1', // Added ID for first y-axis
+                type: 'linear',
+                position: 'left',
+                gridLines: {
+                    color: 'rgb(97, 97, 97)',
+                    zeroLineColor: 'rgb(97, 97, 97)',
+                },
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Difficulty',
+                    fontColor: 'rgb(255, 99, 132)',
+                },
+                ticks: {
+                    callback: function(value, index, values) {
+                        return toReadableThousandsLong(value);
+                    },
+                }
+            }, {
+                id: 'y-axis-2', // Added second y-axis
+                type: 'linear',
+                position: 'right',
+                gridLines: {
+                    drawOnChartArea: false, // Only show grid lines for left axis
+                },
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Hashrate (MH/s)',
+                    fontColor: 'rgb(156, 204, 101)',
+                },
+                ticks: {
+                    callback: function(value, index, values) {
+                        return toReadableHashrate(value);
+                    },
+                }
+            }]
+        }
+    }
+});
 
           // Create Price Chart
           var price_chart = new Chart.Scatter(document.getElementById('chart-pricetime').getContext('2d'), {
