@@ -1974,18 +1974,20 @@ button:disabled:hover {
         .calc-button.secondary {
             background: #333;
         }
+
 .results-section {
     background: #2a2a2a;
     padding: 25px;
     border-radius: 8px;
     border: 1px solid #444;
-    width: 100%;
+    width: 300px;      /* or any width you want */
     box-sizing: border-box;
     overflow-wrap: break-word;
     word-wrap: break-word;
     word-break: break-word;
-    margin: 0 20px 0 0; /* adds 10px space on the right */
+    margin: 0;         /* remove offsets */
 }
+
         .results-title {
             color: #f0f0f0;
             font-size: 16px;
@@ -2204,7 +2206,12 @@ button:disabled:hover {
             margin-right: 8px;
         }
         /*STATS Mining Calculator CSS ENDS*/
-
+.parent-container {
+    display: flex;
+    justify-content: flex-end; /* pushes children to the right */
+    align-items: flex-start;   /* aligns them to the top */
+    width: 100%;
+}
 
     </style>
 </head>
@@ -2314,7 +2321,17 @@ button:disabled:hover {
                 <button class="nav-tab2" data-tab="stats-home" onclick="switchTab2('stats-home')">Stats Home</button>
                 <button class="nav-tab2" data-tab="stats-mining" onclick="switchTab2('stats-mining')">Mining calculator</button>
                 <button class="nav-tab2" data-tab="stats-graphs" onclick="switchTab2('stats-graphs')">Graphs</button>
+                <button class="nav-tab2" data-tab="stats-staking-rich-list" onclick="switchTab2('stats-staking-rich-list')">Staking Rich List</button>
             </nav>
+
+            <!-- Rich List Stat Page -->
+            <div id="stats-staking-rich-list" class="stats-page">
+                <h3 class="section-title">Staking Rich List</h3>
+                <p style="color: #888; text-align: center; margin-top: 50px;">Staking Rich List coming soon... We will have Staked 0xBTC Balance, Staked B0x Balance, Total Liquidity. Get users and block via json webserver await fetch('https://data.bzerox.org/graph/staking_rich_list_testnet.j2son');.  Then we log from that block  First we need to check for all events increaseliqudiites, then we need to make a list of all users with over the minimum staking balance.  Then we fetch all the users balances. batched
+
+                </p>
+            </div>
+
 
             <!-- Stats Sub-Pages -->
             <div id="stats-home" class="stats-page">
@@ -2495,13 +2512,12 @@ button:disabled:hover {
                     <div class="calculator-grid">
                         <div class="calculator-left">
                             <div class="input-group">
-                                <label class="input-label">Your Hashrate:</label>
-                                <div class="input-with-unit">
-                                    <input type="number" class="calc-input" value="100" id="hashrate-input">
-                                    <span class="input-unit">Mh/s</span>
+                               <div class="input-group">
+                                    <label class="input-label">Your Hashrate:</label>
+                                    <div class="input-with-unit"> 
+                                    </div>
                                 </div>
-                            </div>
-                            
+                                                            
                             <div class="input-group">
                                 <label class="input-label">Mint Failure Rate: <span class="info-icon" title="Percentage of failed mining attempts">ⓘ</span></label>
                                 <div class="input-with-unit">
@@ -2559,7 +2575,7 @@ button:disabled:hover {
                                 <span class="arrow">→</span> tokens per day = 
                                 <span class="formula-complex">
                                     <div class="fraction">
-                                        <span class="formula-fraction">25 tokens</span>
+                                        <span class="formula-fraction">MIN: 6.25 tokens</span>
                                         <span class="formula-divisor">1 block</span>
                                     </div>
                                     <span class="operator">×</span>
@@ -2586,16 +2602,14 @@ button:disabled:hover {
                                     <span class="formula-divisor">difficulty</span>
                                 </div>
                             </div>
-                            
+
                             <div class="formula-line">
-                                <span class="arrow">→</span> tokens per day = 
+                                <span class="arrow">→</span> tokens per day range = 
                                 <div class="fraction">
-                                    <span class="formula-fraction">4320000 × hashrate</span>
+                                    <span class="formula-fraction">86400 × hashrate × (MIN 6.25 → MAX 25)</span>
                                     <span class="formula-divisor">2<sup>22</sup> × difficulty</span>
                                 </div>
                             </div>
-                        </div>
-                    
                     <p class="reference">For a more detailed calculator and individual GPU benchmarks, visit:</p>
                     <ul class="reference-list">
                         <li><a href="#" class="reference-link">0xBTC Mining Calculator</a> by minerjoe78, milkers, and others</li>
@@ -2608,7 +2622,6 @@ button:disabled:hover {
                 <h3 class="section-title">Difficulty / Hashrate</h3>
                 <p style="color: #888; text-align: center; margin-top: 50px;">Difficulty and hashrate charts coming soon...</p>
             </div>
-
         </div>
 
 
@@ -14076,6 +14089,10 @@ async function getDifficulty(providera){
     var target = parseFloat(await getTarget(providera));
     var difficulty = ((2**253)/target) /  524_288;
     
+var difficultyInput = document.getElementById("difficulty-input");
+
+// Set its value to the new difficulty
+difficultyInput.value = difficulty;
     return difficulty.toString();
 }
 var epochCount =0;
@@ -14197,6 +14214,13 @@ async function getNextDifficulty(providera){
    const contract = new ethers.Contract(ProofOfWorkAddresss, contractABI, providera);
    var newDifficulty = await contract.readjustsToWhatDifficulty();
    newDifficulty = newDifficulty/ 524288;
+   
+var difficultyInput = document.getElementById("difficulty-input");
+
+// Set its value to the new difficulty
+difficultyInput.value = newDifficulty;
+
+
    return newDifficulty.toString();
 
 }
@@ -15658,7 +15682,130 @@ lastBaseBlock=lastBaseBlock2;
 document.querySelector('.stat-value-distMining').innerHTML = `${parseFloat(totalDistributedMining).toLocaleString()}  <span class="unit">B0x</span></span>`;
 document.querySelector('.stat-value-MAxSupply').innerHTML = `${parseFloat(maxperEra).toLocaleString()}  <span class="unit">B0x</span></span>`;
 
+        // Initial calculation
+        calculateMining();
 }
+
+async function useCurrentDiff(){
+
+    if(!walletConnected){
+       await connectTempRPCforStats();
+    }
+    var provids = provider;
+    if(!walletConnected){
+        provids=providerTempStats;
+    }
+    console.log("Connect done");
+
+
+        console.log("Connect done");
+
+    var diffzzfzfz = await getDifficulty(provids);
+
+
+
+            calculateMining();
+
+}
+
+
+async function useNextDiff(){
+    if(!walletConnected){
+       await connectTempRPCforStats();
+    }
+    var provids = provider;
+    if(!walletConnected){
+        provids=providerTempStats;
+    }
+    console.log("Connect done");
+
+
+        console.log("Connect done");
+
+    var diffzzfzfz = await getNextDifficulty(provids);
+
+
+
+            calculateMining();
+
+}
+
+
+// Constants
+        const POW_2_22 = 4194304; // 2^22
+        const SECONDS_PER_DAY = 86400;
+        const MIN_REWARD = 6.25;
+        const MAX_REWARD = 25;
+
+        // DOM Elements
+        const hashrateInput = document.getElementById('hashrate-input');
+        const hashrateUnit = document.getElementById('hashrate-unit');
+        const failureRateInput = document.getElementById('failure-rate-input');
+        const difficultyInput = document.getElementById('difficulty-input');
+        const currentDiffBtn = document.getElementById('current-diff-btn');
+        const nextDiffBtn = document.getElementById('next-diff-btn');
+        
+        // Result Elements
+        const avgBlockTimeEl = document.getElementById('avg-block-time');
+        const realisticBlockTimeEl = document.getElementById('realistic-block-time');
+        const minTokensEl = document.getElementById('min-tokens');
+        const maxTokensEl = document.getElementById('max-tokens');
+
+        // Current and next difficulty values (for demonstration)
+        let currentDifficulty = 0.24995304;
+        let nextDifficulty = 0.27594834;
+
+        // Initialize with current difficulty
+        difficultyInput.value = currentDifficulty;
+
+        // Calculate mining results
+        function calculateMining() {
+            // Get input values
+            const hashrate = parseFloat(hashrateInput.value) || 0;
+            const unitMultiplier = parseFloat(hashrateUnit.value);
+            const failureRate = parseFloat(failureRateInput.value) || 0;
+            const difficulty = parseFloat(difficultyInput.value) || 0.00000001; // Avoid division by zero
+            
+            // Convert hashrate to H/s
+            const hashrateHps = hashrate * unitMultiplier;
+            
+            // Calculate average time to solve a block (in seconds)
+            const avgBlockTime = (POW_2_22 * difficulty) / hashrateHps;
+            
+            // Calculate more realistic time for 10 blocks (accounting for failure rate)
+            const successRate = (100 - failureRate) / 100;
+            const realisticBlockTime = avgBlockTime / successRate;
+            
+            // Calculate tokens per day range
+            const minTokensPerDay = (SECONDS_PER_DAY * hashrateHps * MIN_REWARD) / (POW_2_22 * difficulty);
+            const maxTokensPerDay = (SECONDS_PER_DAY * hashrateHps * MAX_REWARD) / (POW_2_22 * difficulty);
+            
+            // Update the UI with calculated values
+            avgBlockTimeEl.textContent = avgBlockTime.toFixed(2);
+            realisticBlockTimeEl.textContent = (realisticBlockTime * 10).toFixed(1);
+            minTokensEl.textContent = minTokensPerDay.toFixed(2);
+            maxTokensEl.textContent = maxTokensPerDay.toFixed(2);
+        }
+
+        // Set difficulty to current value
+        function useCurrentDiff() {
+            difficultyInput.value = currentDifficulty;
+            calculateMining();
+        }
+
+        // Set difficulty to next value
+        function useNextDiff() {
+            difficultyInput.value = nextDifficulty;
+            calculateMining();
+        }
+
+        // Event Listeners
+        hashrateInput.addEventListener('input', calculateMining);
+        hashrateUnit.addEventListener('change', calculateMining);
+        failureRateInput.addEventListener('input', calculateMining);
+        difficultyInput.addEventListener('input', calculateMining);
+        currentDiffBtn.addEventListener('click', useCurrentDiff);
+        nextDiffBtn.addEventListener('click', useNextDiff);
 
 
 
