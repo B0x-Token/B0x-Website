@@ -2914,20 +2914,20 @@ button:disabled:hover {
             </div>
         
         <div class="nav-tabs">
-            <button class="nav-tab active" onclick="switchTab('swap')">Swap</button>
-            <button class="nav-tab" onclick="switchTab('create')">Create Position</button>
-            <button class="nav-tab" onclick="switchTab('increase')">Increase Liquidity</button>
-            <button class="nav-tab" onclick="switchTab('decrease')">Decrease Liquidity</button>
-            <button class="nav-tab" onclick="switchTab('staking-main-page')">Staking</button>
-            <button class="nav-tab" onclick="switchTab('stake-increase')">Stake Increase</button>
-            <button class="nav-tab" onclick="switchTab('stake-decrease')">Stake Decrease</button>
-            <button class="nav-tab" onclick="switchTab('convert')">Convert 0xBTC <-> B0x</button>
-            <button class="nav-tab" onclick="switchTab('settings')">Settings</button>
-            <button class="nav-tab" onclick="switchTab('staking-management')">Stake Management</button>
-            <button class="nav-tab" onclick="switchTab('testnet-faucet')">Testnet Token Faucet</button>
-            <button class="nav-tab" onclick="switchTab('contract-info')">Contract Info</button>
-            <button class="nav-tab" onclick="switchTab('stats')">Live Statistics</button>
-            <button class="nav-tab" onclick="switchTab('socials')">Social Media</button>
+            <button class="nav-tab active" data-tab="swap" onclick="switchTab('swap')">Swap</button>
+            <button class="nav-tab" data-tab="create" onclick="switchTab('create')">Create Position</button>
+            <button class="nav-tab" data-tab="decrease" onclick="switchTab('increase')">Increase Liquidity</button>
+            <button class="nav-tab" data-tab="decrease" onclick="switchTab('decrease')">Decrease Liquidity</button>
+            <button class="nav-tab" data-tab="staking-main-page" onclick="switchTab('staking-main-page')">Staking</button>
+            <button class="nav-tab" data-tab="stake-increase" onclick="switchTab('stake-increase')">Stake Increase</button>
+            <button class="nav-tab" data-tab="stake-decrease" onclick="switchTab('stake-decrease')">Stake Decrease</button>
+            <button class="nav-tab" data-tab="convert" onclick="switchTab('convert')">Convert 0xBTC <-> B0x</button>
+            <button class="nav-tab" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+            <button class="nav-tab" data-tab="staking-management" onclick="switchTab('staking-management')">Stake Management</button>
+            <button class="nav-tab" data-tab="testnet-faucet" onclick="switchTab('testnet-faucet')">Testnet Token Faucet</button>
+            <button class="nav-tab" data-tab="contract-info" onclick="switchTab('contract-info')">Contract Info</button>
+            <button class="nav-tab" data-tab="stats" onclick="switchTab('stats')">Live Statistics</button>
+            <button class="nav-tab" data-tab="socials"  onclick="switchTab('socials')">Social Media</button>
         </div>
 
         <!-- Stats Page -->
@@ -3116,9 +3116,6 @@ html<div style="display:none;" id="row-miners2">
             </table>
         </div>
     </div>
-</div>
-
-            </div>
 
             <!-- Mining Sub-Page -->
             <div id="stats-mining-calc" class="stats-page">
@@ -3262,6 +3259,7 @@ html<div style="display:none;" id="row-miners2">
                 </ul>
             </div>
         </div>
+    </div>
 
             <!-- Difficulty Sub-Page -->
             <div id="stats-graphs" class="stats-page">
@@ -5208,11 +5206,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function updateURL(tabName) {
-    const url = new URL(window.location);
-    url.searchParams.set('tab', tabName);
-    window.history.replaceState(null, '', url);
-}
 
+    const baseUrl = window.location.origin + window.location.pathname;
+    // Add a valueless parameter
+    const newUrl = `${baseUrl}?${tabName}`;
+    window.history.replaceState(null, '', newUrl);
+}
 
 
     let PreviousTabName ="";
@@ -5230,7 +5229,23 @@ async function switchTab(tabName) {
             document.getElementById(tabName).classList.add('active');
             
             // Add active class to clicked tab
-            event.target.classList.add('active');
+            
+
+            
+            // Add active class to selected sub-tab and sub-page
+            const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+            const selectedPage = document.getElementById(tabName);
+            
+            console.log('Selected tab:', selectedTab); // Debug log
+            console.log('Selected page:', selectedPage); // Debug log
+            
+            if (selectedTab) selectedTab.classList.add('active');
+            if (selectedPage) {
+                selectedPage.classList.add('active');
+                selectedPage.style.display = 'block'; // Force show
+            }
+
+            
             updateURL(tabName);
             console.log("PREVIOUS TAB NAME");
             if(tabName =='stats' && PreviousTabName !='stats'){
