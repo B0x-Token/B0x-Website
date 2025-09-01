@@ -5119,6 +5119,102 @@ function updateTokenIcon(selectId, iconId) {
 
 
 
+
+// Function to get URL parameters
+function getURLParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+// Function to switch tab on page load based on URL parameter
+function initializeTabFromURL() {
+    // Check for 'tab' parameter in URL (e.g., ?tab=convert)
+    const tabParam = getURLParameter('tab');
+    
+    if (tabParam) {
+        // List of valid tab names to prevent invalid tab switching
+        const validTabs = [
+            'swap',
+            'create',
+            'increase',
+            'decrease',
+            'staking-main-page',
+            'stake-increase',
+            'stake-decrease',
+            'convert',
+            'settings',
+            'staking-management',
+            'testnet-faucet',
+            'contract-info',
+            'stats',
+            'socials'
+        ];
+        
+        // Check if the tab parameter is valid
+        if (validTabs.includes(tabParam)) {
+            switchTab(tabParam);
+        } else {
+            console.warn(`Invalid tab parameter: ${tabParam}`);
+            // Optionally switch to default tab
+            switchTab('swap');
+        }
+    }
+    // If no tab parameter, the default active tab will remain (swap)
+}
+
+
+
+// Alternative function if you prefer to use just the parameter name without 'tab='
+// For URLs like ?convert instead of ?tab=convert
+function initializeTabFromDirectParam() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Valid tab names
+    const validTabs = [
+        'swap',
+        'create',
+        'increase',
+        'decrease',
+        'staking-main-page',
+        'stake-increase',
+        'stake-decrease',
+        'convert',
+        'settings',
+        'staking-management',
+        'testnet-faucet',
+        'contract-info',
+        'stats',
+        'socials'
+    ];
+    
+    // Check if any of the valid tab names exist as parameters
+    for (const tab of validTabs) {
+        if (urlParams.has(tab)) {
+            switchTab(tab);
+            return; // Exit after first match to prevent multiple tab switches
+        }
+    }
+}
+
+
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Use this for URLs like ?tab=convert
+    initializeTabFromURL();
+    
+    // AND use this for URLs like ?convert
+    initializeTabFromDirectParam();
+});
+
+function updateURL(tabName) {
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tabName);
+    window.history.replaceState(null, '', url);
+}
+
+
+
     let PreviousTabName ="";
 
 async function switchTab(tabName) {
@@ -5135,6 +5231,7 @@ async function switchTab(tabName) {
             
             // Add active class to clicked tab
             event.target.classList.add('active');
+            updateURL(tabName);
             console.log("PREVIOUS TAB NAME");
             if(tabName =='stats' && PreviousTabName !='stats'){
                 switchTab2('stats-home');
