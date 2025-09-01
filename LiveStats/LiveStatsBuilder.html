@@ -1919,19 +1919,21 @@ button:disabled:hover {
         }
 
         .input-with-unit {
-            display: flex;
+           
+    flex: 0 0 auto; /* Don't grow, don't shrink, use natural size */
             align-items: center;
             gap: 12px;
         }
 
         .calc-input {
+    flex: none;
             background: #333;
             border: 1px solid #555;
             border-radius: 4px;
             padding: 10px 12px;
             color: #fff;
             font-size: 14px;
-            min-width: 120px;
+            min-width: 100px;
         }
 
         .calc-input:focus {
@@ -1941,7 +1943,7 @@ button:disabled:hover {
 
         .difficulty-input {
             min-width: 200px;
-            margin-bottom: 15px;
+            margin-bottom: 24px;
         }
 
         .input-unit {
@@ -2213,6 +2215,327 @@ button:disabled:hover {
     width: 100%;
 }
 
+
+
+        /*STATS Mining Calculator CSS BEGINSS*/
+      .mining-calculator {
+            margin-bottom: 40px;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* Control Box Styling */
+        .controls-box {
+            background: rgba(26, 32, 44, 0.8);
+            border-radius: 12px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #cbd5e0;
+        }
+
+        /* Hashrate Input with Unit Selector */
+        .input-with-unit {
+            display: inline-flex;
+            width: fit-content;
+            align-items: center;
+            background: rgba(45, 55, 72, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .input-with-unit:focus-within {
+            border-color: #805ad5;
+            box-shadow: 0 0 0 3px rgba(128, 90, 213, 0.1);
+        }
+
+        .calc-input {
+            flex: none;
+            min-width: 120px;
+            padding: 12px 15px;
+            background: transparent;
+            border: none;
+            color: #e2e8f0;
+            font-size: 14px;
+            outline: none;
+            border-radius: 0;
+        }
+
+        .calc-input::placeholder {
+            color: #718096;
+        }
+
+        .unit-selector {
+            background: rgba(128, 90, 213, 0.8);
+            border: none;
+            color: #e2e8f0;
+            padding: 12px 15px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            min-width: 70px;
+        }
+
+        .unit-selector:hover {
+            background: rgba(128, 90, 213, 1);
+        }
+
+        .unit-selector:focus {
+            outline: none;
+            background: rgba(128, 90, 213, 1);
+        }
+
+        /* Regular Input (for difficulty) */
+        .difficulty-input {
+            width: 100%;
+            max-width: 200px;
+            padding: 12px 15px;
+            background: rgba(45, 55, 72, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 23px;
+            box-sizing: border-box;
+        }
+
+        .difficulty-input:focus {
+            outline: none;
+            border-color: #805ad5;
+            box-shadow: 0 0 0 3px rgba(128, 90, 213, 0.1);
+        }
+
+        /* Button Group */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .calc-button {
+            padding: 10px 16px;
+            background: rgba(128, 90, 213, 0.8);
+            border: 1px solid rgba(128, 90, 213, 0.6);
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .calc-button:hover {
+            background: rgba(128, 90, 213, 1);
+            border-color: rgba(128, 90, 213, 0.8);
+            transform: translateY(-1px);
+        }
+
+        .calc-button.secondary {
+            background: rgba(74, 85, 104, 0.8);
+            border-color: rgba(74, 85, 104, 0.6);
+        }
+
+        .calc-button.secondary:hover {
+            background: rgba(74, 85, 104, 1);
+            border-color: rgba(74, 85, 104, 0.8);
+        }
+
+        /* Results Section */
+        .results-section {
+            background: rgba(26, 32, 44, 0.9);
+            border-radius: 12px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .results-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #f7fafc;
+        }
+
+        .result-item {
+            margin-bottom: 15px;
+            font-size: 23px;
+            line-height: 1.5;
+        }
+
+        .result-item span {
+            font-weight: 600;
+            color: #68d391;
+        }
+
+        /* Formula Section */
+        #stats .how-it-works {
+            background: rgba(45, 55, 72, 0.8);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+       #stats .section-subtitle {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #f7fafc;
+        }
+
+       #stats .explanation {
+            color: #cbd5e0;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+       #stats .formula-block {
+            background: rgba(26, 32, 44, 0.6);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+       #stats .formula-line {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+      #stats .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+       #stats .formula-fraction {
+            border-bottom: 1px solid #cbd5e0;
+            padding-bottom: 2px;
+            margin-bottom: 2px;
+        }
+
+       #stats .formula-divisor {
+            padding-top: 2px;
+        }
+
+       #stats .arrow {
+            color: #68d391;
+            font-weight: bold;
+            margin: 0 10px;
+        }
+
+       #stats .operator {
+            color: #68d391;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+
+       #stats .reference {
+            color: #cbd5e0;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+       #stats .reference-list {
+            margin-left: 20px;
+        }
+
+        #stats .reference-link {
+            color: #68d391;
+            text-decoration: none;
+        }
+
+       #stats .reference-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            #stats .calculator-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+           #stats .button-group {
+                flex-direction: column;
+            }
+            
+          #stats .calc-input {
+                min-width: 100px;
+            }
+            
+           #stats body {
+                padding: 15px;
+            }
+        }
+
+.hashrate-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+}
+
+.hashrate-input-section {
+    flex: 1; /* Take up remaining space after units section */
+}
+
+.units-section {
+    flex: 0 0 auto; /* Stay at natural width */
+}
+
+.hashrate-input-section .calc-input {
+    width: 100%; /* Full width of its flex container */
+    padding: 12px 15px;
+    background: rgba(45, 55, 72, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 22px;
+}
+
+.units-section .unit-selector {
+    background: rgba(128, 90, 213, 0.8);
+    border: 1px solid rgba(128, 90, 213, 0.6);
+    border-radius: 8px;
+    color: #e2e8f0;
+    padding: 12px 15px;
+    font-size: 22px;
+    font-weight: 500;
+    cursor: pointer;
+    min-width: 80px;
+}
     </style>
 </head>
 <body>
@@ -2319,7 +2642,7 @@ button:disabled:hover {
                     </div>
             <nav class="nav-tabs2">
                 <button class="nav-tab2" data-tab="stats-home" onclick="switchTab2('stats-home')">Stats Home</button>
-                <button class="nav-tab2" data-tab="stats-mining" onclick="switchTab2('stats-mining')">Mining calculator</button>
+                <button class="nav-tab2" data-tab="stats-mining-calc" onclick="switchTab2('stats-mining-calc')">Mining calculator</button>
                 <button class="nav-tab2" data-tab="stats-graphs" onclick="switchTab2('stats-graphs')">Graphs</button>
                 <button class="nav-tab2" data-tab="stats-staking-rich-list" onclick="switchTab2('stats-staking-rich-list')">Staking Rich List</button>
             </nav>
@@ -2505,117 +2828,147 @@ button:disabled:hover {
             </div>
 
             <!-- Mining Sub-Page -->
-            <div id="stats-mining" class="stats-page">
-                <h3 class="section-title">B ZERO X (B0x) Mining Calculator</h3>
-                
-                <div class="mining-calculator">
-                    <div class="calculator-grid">
-                        <div class="calculator-left">
-                            <div class="input-group">
-                               <div class="input-group">
-                                    <label class="input-label">Your Hashrate:</label>
-                                    <div class="input-with-unit"> 
+            <div id="stats-mining-calc" class="stats-page">
+
+            <div class="info-card">
+                <h3>B ZERO X (B0x) Mining Calculator</h3>
+                <p>Test different values to see your mining results!</p>
+            </div>
+            
+            <div class="mining-calculator">
+                <div class="calculator-grid">
+                    <div class="calculator-left">
+                                   <!-- Controls Box -->
+                            <div class="controls-box">
+                                <div class="input-group">
+                                    <div class="hashrate-row">
+                                        <div class="hashrate-input-section">
+                                            <label class="input-label">Your Hashrate:</label>
+                                            <input type="number" class="calc-input" placeholder="100.00" value="100" step="1" id="hashrate-input">
+                                        </div>
+                                        <div class="units-section">
+                                            <label class="input-label ">Units:</label>
+                                            <select class="unit-selector" id="hashrate-unit">
+                                                <option value="1">H/s</option>
+                                                <option value="1000">kH/s</option>
+                                                <option value="1000000" selected>MH/s</option>
+                                                <option value="1000000000">GH/s</option>
+                                                <option value="1000000000000">TH/s</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
-                                                            
-                            <div class="input-group">
-                                <label class="input-label">Mint Failure Rate: <span class="info-icon" title="Percentage of failed mining attempts">ⓘ</span></label>
-                                <div class="input-with-unit">
-                                    <input type="number" class="calc-input" value="3" id="failure-rate-input">
-                                    <span class="input-unit">percent</span>
-                                </div>
-                            </div>
-                            
+                                            
                             <div class="input-group">
                                 <label class="input-label">Difficulty:</label>
-                                <input type="number" class="calc-input difficulty-input" value="0.24995304" id="difficulty-input">
+                                <input type="number" class="calc-input difficulty-input" value="1" id="difficulty-input" step="0.00000001">
                                 <div class="button-group">
                                     <button class="calc-button secondary" onclick="useCurrentDiff()">USE CURRENT DIFF</button>
                                     <button class="calc-button secondary" onclick="useNextDiff()">USE NEXT DIFF</button>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="calculator-right">
-                            <div class="results-section">
-                                <h4 class="results-title">zkBitcoin Solo Mining</h4>
-                                <div class="result-item">
-                                    <span id="avg-block-time">0.0</span> seconds per block (average)
-                                </div>
-                                <div class="result-item">
-                                    <span id="realistic-block-time">0.1</span> seconds per 10 blocks (more realistic)
-                                </div>
-                            </div>
-                        </div>
                     </div>
-                </div>
-                
-                <div class="how-it-works">
-                    <h3 class="section-subtitle">How Does The Calculator Work?</h3>
-                    <p class="explanation">At its heart is the standard hashrate equation:</p>
-                    
-                        <div class="formula-block">
-                            <div class="formula-line">
-                                time to solve a block in seconds = 
-                                <div class="fraction">
-                                    <span class="formula-fraction">2<sup>22</sup> × difficulty</span>
-                                    <span class="formula-divisor">hashrate</span>
-                                </div>
-                            </div>
-                            
-                            <div class="formula-line">
-                                <span class="arrow">→</span> blocks per second = 
-                                <div class="fraction">
-                                    <span class="formula-fraction">hashrate</span>
-                                    <span class="formula-divisor">2<sup>22</sup> × difficulty</span>
-                                </div>
-                            </div>
-                            
-                            <div class="formula-line">
-                                <span class="arrow">→</span> tokens per day = 
-                                <span class="formula-complex">
-                                    <div class="fraction">
-                                        <span class="formula-fraction">MIN: 6.25 tokens</span>
-                                        <span class="formula-divisor">1 block</span>
-                                    </div>
-                                    <span class="operator">×</span>
-                                    <div class="fraction">
-                                        <span class="formula-fraction">60 seconds</span>
-                                        <span class="formula-divisor">1 minute</span>
-                                    </div>
-                                </span>
-                                <span class="formula-complex">
-                                    <span class="operator">×</span>
-                                    <div class="fraction">
-                                        <span class="formula-fraction">60 minutes</span>
-                                        <span class="formula-divisor">1 hour</span>
-                                    </div>
-                                    <span class="operator">×</span>
-                                    <div class="fraction">
-                                        <span class="formula-fraction">24 hours</span>
-                                        <span class="formula-divisor">1 day</span>
-                                    </div>
-                                </span>
-                                <span class="operator">×</span>
-                                <div class="fraction">
-                                    <span class="formula-fraction">hashrate</span>
-                                    <span class="formula-divisor">difficulty</span>
-                                </div>
-                            </div>
-
-                            <div class="formula-line">
-                                <span class="arrow">→</span> tokens per day range = 
-                                <div class="fraction">
-                                    <span class="formula-fraction">86400 × hashrate × (MIN 6.25 → MAX 25)</span>
-                                    <span class="formula-divisor">2<sup>22</sup> × difficulty</span>
-                                </div>
-                            </div>
-                    <p class="reference">For a more detailed calculator and individual GPU benchmarks, visit:</p>
-                    <ul class="reference-list">
-                        <li><a href="#" class="reference-link">0xBTC Mining Calculator</a> by minerjoe78, milkers, and others</li>
-                    </ul>
+                    <div class="calculator-right">
+    <div class="results-section">
+        
+        <h4 class="results-title">B ZERO X / B0x Solo Mining Results</h4>
+        
+        <div class="result-category">
+            <h3 class="category-title">Block Timing</h3>
+            <div class="result-item">
+                <span class="result-label">Average time per block:</span>
+                <span id="avg-block-time" class="result-value">0.0</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Time for 10 blocks:</span>
+                <span id="realistic-block-time" class="result-value">0.0</span>
+            </div>
+        </div>
+        
+        <div class="result-category">
+            <h3 class="category-title">Daily Earnings Estimate</h3>
+            <div class="result-item">
+                <span class="result-label">Tokens per day (MAX):</span>
+                <span id="max-tokens" class="result-value">0.00</span> B0x Tokens
+            </div>
+            <div class="result-note">
+                Based on your calculated hashrate
+            </div>
+        </div>
+        
+    </div>
+</div>
                 </div>
             </div>
+            
+            <div class="how-it-works">
+                <h3 class="section-subtitle">How Does The Calculator Work?</h3>
+                <p class="explanation">At its heart is the standard hashrate equation:</p>
+                
+                <div class="formula-block">
+                    <div class="formula-line">
+                        time to solve a block in seconds = 
+                        <div class="fraction">
+                            <span class="formula-fraction">2<sup>22</sup> × difficulty</span>
+                            <span class="formula-divisor">hashrate</span>
+                        </div>
+                    </div>
+                    
+                    <div class="formula-line">
+                        <span class="arrow">→</span> blocks per second = 
+                        <div class="fraction">
+                            <span class="formula-fraction">hashrate</span>
+                            <span class="formula-divisor">2<sup>22</sup> × difficulty</span>
+                        </div>
+                    </div>
+                    
+                    <div class="formula-line">
+                        <span class="arrow">→</span> tokens per day = 
+                        <span class="formula-complex">
+                            <div class="fraction">
+                                <span class="formula-fraction">MIN: 6.25 tokens</span>
+                                <span class="formula-divisor">1 block</span>
+                            </div>
+                            <span class="operator">×</span>
+                            <div class="fraction">
+                                <span class="formula-fraction">60 seconds</span>
+                                <span class="formula-divisor">1 minute</span>
+                            </div>
+                        </span>
+                        <span class="formula-complex">
+                            <span class="operator">×</span>
+                            <div class="fraction">
+                                <span class="formula-fraction">60 minutes</span>
+                                <span class="formula-divisor">1 hour</span>
+                            </div>
+                            <span class="operator">×</span>
+                            <div class="fraction">
+                                <span class="formula-fraction">24 hours</span>
+                                <span class="formula-divisor">1 day</span>
+                            </div>
+                        </span>
+                        <span class="operator">×</span>
+                        <div class="fraction">
+                            <span class="formula-fraction">hashrate</span>
+                            <span class="formula-divisor">difficulty</span>
+                        </div>
+                    </div>
+
+                    <div class="formula-line">
+                        <span class="arrow">→</span> tokens per day range = 
+                        <div class="fraction">
+                            <span class="formula-fraction">86400 × hashrate × (MIN 6.25 → MAX 25)</span>
+                            <span class="formula-divisor">2<sup>22</sup> × difficulty</span>
+                        </div>
+                    </div>
+                
+                <p class="reference">For a more detailed calculator and individual GPU benchmarks, visit:</p>
+                <ul class="reference-list">
+                    <li><a href="#" class="reference-link">0xBTC Mining Calculator</a> by minerjoe78, milkers, and others</li>
+                </ul>
+            </div>
+        </div>
 
             <!-- Difficulty Sub-Page -->
             <div id="stats-graphs" class="stats-page">
@@ -7898,21 +8251,22 @@ var walletBalances = {
 
 
 
+
 const USDCToken = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
 const positionManager_address = "0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80";
-const contractAddress_PositionFinderPro = '0x141Fb54243333327C9FfdACdA22758e55A246DB6'; // Replace with actual contract address
-const contractAddress_Swapper = '0xC488687934BA63Ba4cA4b459E23b2959Fb743C99'; // Replace with actual contract address
-const contractAddressLPRewardsStaking = '0xa0624119DB0bF6c16a6EF5cD472E240Afc02EC17';
-const hookAddress = '0xFC7D3Ca438c7Cc7eC0a6d1bAA002f5BC1a575000';
-const ProofOfWorkAddresss = '0x165E06eBE52346Fd5e1be20D6D56693364aE4ae0';
+const contractAddress_PositionFinderPro = '0x3418c003F43FbA5Ce8f69041a49EF7cb4d1d6a58'; // Replace with actual contract address
+const contractAddress_Swapper = '0xc728AF6267315b5CB7669D7DC4F87f5174adabE8'; // Replace with actual contract address
+const contractAddressLPRewardsStaking = '0x3eA249809f032b1F5AE7B1Dd4986490d05eE2dC2';
+const hookAddress = '0x794B1409ef4b40a90eC8AF62EaF4c8bf275e5000';
+const ProofOfWorkAddresss = '0x925C42A57328FD8a7b07ecA444A34963e07C8999';
 
 // Token addresses mapping
 const tokenAddresses = {
 'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
-'B0x': '0xc6D3a164B02cB555ADF0190aCB61cefe2C26D8e5',
-'0xBTC': '0x2274cc388203E044aE4c868f7685eF8dac32F88e',
+'B0x': '0xb379A851AC41bcDF0c2564b88916B10E5A08daAe',
+'0xBTC': '0x4b20b6e9b678b111Dcc365EaD92b3277B178FB74',
 'WETH': '0x4200000000000000000000000000000000000006',
-'RightsTo0xBTC': '0x0f94E27e5221A8394B2a158162b3a930A5E6d2Fc', //temp until mainnet
+'RightsTo0xBTC': '0x4A437511e57f69507386B5866D48668884F63cbB', //temp until mainnet
 'USDC': '0x036CbD53842c5426634e7929541eC2318f3dCF7e', //temp until mainnet
 };
 
@@ -7921,9 +8275,9 @@ const tokenAddresses = {
     const tokenMap = {
         "0x4200000000000000000000000000000000000006": "WETH",
         "0x0000000000000000000000000000000000000000": "ETH",
-        "0xc6D3a164B02cB555ADF0190aCB61cefe2C26D8e5": "B0x",
-        "0x2274cc388203E044aE4c868f7685eF8dac32F88e": "0xBTC",
-        "0x0f94E27e5221A8394B2a158162b3a930A5E6d2Fc": "RightsTo0xBTC", //temp until mainnet
+        "0xb379A851AC41bcDF0c2564b88916B10E5A08daAe": "B0x",
+        "0x4b20b6e9b678b111Dcc365EaD92b3277B178FB74": "0xBTC",
+        "0x4A437511e57f69507386B5866D48668884F63cbB": "RightsTo0xBTC", //temp until mainnet
         "0x036CbD53842c5426634e7929541eC2318f3dCF7e": "USDC", //temp until mainnet
         // Add more token mappings as needed
     };
@@ -7935,10 +8289,13 @@ const tokenAddresses = {
 // Token addresses mapping FOR ETHEREUM MAINNET ONLY but using testnet base sepolia instead of mainnet ETH
   const tokenAddressesETH = {
       'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
-      'B0x': '0xc6D3a164B02cB555ADF0190aCB61cefe2C26D8e5',
-      '0xBTC': '0x2274cc388203E044aE4c868f7685eF8dac32F88e',
-      'RightsTo0xBTC': '0x0f94E27e5221A8394B2a158162b3a930A5E6d2Fc',
+      'B0x': '0xb379A851AC41bcDF0c2564b88916B10E5A08daAe',
+      '0xBTC': '0x4b20b6e9b678b111Dcc365EaD92b3277B178FB74',
+      'RightsTo0xBTC': '0x4A437511e57f69507386B5866D48668884F63cbB',
       };
+
+
+
 
 
 
@@ -15732,82 +16089,151 @@ async function useNextDiff(){
 
 
 // Constants
-        const POW_2_22 = 4194304; // 2^22
+      
+        // Constants from the formula
+        const POW_2_22 = Math.pow(2, 22); // 4,194,304
         const SECONDS_PER_DAY = 86400;
-        const MIN_REWARD = 6.25;
-        const MAX_REWARD = 25;
+        const MIN_REWARD = 6.25; // tokens per block
+        const MAX_REWARD = 25; // tokens per block
 
-        // DOM Elements
+        // Sample difficulty values for demo
+        const CURRENT_DIFFICULTY = 0.24995304;
+        const NEXT_DIFFICULTY = 0.28234567;
+
+        // Get DOM elements
         const hashrateInput = document.getElementById('hashrate-input');
         const hashrateUnit = document.getElementById('hashrate-unit');
-        const failureRateInput = document.getElementById('failure-rate-input');
         const difficultyInput = document.getElementById('difficulty-input');
         const currentDiffBtn = document.getElementById('current-diff-btn');
         const nextDiffBtn = document.getElementById('next-diff-btn');
-        
-        // Result Elements
+
+        // Result elements
         const avgBlockTimeEl = document.getElementById('avg-block-time');
         const realisticBlockTimeEl = document.getElementById('realistic-block-time');
-        const minTokensEl = document.getElementById('min-tokens');
         const maxTokensEl = document.getElementById('max-tokens');
 
-        // Current and next difficulty values (for demonstration)
-        let currentDifficulty = 0.24995304;
-        let nextDifficulty = 0.27594834;
-
-        // Initialize with current difficulty
-        difficultyInput.value = currentDifficulty;
-
-        // Calculate mining results
+        // Calculate mining results based on the formula in HTML
         function calculateMining() {
-            // Get input values
-            const hashrate = parseFloat(hashrateInput.value) || 0;
-            const unitMultiplier = parseFloat(hashrateUnit.value);
-            const failureRate = parseFloat(failureRateInput.value) || 0;
-            const difficulty = parseFloat(difficultyInput.value) || 0.00000001; // Avoid division by zero
-            
-            // Convert hashrate to H/s
-            const hashrateHps = hashrate * unitMultiplier;
-            
-            // Calculate average time to solve a block (in seconds)
-            const avgBlockTime = (POW_2_22 * difficulty) / hashrateHps;
-            
-            // Calculate more realistic time for 10 blocks (accounting for failure rate)
-            const successRate = (100 - failureRate) / 100;
-            const realisticBlockTime = avgBlockTime / successRate;
-            
-            // Calculate tokens per day range
-            const minTokensPerDay = (SECONDS_PER_DAY * hashrateHps * MIN_REWARD) / (POW_2_22 * difficulty);
-            const maxTokensPerDay = (SECONDS_PER_DAY * hashrateHps * MAX_REWARD) / (POW_2_22 * difficulty);
-            
-            // Update the UI with calculated values
-            avgBlockTimeEl.textContent = avgBlockTime.toFixed(2);
-            realisticBlockTimeEl.textContent = (realisticBlockTime * 10).toFixed(1);
-            minTokensEl.textContent = minTokensPerDay.toFixed(2);
-            maxTokensEl.textContent = maxTokensPerDay.toFixed(2);
+    // Get input values
+    const hashrate = parseFloat(hashrateInput.value) || 0;
+    const unitMultiplier = parseFloat(hashrateUnit.value) || 1;
+    console.log("unit Multiplier = ", unitMultiplier);
+    const difficulty = parseFloat(difficultyInput.value) || 0.00000001; // Avoid division by zero
+    
+    // Convert hashrate to H/s
+    const hashrateHps = hashrate * unitMultiplier;
+    
+    if (hashrateHps <= 0) {
+        // Reset display if no valid hashrate
+        avgBlockTimeEl.textContent = '∞';
+        realisticBlockTimeEl.textContent = '∞';
+        minTokensEl.textContent = '0.00';
+        maxTokensEl.textContent = '0.00';
+        return;
+    }
+
+    // Calculate average time to solve a block (in seconds)
+    // Formula from HTML: time = (2^22 × difficulty) / hashrate
+    const avgBlockTime = (POW_2_22 * difficulty) / hashrateHps;
+    
+    // Calculate time for 10 blocks (more realistic estimate)
+    const realistic10BlockTime = avgBlockTime * 10;
+    
+    // Calculate blocks per day
+    const blocksPerDay = SECONDS_PER_DAY / avgBlockTime;
+
+    var blocksPerDay2= SECONDS_PER_DAY / 600;
+
+    
+    // Calculate rewards based on block time rules:
+    // Fast blocks (< 10 min): reward = 25 × (block_time / 600)
+    // Slow blocks (≥ 10 min): reward = 25 tokens
+    let rewardPerBlock;
+    if (avgBlockTime >= 600) {
+        // Slow blocks: ≥10 minutes = fixed 25 tokens
+        rewardPerBlock = 25;
+
+    } else {
+        // Fast blocks: reward inversely proportional to speed
+        rewardPerBlock = 25 * (avgBlockTime / 600);
+        if(rewardPerBlock<6.25){
+            rewardPerBlock=6.25;
+        }
+        
+    }
+    
+    // Calculate tokens per day
+    // Since reward is now calculated based on block time, min = max
+    const tokensPerDayMax = blocksPerDay * rewardPerBlock;
+    // Since reward is now calculated based on block time, min = max
+    const tokensPerDayMax2 = blocksPerDay2 * rewardPerBlock;
+    
+
+        if(avgBlockTime<600){
+
+
+    maxTokensEl.textContent = tokensPerDayMax.toFixed(2);
+    }else{
+
+    maxTokensEl.textContent = tokensPerDayMax2.toFixed(2);
+        
+    }
+
+    // Update the UI with calculated values
+    avgBlockTimeEl.textContent = formatTime(avgBlockTime);
+    realisticBlockTimeEl.textContent = formatTime(realistic10BlockTime);
+    
+    // Update additional display elements if they exist
+    if (document.getElementById('display-hashrate')) {
+        document.getElementById('display-hashrate').textContent = hashrateHps.toLocaleString();
+    }
+    if (document.getElementById('display-difficulty')) {
+        document.getElementById('display-difficulty').textContent = difficulty.toFixed(8);
+    }
+}
+
+        // Format time display
+        function formatTime(seconds) {
+            if (seconds < 1) {
+                return (seconds * 1000).toFixed(1) + 'ms';
+            } else if (seconds < 60) {
+                return seconds.toFixed(1);
+            } else if (seconds < 3600) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = (seconds % 60).toFixed(1);
+                return `${minutes}m ${remainingSeconds}s`;
+            } else if (seconds < 86400) {
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                return `${hours}h ${minutes}m`;
+            } else {
+                const days = Math.floor(seconds / 86400);
+                const hours = Math.floor((seconds % 86400) / 3600);
+                return `${days}d ${hours}h`;
+            }
         }
 
-        // Set difficulty to current value
+        // Use current difficulty
         function useCurrentDiff() {
-            difficultyInput.value = currentDifficulty;
+            difficultyInput.value = CURRENT_DIFFICULTY;
             calculateMining();
         }
 
-        // Set difficulty to next value
+        // Use next difficulty
         function useNextDiff() {
-            difficultyInput.value = nextDifficulty;
+            difficultyInput.value = NEXT_DIFFICULTY;
             calculateMining();
         }
 
         // Event Listeners
         hashrateInput.addEventListener('input', calculateMining);
         hashrateUnit.addEventListener('change', calculateMining);
-        failureRateInput.addEventListener('input', calculateMining);
         difficultyInput.addEventListener('input', calculateMining);
         currentDiffBtn.addEventListener('click', useCurrentDiff);
         nextDiffBtn.addEventListener('click', useNextDiff);
 
-
+        // Initial calculation
+        calculateMining();
 
 
 /*
