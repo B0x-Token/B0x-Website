@@ -1985,7 +1985,6 @@ button:disabled:hover {
     width: 300px;      /* or any width you want */
     box-sizing: border-box;
     overflow-wrap: break-word;
-    word-wrap: break-word;
     word-break: break-word;
     margin: 0;         /* remove offsets */
 }
@@ -2536,6 +2535,304 @@ button:disabled:hover {
     cursor: pointer;
     min-width: 80px;
 }
+
+
+/*end css mining calculator*/
+/*Begin css blocks in main stats*/
+ 
+       
+
+        #stats .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        #stats .section {
+            background: rgba(45, 45, 65, 0.8);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #stats .section h4 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #ffffff;
+            text-align: left;
+        }
+
+        #stats .chart-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        #stats .pie-chart-wrapper {
+            flex-shrink: 0;
+            width: 240px;
+            height: 240px;
+            position: relative;
+        }
+
+        #stats .stats-table-wrapper {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #stats .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: transparent;  
+            table-layout: auto;   /* instead of fixed */
+
+        }
+
+        #stats .stats-table thead {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #stats .stats-table th {
+            text-align: left;
+            padding: 8px 12px;
+            font-weight: 600;
+            color: #b0b0c0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            word-wrap: break-word;
+            hyphens: auto;
+        }
+
+        #stats .stats-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+            font-size: 22px;
+            word-wrap: break-word;
+            hyphens: auto;
+        }
+
+        #stats .stats-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        #stats .miner-row {
+            position: relative;
+        }
+
+        #stats .miner-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        #stats .miner-name {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 22px;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        #stats .mining-pool {
+            background: #ff6b35;
+        }
+
+
+        #stats .stat-value {
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        #stats .stat-secondary {
+            color: #b0b0c0;
+            font-size: 22px;
+        }
+
+        #stats .currency {
+            color: #4caf50;
+            font-weight: 600;
+        }
+
+        #stats .blocks-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #stats .blocks-table th,
+        #stats .blocks-table td {
+            text-align: left;
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            word-wrap: break-word;
+            hyphens: auto;
+            font-size: 22px;
+        }
+
+        #stats .blocks-table th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: #b0b0c0;
+            font-size: 22px;
+        }
+
+        #stats .blocks-table .hash {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 20px;
+            color: #64b5f6;
+            word-wrap: break-word;
+        }
+
+        #stats .blocks-table .miner-cell {
+            background: rgba(156, 39, 176, 0.2);
+            color: #ce93d8;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 21px;
+            display: inline-block;
+            font-family: 'Monaco', 'Consolas', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        @media (max-width: 1024px) {
+            #stats .chart-container {
+                gap: 15px;
+            }
+            
+            #stats .pie-chart-wrapper {
+                width: 200px;
+                height: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #stats body {
+                padding: 10px;
+            }
+            
+            #stats .section {
+                padding: 20px;
+            }
+            
+            #stats .chart-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            #stats .pie-chart-wrapper {
+                width: 100%;
+                max-width: 240px;
+                height: 240px;
+                margin: 0 auto;
+            }
+            
+            #stats .stats-table,
+            #stats .blocks-table {
+                font-size: 12px;
+            }
+            
+            #stats .stats-table th,
+            #stats .stats-table td,
+            #stats .blocks-table th,
+            #stats .blocks-table td {
+                padding: 6px 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #stats section {
+                padding: 15px;
+            }
+            
+           #stats .stats-table,
+            #stats  .blocks-table {
+                font-size: 11px;
+            }
+            
+            #stats .stats-table th,
+           #stats .stats-table td,
+            #stats .blocks-table th,
+           #stats .blocks-table td {
+                padding: 4px 6px;
+            }
+            
+           #stats .pie-chart-wrapper {
+                width: 100%;
+                max-width: 200px;
+                height: 200px;
+            }
+        }
+
+
+        @media (max-width: 800px) {
+    /* Hide Transaction Count column (5th column in recent stats table) */
+    #stats .stats-table th:nth-child(5),
+    #stats .stats-table td:nth-child(5) {
+        display: none;
+    }
+    
+    /* Hide % of Minted column (3rd column in both tables) */
+    #stats .stats-table th:nth-child(3),
+    #stats .stats-table td:nth-child(3) {
+        display: none;
+    }
+    
+    /* Make remaining columns more compact */
+    #stats .stats-table {
+        font-size: 9px;
+    }
+    
+    #stats .stats-table th,
+    #stats .stats-table td {
+        padding: 2px 4px;
+    }
+    
+    #stats .miner-name {
+        font-size: 15px;
+    }
+    
+    #stats .miner-indicator {
+        width: 8px;
+        height: 8px;
+        margin-right: 6px;
+    }
+}
+
+
+#stats a {
+    color: #ffffff !important;
+    text-decoration: none;
+}
+
+#stats a:hover {
+    color: #64b5f6 !important;
+    text-decoration: underline;
+}
+
+#stats a:visited {
+    color: #ffffff !important;
+}
+/* Target only the MINER column */
+#stats .stats-table th:first-child,
+#stats .stats-table td:first-child {
+    white-space: nowrap;
+    word-wrap: normal;
+    hyphens: none;
+}
+
+.miner-col {
+  min-width: 250px;
+  white-space: nowrap;
+}
     </style>
 </head>
 <body>
@@ -2771,59 +3068,55 @@ button:disabled:hover {
 
                         <button class="btn-secondary" onclick="GetContractStats()">GetContractStats</button>
                         <button class="btn-secondary" onclick="updateAllMinerInfoFirst()">updateAllMinerInfoFirst</button>
+You need to update your HTML to use the styled structure. Replace your current HTML with this:
+html<div style="display:none;" id="row-miners2">
+    <div class="section">
+        <h4>Block distribution since last adjustment</h4>
+        <div class="chart-container">
+            <div class="pie-chart-wrapper">
+                <div id="blockdistributionpiechart2"></div>
+            </div>
+            <div class="stats-table-wrapper">
+                <table class="stats-table">
+                    <tbody id="minerstats2">
+                        <tr><td colspan="6">Loading info from the blockchain...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-                           <div style="display:none;" id="row-miners2">
-                            <div class="row">
-                            <div class="column"><h4 class="add-top-padding"><a name="miners"></a>Block distribution since last adjustment</h4></div>
-                            </div>
-                            <div class="row">
-                            <div class="column column-25" style="max-width:30rem;">
-                                <div id="blockdistributionpiechart2"></div>
-                            </div>
-                            <div class="column">
-                                <table>
-                                <!--<thead id="minerstats2"> <tr> <th> </th> <th> </th> </tr> </thead>-->
-                                <tbody id="minerstats2">
-                                    <tr><td colspan="3">Loading info from the blockchain...</td></tr>
-                                </tbody>
-                                </table>
-                            </div>
-                            </div>
-                        </div>
-                        <div style="display:none;" id="row-miners">
-                            <div class="row">
-                            <div class="column"><h4 class="add-top-padding"><a name="miners"></a>Block distribution since launch</h4></div>
-                            </div>
-                            <div class="row">
-                            <div class="column column-25" style="max-width:30rem;">
-                                <div id="blockdistributionpiechart"></div>
-                            </div>
-                            <div class="column">
-                                <table>
-                                <!--<thead id="minerstats"> <tr> <th> </th> <th> </th> </tr> </thead>-->
-                                <tbody id="minerstats">
-                                    <tr><td colspan="3">Loading info from the blockchain...</td></tr>
-                                </tbody>
-                                </table>
-                            </div>
-                            </div>
-                        </div>
-                        <div style="display:none;" id="row-blocks">
-                            <div class="row">
-                            <div class="column"><h4 class="add-top-padding"><a name="blocks"></a>Blocks solved since launch</h4></div>
-                            </div>
-                            <div class="row">
-                            <div class="column">
-                                <table>
-                                <!--<thead id="minerstats"> <tr> <th> </th> <th> </th> </tr> </thead>-->
-                                <tbody id="blockstats">
-                                    <tr><td colspan="3">Loading info from the blockchain...</td></tr>
-                                </tbody>
-                                </table>
-                            </div>
-                            </div>
-                        </div>
+<div style="display:none;" id="row-miners">
+    <div class="section">
+        <h4>Block distribution since launch</h4>
+        <div class="chart-container">
+            <div class="pie-chart-wrapper">
+                <div id="blockdistributionpiechart"></div>
+            </div>
+            <div class="stats-table-wrapper">
+                <table class="stats-table">
+                    <tbody id="minerstats">
+                        <tr><td colspan="5">Loading info from the blockchain...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
+<div style="display:none;" id="row-blocks">
+    <div class="section">
+        <h4>Blocks solved since launch</h4>
+        <div class="stats-table-wrapper">
+            <table class="blocks-table">
+                <tbody id="blockstats">
+                    <tr><td colspan="5">Loading info from the blockchain...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
             </div>
 
@@ -4828,7 +5121,7 @@ function updateTokenIcon(selectId, iconId) {
 
     let PreviousTabName ="";
 
-function switchTab(tabName) {
+async function switchTab(tabName) {
             // Hide all pages
             const pages = document.querySelectorAll('.page');
             pages.forEach(page => page.classList.remove('active'));
@@ -4845,6 +5138,8 @@ function switchTab(tabName) {
             console.log("PREVIOUS TAB NAME");
             if(tabName =='stats' && PreviousTabName !='stats'){
                 switchTab2('stats-home');
+                await GetContractStats();
+                await updateAllMinerInfoFirst();
             }
             PreviousTabName = tabName;
             console.log("PREVIOUS TAB NAME: ",PreviousTabName);
@@ -4864,6 +5159,8 @@ function switchTab(tabName) {
                 page.style.display = 'none'; // Force hide
             });
 
+
+            
             // Add active class to selected sub-tab and sub-page
             const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
             const selectedPage = document.getElementById(tabName);
@@ -14410,7 +14707,7 @@ async function getAvgRewardTime(){
 }
 
 
-async function convertHashRateToReadable(hashratez){
+function convertHashRateToReadable(hashratez){
    const units = ['H/s', 'KH/s', 'MH/s', 'GH/s', 'TH/s', 'PH/s'];
    let unitIndex = 0;
    let value = parseFloat(hashratez);
@@ -14425,6 +14722,20 @@ async function convertHashRateToReadable(hashratez){
        units: units[unitIndex]
    }
 }
+
+function convertHashRateToReadable2(hashratez){
+   const units = ['H/s', 'KH/s', 'MH/s', 'GH/s', 'TH/s', 'PH/s'];
+   let unitIndex = 0;
+   let value = parseFloat(hashratez);
+   
+   while (value >= 1000 && unitIndex < units.length - 1) {
+       value /= 1000;
+       unitIndex++;
+   }
+   
+   return value.toFixed(2) + ' ' + units[unitIndex];
+}
+
 
 async function getHashrate(diffz,avgRewardTimez){
   var hashrate = (2**22*diffz)/avgRewardTimez;
@@ -14844,7 +15155,7 @@ function getMinerNameLinkHTML(address, known_miners) {
 	if(address == "0xfaf20e5ca7e39d43a3aabc450602b4147c3aa62e"){
 	//console.log("Link HTML Color: ", hexcolor);
 	}
-  var poolstyle = '<span style="background-color: ' + hexcolor + ';" class="poolname">';
+  var poolstyle = '<span style="background-color: ' + hexcolor + ';" class="miner-name">';
 
   if(known_miners[address] !== undefined) {
     var readable_name = known_miners[address][0];
@@ -15565,279 +15876,261 @@ console.log("Combined Addresses: ", combinedAddresses);
       sorted_miner_block_count_recent_hash.push([m, totalZKBTC_Mined_HASH[m], miner_block_countHASH[m], total_mint_count_HASH[m]]);
     }
     /* descending */
-    sorted_miner_block_count_recent_hash.sort((a, b) => {return b[1] - a[1];});
+    // Updated JavaScript to match the existing HTML structure with styled CSS classes
 
-    console.log('done sorting Recent miner info');
-	
-	var totalBlockszzz =0;
-	var a_formattedNumberfffff2 = 0;
-	var totalblockz = 0;
-	 /* fill in miner info */
-    var piechart_labels2 = [];
-    var piechart_dataset2 = {
-      data: [],
-      backgroundColor: [],
-      label: 'miner-data2'
-    };
-	
-	
-//var totalPriceof1Token = 1/TOTAL_BWORK_WETH_PRICE*total_WETH_USD_Price;
-  //el_safe('#Priceof1BasedWorkTokeninUSD').innerHTML = "<b>"+totalPriceof1Token.toFixed(5)+"</b> $";
-	
-	
-    var innerhtml_buffer2 = '<tr><th>Miner</th><th>Recent Epochs Minted Count</th>'
-      + '<th>% of Minted</th><th>Recent Miner Hashrate</th><th>Transaction Count</th><th>Recent BWORK Mined By User</th></tr>';
-    sorted_miner_block_count_recent_hash.forEach(function(miner_info) {
-      var addr = miner_info[0];
-      var blocks = miner_info[1];
-	//console.log("miner info: ", miner_info);
-	var RewardAmount = miner_info[2].toFixed(0);
-	var TotalBlocksPerReward = miner_info[3].toFixed(0);
-      var miner_name_link = getMinerNameLinkHTML(addr, known_miners);
-      var percent_of_total_blocks = blocks/total_TOTAL_mint_count_HASH;
-	var test= getMinerColor(addr, known_miners);
-      piechart_dataset2.data.push(blocks);
-		//console.log("Miner color: ",test, " miner ", addr);
-      piechart_dataset2.backgroundColor.push(test)
-      piechart_labels2.push(getMinerName(addr, known_miners))
-	totalBlockszzz+=parseFloat(TotalBlocksPerReward);
-		totalblockz+=parseFloat(blocks);
-		a_formattedNumberfffff2+=parseFloat(RewardAmount);
-const formattedNumberfffff2 = new Intl.NumberFormat(navigator.language).format(RewardAmount);
-      innerhtml_buffer2 += '<tr><td>'
-        + miner_name_link + '</td><td>'
-        + blocks + '</td><td>'
-        + (100*percent_of_total_blocks).toFixed(2) + '%' + '</td><td style="white-space: nowrap;">'+ convertHashRateToReadable(percent_of_total_blocks*estimated_network_hashrate)+ '</td><td>'+TotalBlocksPerReward+'</td><th>'+formattedNumberfffff2+' B0x</th></tr>';
-    });
-	
+sorted_miner_block_count_recent_hash.sort((a, b) => {return b[1] - a[1];});
+
+console.log('done sorting Recent miner info');
+
+var totalBlockszzz = 0;
+var a_formattedNumberfffff2 = 0;
+var totalblockz = 0;
+
+/* fill in miner info */
+var piechart_labels2 = [];
+var piechart_dataset2 = {
+  data: [],
+  backgroundColor: [],
+  label: 'miner-data2'
+};
+
+// Updated innerHTML generation for recent mining stats - no thead/tbody since your CSS expects direct table content
+var innerhtml_buffer2 = '<tr><th style="font-size: 3em;">Miner</th><th>Recent Epochs Minted Count</th>'
+  + '<th>% of Minted</th><th>Recent Miner Hashrate</th><th>Transaction Count</th><th>Recent B0x Mined By User</th></tr>';
+
+sorted_miner_block_count_recent_hash.forEach(function(miner_info) {
+  var addr = miner_info[0];
+  var blocks = miner_info[1];
+  var RewardAmount = miner_info[2].toFixed(0);
+  var TotalBlocksPerReward = miner_info[3].toFixed(0);
+  
+  var miner_name_link = getMinerNameLinkHTML(addr, known_miners);
+  var percent_of_total_blocks = blocks/total_TOTAL_mint_count_HASH;
+  var test = getMinerColor(addr, known_miners);
+  
+  piechart_dataset2.data.push(blocks);
+  piechart_dataset2.backgroundColor.push(test);
+  piechart_labels2.push(getMinerName(addr, known_miners));
+  
+  totalBlockszzz += parseFloat(TotalBlocksPerReward);
+  totalblockz += parseFloat(blocks);
+  a_formattedNumberfffff2 += parseFloat(RewardAmount);
+  
+  const formattedNumberfffff2 = new Intl.NumberFormat(navigator.language).format(RewardAmount);
+  
+  // Generate styled HTML for each miner row
+  var minerColorClass = getMinerColor(addr, known_miners);
+  var minerName = getMinerName(addr, known_miners);
+  
+  innerhtml_buffer2 += '<tr class="miner-row"><td class="miner-col">'
+    + '<span class="miner-indicator ' + minerColorClass + '"></span>'
+    + '<span class="miner-name">' + miner_name_link + '</span>'
+    + '</td><td class="stat-value">'
+    + blocks + '</td><td class="stat-value">'
+    + (100*percent_of_total_blocks).toFixed(2) + '%' + '</td><td class="stat-secondary" style="white-space: nowrap;">'
+    +  convertHashRateToReadable2(percent_of_total_blocks*estimated_network_hashrate) + '</td><td class="stat-value">'
+    + TotalBlocksPerReward + '</td><td class="stat-value">' + formattedNumberfffff2 + ' B0x</td></tr>';
+});
+
 const formattedNumberfffff2FFFF = new Intl.NumberFormat(navigator.language).format(a_formattedNumberfffff2);
-	      
-	
-      innerhtml_buffer2 += '<tr><td style="border-bottom: 0rem;">TOTAL:'
-		+ '</td><td style="border-bottom: 0rem;">'
-        + totalblockz + '</td><td style="border-bottom: 0rem;">'
-        + '100%' + '</td><td style="border-bottom: 0rem;">'+ convertHashRateToReadable(estimated_network_hashrate)+ '</td><td style="border-bottom: 0rem;">'+totalBlockszzz+'</td><td style="border-bottom: 0rem;">'+formattedNumberfffff2FFFF+' B0x</td></tr>';
-	
-	
-    document.querySelector('#row-miners2').style.display = 'block';
-    document.querySelector('#minerstats2').style.display = 'block';
+
+// Add totals row with proper styling
+innerhtml_buffer2 += '<tr class="miner-row"><td style="border-bottom: 0rem;">TOTAL:'
+  + '</td><td class="stat-value" style="border-bottom: 0rem;">'
+  + totalblockz + '</td><td class="stat-value" style="border-bottom: 0rem;">'
+  + '100%' + '</td><td class="stat-secondary" style="border-bottom: 0rem;">'
+  +  convertHashRateToReadable2(estimated_network_hashrate) + '</td><td class="stat-value" style="border-bottom: 0rem;">'
+  + totalBlockszzz + '</td><td class="stat-value" style="border-bottom: 0rem;">'
+  + formattedNumberfffff2FFFF + ' B0x</td></tr>';
+
+document.querySelector('#row-miners2').style.display = 'block';
+document.querySelector('#minerstats2').style.display = 'block';
 document.querySelector('#minerstats2').innerHTML = innerhtml_buffer2;
 
+console.log('done populating RECENT miner stats');
+showBlockDistributionPieChart2(piechart_dataset2, piechart_labels2);
 
-    console.log('done populating RECENT miner stats');
-    // $(window).hide().show(0);
-    // $(window).trigger('resize');
-
-    showBlockDistributionPieChart2(piechart_dataset2, piechart_labels2);
-
-	
-	
-	
-    /* create sorted list of ALL MINTS of miners */
-    sorted_miner_block_count = []
-    for(var m in miner_block_count) {
-      sorted_miner_block_count.push([m, miner_block_count[m], totalZKBTC_Mined[m], miner_block_count2[m]]);
-    }
-    /* descending */
-    sorted_miner_block_count.sort((a, b) => {return b[1] - a[1];});
-
-    console.log('done sorting miner info');
-
-    /* fill in miner info */
-    var piechart_labels = [];
-    var piechart_dataset = {
-      data: [],
-      backgroundColor: [],
-      label: 'miner-data'
-    };
-	var totalSpentINUSD = 0;
-    var innerhtml_buffer = '<tr><th>Miner</th><th>Total Epochs Minted Count</th>'
-      + '<th>% of Minted</th><th>Transaction Count</th><th>TOTAL B0x Mined</th></tr>';
-    sorted_miner_block_count.forEach(function(miner_info) {
-      var addr = miner_info[0];
-// Find the matching address in combinedAddresses
-const matchingAddressData = combinedAddresses.find(addressData => addressData.address === addr);
-var totalCostForUser = 0;
-if (matchingAddressData) {
-    // If a match is found, retrieve the totalCost
-    const totalCost = matchingAddressData.totalCost;
-    //console.log("Total Cost for address", addr, ":", totalCost);
-	totalCostForUser = totalCost / 1e18;
-	
-} else {
-   // console.log("Address", addr, "not found in combinedAddresses.");
+/* create sorted list of ALL MINTS of miners */
+sorted_miner_block_count = []
+for(var m in miner_block_count) {
+  sorted_miner_block_count.push([m, miner_block_count[m], totalZKBTC_Mined[m], miner_block_count2[m]]);
 }
-var total_WETH_USD_Price = 0.01;
-		totalCostForUser = totalCostForUser * total_WETH_USD_Price;
-		totalSpentINUSD+=totalCostForUser;
-      var blocks = miner_info[1];
-	var RewardAmount = miner_info[2].toFixed(0);
-	var TotalBlocksPerReward = miner_info[3].toFixed(0);
-      var miner_name_link = getMinerNameLinkHTML(addr, known_miners);
-      var percent_of_total_blocks = blocks/total_block_count;
-	
-      piechart_dataset.data.push(blocks);
-      piechart_dataset.backgroundColor.push(getMinerColor(addr, known_miners))
-      piechart_labels.push(getMinerName(addr, known_miners))
+sorted_miner_block_count.sort((a, b) => {return b[1] - a[1];});
 
-const formattedNumberfffff2 = new Intl.NumberFormat(navigator.language).format(RewardAmount);
-      innerhtml_buffer += '<tr><td>'
-        + miner_name_link + '</td><td>'
-        + blocks + '</td><td>'
-        + (100*percent_of_total_blocks).toFixed(2) + '%' + '</td><td>'+TotalBlocksPerReward+'</td><th style="white-space: nowrap">'+formattedNumberfffff2+' B0x</th></tr>';
-    });
+console.log('done sorting miner info');
+
+/* fill in miner info */
+var piechart_labels = [];
+var piechart_dataset = {
+  data: [],
+  backgroundColor: [],
+  label: 'miner-data'
+};
+
+var totalSpentINUSD = 0;
+
+// Updated innerHTML generation for all-time mining stats
+var innerhtml_buffer = '<tr><th style="font-size: 3em;">Miner</th><th>Total Epochs Minted Count</th>'
+  + '<th>% of Minted</th><th>Transaction Count</th><th>TOTAL B0x Mined</th></tr>';
+
+sorted_miner_block_count.forEach(function(miner_info) {
+  var addr = miner_info[0];
+  
+  // Find the matching address in combinedAddresses
+  const matchingAddressData = combinedAddresses.find(addressData => addressData.address === addr);
+  var totalCostForUser = 0;
+  if (matchingAddressData) {
+    const totalCost = matchingAddressData.totalCost;
+    totalCostForUser = totalCost / 1e18;
+  }
+  
+  var total_WETH_USD_Price = 0.01;
+  totalCostForUser = totalCostForUser * total_WETH_USD_Price;
+  totalSpentINUSD += totalCostForUser;
+  
+  var blocks = miner_info[1];
+  var RewardAmount = miner_info[2].toFixed(0);
+  var TotalBlocksPerReward = miner_info[3].toFixed(0);
+  var miner_name_link = getMinerNameLinkHTML(addr, known_miners);
+  var percent_of_total_blocks = blocks/total_block_count;
+  
+  piechart_dataset.data.push(blocks);
+  piechart_dataset.backgroundColor.push(getMinerColor(addr, known_miners));
+  piechart_labels.push(getMinerName(addr, known_miners));
+
+  const formattedNumberfffff2 = new Intl.NumberFormat(navigator.language).format(RewardAmount);
+  
+  // Generate styled HTML for each miner row
+  var minerColorClass = getMinerColor(addr, known_miners);
+  var minerName = getMinerName(addr, known_miners);
+  
+  innerhtml_buffer += '<tr class="miner-row"><td class="miner-col">'
+    + '<span class="miner-indicator ' + minerColorClass + '"></span>'
+    + '<span class="miner-name">' + miner_name_link + '</span>'
+    + '</td><td class="stat-value">'
+    + blocks + '</td><td class="stat-value">'
+    + (100*percent_of_total_blocks).toFixed(2) + '%' + '</td><td class="stat-value">'
+    + TotalBlocksPerReward + '</td><td class="stat-value" style="white-space: nowrap">'
+    + formattedNumberfffff2 + ' B0x</td></tr>';
+});
+
 const formattedNumberfffff23 = new Intl.NumberFormat(navigator.language).format(totalZKTC_Calculated.toFixed(0));
 
-	
-	/* el_safe('#TotalUSDSpentMintingTokens').innerHTML = "<b>" + totalSpentINUSD.toLocaleString(undefined, {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2
-}) + "</b> $";
-	*/
-  document.querySelector('.SuccessfulMintTransactions').innerHTML = "<b> "+(total_tx_count).toLocaleString()+" </b> txs";
-    /* add the last row (totals) */
-    innerhtml_buffer += '<tr><td style="border-bottom: 0rem;">TOTAL:</td><td style="border-bottom: 0rem;">'
-      + total_block_count + '</td><td style="border-bottom: 0rem;">100%</td><td style="border-bottom: 0rem;">' + total_tx_count + '</td><td style="border-bottom: 0rem;">'+formattedNumberfffff23+' B0x</td></tr>';
-    document.querySelector('#minerstats').innerHTML = innerhtml_buffer;
+document.querySelector('.SuccessfulMintTransactions').innerHTML = "<b> "+(total_tx_count).toLocaleString()+" </b> txs";
 
-    document.querySelector('#row-miners').style.display = 'block';
-    console.log('done populating miner stats');
-    // $(window).hide().show(0);
-    // $(window).trigger('resize');
+/* add the last row (totals) with proper styling */
+innerhtml_buffer += '<tr class="miner-row"><td style="border-bottom: 0rem;">TOTAL:</td><td class="stat-value" style="border-bottom: 0rem;">'
+  + total_block_count + '</td><td class="stat-value" style="border-bottom: 0rem;">100%</td><td class="stat-value" style="border-bottom: 0rem;">'
+  + total_tx_count + '</td><td class="stat-value" style="border-bottom: 0rem;">'
+  + formattedNumberfffff23 + ' B0x</td></tr>';
 
-    showBlockDistributionPieChart(piechart_dataset, piechart_labels);
+document.querySelector('#minerstats').innerHTML = innerhtml_buffer;
+document.querySelector('#row-miners').style.display = 'block';
 
+console.log('done populating miner stats');
+showBlockDistributionPieChart(piechart_dataset, piechart_labels);
 
+var blocks_since_last_reward = current_eth_block - last_reward_eth_block;
+var date_now = new Date();
+var date_of_last_mint = new Date(date_now.getTime() - blocks_since_last_reward*_SECONDS_PER_ETH_BLOCK*1000)
 
-    var blocks_since_last_reward = current_eth_block - last_reward_eth_block;
-    var date_now = new Date();
-    var date_of_last_mint = new Date(date_now.getTime() - blocks_since_last_reward*_SECONDS_PER_ETH_BLOCK*1000)
+function get_date_from_eth_block(eth_block) {
+  const options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true, milliseconds: false };
+  return new Date(date_of_last_mint.getTime() - ((last_reward_eth_block - eth_block)*_SECONDS_PER_ETH_BLOCK*1000)).toLocaleString('en-US', options);
+}
 
-    function get_date_from_eth_block(eth_block) {
-      /* TODO: use web3 instead, its probably more accurate */
-      /* blockDate = new Date(web3.eth.getBlock(startBlock-i+1).timestamp*1000); */
-	const options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true, milliseconds: false };
+var totalzkBTCMinted = 0.0;
+var previousBlock = 0;
+var index = 0;
+var dt = new Date();
 
-      return new Date(date_of_last_mint.getTime() - ((last_reward_eth_block - eth_block)*_SECONDS_PER_ETH_BLOCK*1000)).toLocaleString('en-US', options);
-    }
-    
-    var totalzkBTCMinted = 0.0; // Start at 0, not 1.0000
+// Updated innerHTML generation for blocks table
+var innerhtml_buffer = '<tr><th>Time (Approx)</th><th>zkSync Era Block #</th>'
+  + '<th>Transaction Hash</th><th style="width: 200px;">Miner</th><th>Reward Amount</th></tr>';
 
-    /* fill in block info */
-    var previousBlock=0;
-
-    var index=0;
-    var dt = new Date();
-    var innerhtml_buffer = '<tr><th>Time (Approx)</th><th>zkSync Era Block #</th>'
-      + '<th>Transaction Hash</th><th>Miner</th><th>Reward Amount</th></tr>';
-    mined_blocks.forEach(function(block_info) {
-      var eth_block = parseInt(block_info[0]);
-      var tx_hash = block_info[1];
-      var addr = block_info[2];
-	var dataF = block_info[3].toFixed(4);
-    var epochCnt = block_info[4];
-    
-    // Get the next block's epoch count
-    var nextEpochCnt = null;
-    if (index + 1 < mined_blocks.length) {
-        nextEpochCnt = mined_blocks[index + 1][4];
-    }
-    
-   if (index === 0) {
-    // First transaction (most recent), use current epoch count
-    epchCount = EpochCountBeforeCall - epochCnt;  // Changed from nextEpochCnt
-} else if (nextEpochCnt !== null) {  // Added check for nextEpochCnt !== 0
-    // Use next transaction's epoch count
+mined_blocks.forEach(function(block_info) {
+  var eth_block = parseInt(block_info[0]);
+  var tx_hash = block_info[1];
+  var addr = block_info[2];
+  var dataF = block_info[3].toFixed(4);
+  var epochCnt = block_info[4];
+  
+  // Get the next block's epoch count
+  var nextEpochCnt = null;
+  if (index + 1 < mined_blocks.length) {
+    nextEpochCnt = mined_blocks[index + 1][4];
+  }
+  
+  if (index === 0) {
+    epchCount = EpochCountBeforeCall - epochCnt;
+  } else if (nextEpochCnt !== null) {
     epchCount = epochCnt - nextEpochCnt;
-} 
-    index =index+1;
+  } 
+  index = index + 1;
 
-   // console.log("\n\n\n\nEpoch Count: " , epchCount);
-   // console.log("nextEpochCnt: " , nextEpochCnt);
-   // console.log("Eindex: " , index);
-   // console.log("Epoch Count: " , epchCount);
+  const formattedNumberfffff = new Intl.NumberFormat(navigator.language).format(dataF);
+  var miner_name_link = getMinerNameLinkHTML(addr, known_miners);
+  var minerName = getMinerName(addr, known_miners);
 
+  var transaction_url = _BLOCK_EXPLORER_TX_URL + tx_hash;
+  var block_url = _BLOCK_EXPLORER_BLOCK_URL + eth_block;
 
-        
-        //console.log("Epoch Count to add: ",epchCount);
-const formattedNumberfffff = new Intl.NumberFormat(navigator.language).format(dataF);
-      var miner_name_link = getMinerNameLinkHTML(addr, known_miners);
+  totalzkBTCMinted += parseFloat(epchCount);
 
-      var transaction_url = _BLOCK_EXPLORER_TX_URL + tx_hash;
-      var block_url = _BLOCK_EXPLORER_BLOCK_URL + eth_block;
-
-    totalzkBTCMinted += parseFloat(epchCount);
-      //log('hexcolor:', hexcolor, address_url);
-		if(formattedNumberfffff == -1 ){
-			
-    //console.log("  totalzkBTCMinted on -1:", totalzkBTCMinted);
-
-			var parzedint = parseInt(totalzkBTCMinted);
+  if(formattedNumberfffff == -1) {
+    var parzedint = parseInt(totalzkBTCMinted);
     totalzkBTCMinted = 0.0;
-            if(parzedint > 2016){
-                //parzedint = 2016;
-            }
-			
-    //console.log("  totalzkBTCMinted on -1:", parzedint);
+    if(parzedint > 2016) {
+      // parzedint = 2016;
+    }
 
-const formattedNumberparzedint = new Intl.NumberFormat(navigator.language).format(parzedint);
-				var finalstr="";
-				// The substring to find and the replacement value
-				const searchString = "PeriodNumberperiod";
-			str = innerhtml_buffer;
-			  const lastIndex = str.lastIndexOf(searchString);
-			  if (lastIndex === -1) {
-				finalstr = str;
-			  }else{
+    const formattedNumberparzedint = new Intl.NumberFormat(navigator.language).format(parzedint);
+    var finalstr = "";
+    const searchString = "PeriodNumberperiod";
+    str = innerhtml_buffer;
+    const lastIndex = str.lastIndexOf(searchString);
+    if (lastIndex === -1) {
+      finalstr = str;
+    } else {
+      const before = str.substring(0, lastIndex);
+      const after = str.substring(lastIndex + searchString.length);
+      finalstr = before + formattedNumberparzedint + after;
+    }
+    innerhtml_buffer = finalstr;
 
-				  const before = str.substring(0, lastIndex);
-				  const after = str.substring(lastIndex + searchString.length);
-				  finalstr = before + formattedNumberparzedint + after;
-			  }
-				  innerhtml_buffer = finalstr;
+    if(eth_block > 25990908) {
+      innerhtml_buffer += '<tr><td align="right" style="text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">'
+        + get_date_from_eth_block(eth_block) + '</td><td>'
+        + '<b>New difficulty period</b>' + '</td><td>'
+        + '<b>New Challenge</b>'
+        + '</td><td><b> Previous Period had</b></td><td class="stat-value"><b>PeriodNumberperiod Mints</b></td></tr>';
+      totalzkBTCMinted = 0.0;
+    } else {
+      innerhtml_buffer += '<tr><td align="right" style="text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">'
+        + get_date_from_eth_block(eth_block) + '</td><td>'
+        + '<b>New difficulty period</b>' + '</td><td>'
+        + '<b>New Challenge</b>'
+        + '</td><td><b> Previous Period had</b></td><td class="stat-value"><b>0 Mints</b></td></tr>';
+      totalzkBTCMinted = 0.0;
+    }
+  } else {
+    // Generate styled HTML for blocks with proper CSS classes
+    innerhtml_buffer += '<tr><td align="right" style="width: 200px;">'
+      + get_date_from_eth_block(eth_block) + '</td><td class="hash">'
+      + '<a href="' + block_url + '" target="_blank">' + eth_block + '</a></td><td class="hash">'
+      + '<a href="' + transaction_url + '" title="' + tx_hash + '" target="_blank">'
+      + tx_hash.substr(0, 16) + '...</a></td><td align="right" style="text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">'
+      + '<span class="miner-cell">' + miner_name_link + '</span></td><td class="stat-value">'
+      + formattedNumberfffff + " B0x</td></tr>";
+  }
+});
 
-					if(eth_block > 25990908){
-
-								 innerhtml_buffer  += '<tr><td align="right" style="text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">'
-								+ get_date_from_eth_block(eth_block) + '</td><td>'
-								+ '<b>New difficulty period</b>' + '</td><td>'
-								+ '<b>New Challenge</b>'
-								+ '</td><td><b> Previous Period had</b></td><td><b>PeriodNumberperiod Mints</b></td></tr>';
-								//+ '</a></td></tr>';
-								 totalzkBTCMinted = 0.0;
-			}else{
-				 				innerhtml_buffer  += '<tr><td align="right" style="text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">'
-								+ get_date_from_eth_block(eth_block) + '</td><td>'
-								+ '<b>New difficulty period</b>' + '</td><td>'
-								+ '<b>New Challenge</b>'
-								+ '</td><td><b> Previous Period had</b></td><td><b>0 Mints</b></td></tr>';
-								//+ '</a></td></tr>';
-								 totalzkBTCMinted = 0.0;
-				
-			}
-		}else
-		{
-
-    // Only add to total for actual mining transactions
-			
-		  innerhtml_buffer  += '<tr><td align="right" style="text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">'
-			+ get_date_from_eth_block(eth_block) + '</td><td>'
-			+ '<a href="' + block_url + '" target="_blank">' + eth_block + '</td><td>'
-			+ '<a href="' + transaction_url + '" title="' + tx_hash + '" target="_blank">'
-			+ tx_hash.substr(0, 16) + '...</a></td><td align="right" style="text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">'
-			+ miner_name_link + '</td><td>'	+ formattedNumberfffff +" B0x</td></tr>";
-			//+ '</a></td></tr>';
-			
-		}
-    });
-    document.querySelector('#row-blocks').style.display = 'block';
-    document.querySelector('#blockstats').style.display = 'block';
-
+document.querySelector('#row-blocks').style.display = 'block';
+document.querySelector('#blockstats').style.display = 'block';
 document.querySelector('#blockstats').innerHTML = innerhtml_buffer;
 
-    console.log('done populating block stats');
+console.log('done populating block stats');
 
- 
 
 
 }
@@ -16007,7 +16300,7 @@ lastBaseBlock=lastBaseBlock2;
 
     var hashrate = await getHashrate(diff,avgRewardTime);
     estHashrate=hashrate;
-    var hashrateFormatted = await convertHashRateToReadable(hashrate);
+    var hashrateFormatted = convertHashRateToReadable(hashrate);
     var hashrateunit = hashrateFormatted.units;
     var hashRates = hashrateFormatted.value;
 
