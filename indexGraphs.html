@@ -19908,7 +19908,7 @@ function updateURL(tabName) {
         const _CONTRACT_NAME = 'BWORK';
         
         // These will be initialized after ethers is ready
-        let ethblockstart = 30413732;
+        let ethblockstart = 30489059;
         let adjustAverageRewardTimeGraph = 8;
         let searchPoints2 = 120;
         let latest_eth_block = null;
@@ -22139,222 +22139,276 @@ var total_TOTAL_mint_count_HASH = 0;
   console.log("searching start_log_search_at", start_log_search_at, "blocks");
   console.log("searching last_reward_eth_block", last_reward_eth_block, "blocks");
   console.log("searching last", last_reward_eth_block - start_log_search_at, "blocks"); 
-  var blocks_to_search = (current_eth_block - start_log_search_at)
-  console.log('blocks to search', blocks_to_search);
-  if(blocks_to_search < 1){
+  
+var blocks_to_search = (current_eth_block - start_log_search_at);
+console.log('blocks to search', blocks_to_search);
+
+if (blocks_to_search < 1) {
     console.log("Only 1 block or less to search abandoning");
     return;
-  }
-  var stop_log_search_at_loop = 0
-  var start_log_search_at_loop = start_log_search_at;
-  var iterations = Math.ceil((blocks_to_search / 500));
-  if (iterations <= 0) {
-    iterations = 1
-  }
- var firstRun = 1;
-  console.log('do', iterations, 'runs');
-  var run = 0
-  var attempts = 0
+}
 
-let lastProcessedEpochCount = 0; // Track this from your actual processed transactions
+var iterations = Math.ceil((blocks_to_search / 500));
+if (iterations <= 0) {
+    iterations = 1;
+}
 
+console.log('do', iterations, 'runs');
+
+let lastProcessedEpochCount = 0;
 previousEpochCount = maxMinedBlocksEpoch;
-    console.log("Epoch Count before Log call",previousEpochCount);
-  while (run < iterations) {
-    console.log('run', run + 1);
-    if(run +1 == iterations){
+console.log("Epoch Count before Log call", previousEpochCount);
+
+var run = 0;
+let runInProgress = false;
+var getLogs=false;
+var lastrun = 0;
+while (run < iterations) {
+
+    gotLogs = false;  // ✅ guard to ensure only one getLogs call
+    const runId = `Run-${run + 1}`;
+    lastrun = run;
+    const start = start_log_search_at + (run * 500);
+    const stop  = start + 499;
+    if (runInProgress) {
+        console.log('Previous run still in progress, waiting...');
+        await sleep(100);
+        continue; // Skip this iteration and check again
+    }
+    
+    runInProgress = true; // Lock the run
+
+    
+    if (run + 1 == iterations) {
         console.log("Last run call EpochCount");
     }
-    start_log_search_at_loop = start_log_search_at + (run * 500)
-    run++;
-    stop_log_search_at_loop = start_log_search_at_loop + 499
-    if(stop_log_search_at_loop >current_eth_block ){
+
+    // Calculate block range for this run
+    var start_log_search_at_loop = start_log_search_at + (run * 500);
+    var stop_log_search_at_loop = start_log_search_at_loop + 499;
+    
+    if (stop_log_search_at_loop > current_eth_block) {
         console.log("Search too long trimmed");
         stop_log_search_at_loop = current_eth_block;
     }
-    console.log('searching from block', start_log_search_at_loop, 'to block', stop_log_search_at_loop);
-    if(attempts > 25){
-      console.log("Errored too many attempts at block");
-      return;
-    }
-     await sleep(400* attempts);
-    //
-  /* get all mint() transactions in the last N blocks */
-  /* more info: https://github.com/ethjs/ethjs/blob/master/docs/user-guide.md#ethgetlogs */
-  /* and https://ethereum.stackexchange.com/questions/12950/what-are-event-topics/12951#12951 */
-  await provider.getLogs({
-    fromBlock: start_log_search_at_loop,
-    toBlock: stop_log_search_at_loop,
-    address: ProofOfWorkAddresss,
-    topics: [_MINT_TOPIC],
-  })
-  .then((result) => {
-if (run > 0) {
-    console.log("Starting new run, previousEpochCount was:", previousEpochCount);
-    // You might need to recalculate or verify previousEpochCount here
-}
-    console.log("got filter results:", result.length, "transactions");
-   // total_block_count += result.length;
-// Output the result
-	  attempts = 0
-      
-    result.forEach(function(transaction, index){
-
-//var epochsMined = 1; // Add this at the start of forEach
-      var tx_hash = transaction['transactionHash'];
-      var block_number = parseInt(transaction['blockNumber'].toString());
-      var miner_address = getMinerAddressFromTopic(transaction['topics'][1].toString());
-      var data3345345 = transaction['data'];
-	//console.log("DATA32423, ", data3345345.substring(2, 66));
-	var dataAmt = parseInt(data3345345.substring(2, 66), 16) / (10.0 ** 18);
-	
-      // epochCount (next 64 chars)
-      var epochCount = parseInt(data3345345.substring(66, 130), 16);
- 
-    var epochsMined = epochCount; // Default value
     
-    // Look ahead to the next transaction (index + 1)
-      if (index === 0) {
-        // First transaction in this batch
-        if (previousEpochCount !== null && previousEpochCount !== undefined) {
-            epochsMined = epochCount - previousEpochCount;
-        } else {
-            // Very first transaction ever
-            epochsMined = epochCount;
-        }
-    } else {
-        // Not the first transaction, use previous transaction in this batch
-        var prevTransaction = result[index - 1];
-        var prevData = prevTransaction['data'];
-        var prevEpochCount = parseInt(prevData.substring(66, 130), 16);
-        epochsMined = epochCount - prevEpochCount;
-    }
-    var savePrevoiusCount = previousEpochCount;
-     // console.log("epochsMined: ",epochsMined);
-      // Update previous epoch count for next iteration
-      previousEpochCount = epochCount;
-      lastProcessedEpochCount += epochsMined;
-//console.log("DATAAMT: ", dataAmt);
-      // log('tx_hash=', tx_hash);
-      // log('  block=', block_number);
-      // log('  miner=', miner_address)
-		
-	var Challengerz = data3345345.substring(130, 194);
-		if(previousChallenge != Challengerz){
-			var previousChallenge2 = previousChallenge;
-			console.log("Old challenge: ", previousChallenge, " new challenge: ", Challengerz);
-			previousChallenge = Challengerz;
-			if(previousChallenge2 !== undefined && previousChallenge2 !== null){
-			
-						var newBlock = [
-    mined_blocks[0] && mined_blocks[0][0] !== undefined ? mined_blocks[0][0] + 1 : block_number+1,
-							tx_hash,
-							miner_address,
-							-1,
-                            previousEpochCount
-						];
-					
-					mined_blocks.unshift(newBlock);
-			}
-			
-		}
-        
-		//one shift to define a challenge change then another for the actual amount mined after the chal change
-      mined_blocks.unshift([block_number, tx_hash, miner_address, dataAmt, previousEpochCount])
-		
-		if(dataAmt !=0 && block_number > last_difficulty_start_block ){
-			
-			 total_TOTAL_mint_count_HASH+=epochsMined;
-			 if(miner_block_countHASH[miner_address] === undefined) {
-				miner_block_countHASH[miner_address] = dataAmt;
-			  } else {
-				  	//console.log("Before : ",miner_address ," CountHash: ",miner_block_countHASH[miner_address]," adding ", dataAmt);
-				  	
-				miner_block_countHASH[miner_address] += dataAmt;
-				  	//console.log("after: ",miner_address ," CountHash: ",miner_block_countHASH[miner_address]);
-			  }
-			
-			if ( total_mint_count_HASH[miner_address] ===  undefined) {
-			  total_mint_count_HASH[miner_address] =  1;
+    console.log('searching from block', start_log_search_at_loop, 'to block', stop_log_search_at_loop);
 
-			} else {
-			  total_mint_count_HASH[miner_address]+=  1;
-
-			}
-
-                    // It should be:
-        if (totalZKBTC_Mined_HASH[miner_address] === undefined) {
-            totalZKBTC_Mined_HASH[miner_address] = epochsMined;
-        } else {
-            totalZKBTC_Mined_HASH[miner_address] += epochsMined;
-        }
-
-//console.log("totalZKBTC_Mined_HASH[miner_address]",totalZKBTC_Mined_HASH[miner_address], " vs epochsMined",epochsMined)
-        
-			
-		}else if (dataAmt == 0 && block_number > last_difficulty_start_block){
+    // Retry logic for this specific run
+    let success = false;
+    let runAttempts = 0;
+    const maxAttemptsPerRun = 5;
+    
+    while (!success && runAttempts < maxAttemptsPerRun && lastrun == run) {
+        console.log('=== ABOUT TO CALL GETLOGS ===');
+        console.log('fromBlock:', start_log_search_at_loop);
+        console.log('toBlock:', stop_log_search_at_loop);
+        console.log('address:', ProofOfWorkAddresss);
+        console.log('topics:', [_MINT_TOPIC]);
+        console.log('Attempt:', runAttempts + 1, 'of', maxAttemptsPerRun);
+console.log('=== DEBUG BLOCK CALCULATION ===');
+console.log('run value:', run);
+console.log('start_log_search_at:', start_log_search_at);
+console.log('calculation: start_log_search_at + (run * 500):', start_log_search_at, '+', '(', run, '* 500) =', start_log_search_at + (run * 500));
+console.log('final start_log_search_at_loop:', start_log_search_at_loop);
+console.log('final stop_log_search_at_loop:', stop_log_search_at_loop);
+console.log('================================');
+        try {
+            if(!getLogs){
+                getLogs=true;
+        console.log(`${runId}: About to call getLogs`);
+            const result = await provider.getLogs({
+                fromBlock: start_log_search_at_loop,
+                toBlock: stop_log_search_at_loop,
+                address: ProofOfWorkAddresss,
+                topics: [_MINT_TOPIC],
+            });
 
 
-                if (totalZKBTC_Mined_HASH[miner_address] === undefined) {
-                    totalZKBTC_Mined_HASH[miner_address] = epochsMined;
+        console.log(`${runId}: Processing results`);
+
+let runInProgress = false;
+    lastrun = run+1;
+                getLogs = false; // Reset for next run
+                run = run + 1;
+                success = true;
+            // Success - process the results
+            console.log("Starting new run, previousEpochCount was:", previousEpochCount);
+            console.log("got filter results:", result.length, "transactions");
+
+            
+            for (const [index, transaction] of result.entries()) {
+                var tx_hash = transaction['transactionHash'];
+                var block_number = parseInt(transaction['blockNumber'].toString());
+                var miner_address = getMinerAddressFromTopic(transaction['topics'][1].toString());
+                var data3345345 = transaction['data'];
+                var dataAmt = parseInt(data3345345.substring(2, 66), 16) / (10.0 ** 18);
+                
+                // epochCount (next 64 chars)
+                var epochCount = parseInt(data3345345.substring(66, 130), 16);
+                
+                var epochsMined = epochCount; // Default value
+                
+                // Calculate epochs mined
+                if (index === 0) {
+                    // First transaction in this batch
+                    if (previousEpochCount !== null && previousEpochCount !== undefined) {
+                        epochsMined = epochCount - previousEpochCount;
+                    } else {
+                        // Very first transaction ever
+                        epochsMined = epochCount;
+                    }
                 } else {
-                    totalZKBTC_Mined_HASH[miner_address] += epochsMined;
+                    // Not the first transaction, use previous transaction in this batch
+                    var prevTransaction = result[index - 1];
+                    var prevData = prevTransaction['data'];
+                    var prevEpochCount = parseInt(prevData.substring(66, 130), 16);
+                    epochsMined = epochCount - prevEpochCount;
                 }
-console.log("miner_block_count[miner_address]",miner_block_count[miner_address], " vs epochsMined",epochsMined)
-        
+                
+                if (epochsMined < 0) {
+                    console.log("THIS HASH:", tx_hash);
+                    console.log("NEGATIVE EPOCHS MINED:", epochsMined);
+                }
+                
+                console.log("epoch mined: epochsMined", epochsMined);
+                console.log("epoch mined previousEpochCount:", previousEpochCount);
+                console.log("epoch mined epochCount:", epochCount);
+                
+                var savePrevoiusCount = previousEpochCount;
+                
+                // Update previous epoch count for next iteration
+                previousEpochCount = epochCount;
+                lastProcessedEpochCount += epochsMined;
+
+                var Challengerz = data3345345.substring(130, 194);
+                if (previousChallenge != Challengerz) {
+                    var previousChallenge2 = previousChallenge;
+                    console.log("Old challenge:", previousChallenge, "new challenge:", Challengerz);
+                    previousChallenge = Challengerz;
+                    if (previousChallenge2 !== undefined && previousChallenge2 !== null) {
+                        var newBlock = [
+                            mined_blocks[0] && mined_blocks[0][0] !== undefined ? mined_blocks[0][0] + 1 : block_number + 1,
+                            tx_hash,
+                            miner_address,
+                            -1,
+                            previousEpochCount
+                        ];
+                        mined_blocks.unshift(newBlock);
+                    }
+                }
+                
+                // One shift to define a challenge change then another for the actual amount mined after the chal change
+                mined_blocks.unshift([block_number, tx_hash, miner_address, dataAmt, previousEpochCount]);
+                
+                if (dataAmt != 0 && block_number > last_difficulty_start_block) {
+                    total_TOTAL_mint_count_HASH += epochsMined;
+                    if (miner_block_countHASH[miner_address] === undefined) {
+                        miner_block_countHASH[miner_address] = dataAmt;
+                    } else {
+                        miner_block_countHASH[miner_address] += dataAmt;
+                    }
+                    
+                    if (total_mint_count_HASH[miner_address] === undefined) {
+                        total_mint_count_HASH[miner_address] = 1;
+                    } else {
+                        total_mint_count_HASH[miner_address] += 1;
+                    }
+
+                    if (totalZKBTC_Mined_HASH[miner_address] === undefined) {
+                        totalZKBTC_Mined_HASH[miner_address] = epochsMined;
+                    } else {
+                        totalZKBTC_Mined_HASH[miner_address] += epochsMined;
+                    }
+                } else if (dataAmt == 0 && block_number > last_difficulty_start_block) {
+                    if (totalZKBTC_Mined_HASH[miner_address] === undefined) {
+                        totalZKBTC_Mined_HASH[miner_address] = epochsMined;
+                    } else {
+                        totalZKBTC_Mined_HASH[miner_address] += epochsMined;
+                    }
+                    console.log("miner_block_count[miner_address]", miner_block_count[miner_address], "vs epochsMined", epochsMined);
+                }
+
+                if (miner_block_count[miner_address] === undefined) {
+                    miner_block_count[miner_address] = epochsMined;
+                    if (dataAmt != 0) {
+                        miner_block_count2[miner_address] = 1;
+                    } else {
+                        miner_block_count2[miner_address] = 0;
+                    }
+                    totalZKBTC_Mined[miner_address] = dataAmt;
+                    totalZKTC_Calculated += dataAmt;
+                } else {
+                    miner_block_count[miner_address] += epochsMined;
+                    if (dataAmt != 0) {
+                        miner_block_count2[miner_address] += 1;
+                    }
+                    totalZKBTC_Mined[miner_address] += dataAmt;
+                    totalZKTC_Calculated += dataAmt;
+                }
+                
+                if (dataAmt != 0) {
+                    total_tx_count += 1;
+                    total_block_count += epochsMined;
+                }
+
+                if (epochCount != miner_block_count[miner_address]) {
+                    // console.log("epoch Count Special:", epochCount, "=!= miner_block_count[miner_address]:", miner_block_count[miner_address], "also savePrevoiusCount:", savePrevoiusCount, "= epochsMined:", epochsMined);
+                } else {
+                    // console.log("epoch Count:", epochCount, "vs savePrevoiusCount:", savePrevoiusCount, "= epochsMined:", epochsMined);
+                }
+
+                // Add a small yield every 10 transactions to prevent blocking
+                if (index % 10 === 0 && index > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 0)); // Yield to event loop
+                }
+            };
+
+            success = true; // Mark as successful
+        }else{
+            console.log("Dup log detected");
+            run++;
+            continue;
         }
-		//console.log("miner_block_count[miner_address]",miner_block_count[miner_address], " vs epochsMined",epochsMined)
         
-
+        } catch (error) {
+            console.log('=== ERROR CAUGHT ===');
+            console.log('Error type:', typeof error);
+            console.log('Error message:', error ? error.message : 'No error message');
+            console.log('Error stack:', error ? error.stack : 'No error stack');
+            console.log('Full error object:', error);
+            console.log('Run:', run + 1, 'Attempt:', runAttempts + 1);
+            console.log('==================');
+            
+            runAttempts++;
+            
+            if (runAttempts < maxAttemptsPerRun) {
+                console.log('Retrying in', 1000 * runAttempts, 'ms...');
+                await sleep(1000 * runAttempts); // Exponential backoff
+            }
+        } finally{
+    }
         
-      if(miner_block_count[miner_address] === undefined) {
-        miner_block_count[miner_address] = epochsMined;
-	if(dataAmt !=0){
-     		miner_block_count2[miner_address] = 1;
-	}else{
-     		miner_block_count2[miner_address] = 0;
-	}
-	totalZKBTC_Mined[miner_address] = dataAmt;
-	totalZKTC_Calculated += dataAmt;
-      } else {
-        miner_block_count[miner_address] += epochsMined;
-	if(dataAmt !=0){
-        	miner_block_count2[miner_address] += 1;
-	}
-	totalZKBTC_Mined[miner_address] += dataAmt;
-	totalZKTC_Calculated += dataAmt;
-      }
-        
-	if(dataAmt !=0){
-		total_tx_count+=1;
-		total_block_count+=   epochsMined;
-	}
+    // Only increment after this run is COMPLETELY finished
+    console.log(`=== COMPLETED ${runId} ===`);
+        runInProgress = false; // Always unlock, even on error
 
+    }
+    runInProgress = false;
+    success = true;
+   // run++;
+    
+    if (!success) {
+        console.log('Failed after', maxAttemptsPerRun, 'attempts, skipping this range and continuing to next');
+    }
+    
+    
+    // Add delay between runs
+    if (run < iterations) {
+        await sleep(200);
+    }
+}
 
-      if(epochCount!=miner_block_count[miner_address]){
-     // console.log("epoch Count Special: ",epochCount, " =!= miner_block_count[miner_address]: ", miner_block_count[miner_address], " also savePrevoiusCount: ",savePrevoiusCount, " = epochsMined: ",epochsMined);
-      }else{ 
-     //   console.log("epoch Count: ",epochCount, " vs savePrevoiusCount: ",savePrevoiusCount, " = epochsMined: ",epochsMined);
-     
-
-      }
-    });
-	
-  
-	
-	})  
-.catch((error) => {
-    console.log('error filtering txs:', error);
-     console.log('error filtering txs:', error);
-     console.log('repeat run', run);
-     run = run - 1
-	 // if(attempts > 19){
-	//	  run = run +1
-	//  }
-	  attempts = attempts + 1;
-  });
-  
-  }
   console.log("lastProcessedEpochCount: ",lastProcessedEpochCount );
 
   console.log("RUn = ", run);
