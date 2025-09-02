@@ -8153,111 +8153,6 @@ console.log("ICON URL: ",iconURL);
 
 
 
-        function switchTab(tabName) {
-            // Hide all pages
-            const pages = document.querySelectorAll('#main-content2 .page');
-
-            console.log("Pages: ",pages);
-            pages.forEach(page => page.classList.remove('active'));
-            const pages2 = document.querySelectorAll('#main-content .page');
-            pages2.forEach(page => page.classList.remove('active'));
-
-            // Remove active class from all tabs
-            const tabs = document.querySelectorAll('#main-content2 .nav-tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            const tabs2 = document.querySelectorAll('#main-content .nav-tab');
-            tabs2.forEach(tab => tab.classList.remove('active'));
-
-            // Add active class to clicked tab (find the tab by matching text content)
-            const activeTab = Array.from(tabs).find(tab =>
-                tab.textContent.toLowerCase().includes(tabName.toLowerCase()) ||
-                tab.getAttribute('onclick').includes(`'${tabName}'`)
-            );
-            
-
-            
-            if (activeTab) {
-                activeTab.classList.add('active');
-            }
-
-
-            const activeTab2 = Array.from(tabs2).find(tab =>
-                tab.textContent.toLowerCase().includes(tabName.toLowerCase()) ||
-                tab.getAttribute('onclick').includes(`'${tabName}'`)
-            );
-
-            if (activeTab2) {
-                activeTab2.classList.add('active');
-            }
-
-            // Handle content switching
-            if (tabName === 'stats') {
-                // Switch to stats content and load iframe
-                switchToSTATSContent();
-                loadStatsIframe();
-            } else {
-                // For all other tabs, use main-content
-                switchToMainContent();
-
-                // Show selected page within main-content
-                const targetPage = document.getElementById(tabName);
-                if (targetPage) {
-                    targetPage.classList.add('active');
-                }
-            }
-        }
-
-        function switchToMainContent() {
-            // Hide the stats content
-            document.getElementById('main-content2').style.display = 'none';
-
-            // Show the main content with wider frame
-            document.getElementById('main-content').style.display = 'block';
-        }
-
-        function switchToSTATSContent() {
-            // Show the stats content
-            document.getElementById('main-content2').style.display = 'block';
-
-            // Hide the main content with wider frame
-            document.getElementById('main-content').style.display = 'none';
-        }
-
-
-        function loadStatsIframe() {
-            console.log("Function started");
-
-            const container = document.querySelector('#main-content2');
-            console.log("Container found:", container);
-
-            const placeholder = container?.querySelector('.iframe-placeholder');
-            console.log("Placeholder found:", placeholder);
-
-            if (placeholder && !container.querySelector('iframe')) {
-                console.log("Creating iframe...");
-
-                // Make container bigger
-                container.style.width = '100%';
-                container.style.height = '1600px';
-                placeholder.style.overflow = 'auto';
-
-                // Create iframe to fill the bigger container
-                const iframe = document.createElement('iframe');
-                iframe.src = 'https://bzerox.org/stats/B0xTokenStatsdAPP/?page=stats&';
-                iframe.setAttribute('width', '100%');
-                iframe.setAttribute('height', '1600');
-                iframe.setAttribute('frameborder', '0');
-
-                placeholder.replaceWith(iframe);
-                console.log('Stats iframe loaded');
-            } else {
-                console.log("Conditions not met - placeholder:", placeholder, "existing iframe:", container?.querySelector('iframe'));
-            }
-        }
-
-
-
-
 
                     updateTokenIcon('toToken22', 'toTokenIcon11');
                     updateTokenIcon('fromToken22', 'fromTokenIcon22');
@@ -19839,35 +19734,34 @@ function updateURL(tabName) {
 
     let PreviousTabName ="";
 
-async function switchTab(tabName) {
-            // Hide all pages
-            const pages = document.querySelectorAll('.page');
-            pages.forEach(page => page.classList.remove('active'));
-            
-            // Remove active class from all tabs
-            const tabs = document.querySelectorAll('.nav-tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            
-            // Show selected page
-            document.getElementById(tabName).classList.add('active');
-            
-            // Add active class to clicked tab
-            
 
-            
-            // Add active class to selected sub-tab and sub-page
-            const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
-            const selectedPage = document.getElementById(tabName);
-            
-            console.log('Selected tab:', selectedTab); // Debug log
-            console.log('Selected page:', selectedPage); // Debug log
-            
-            if (selectedTab) selectedTab.classList.add('active');
-            if (selectedPage) {
-                selectedPage.classList.add('active');
-                selectedPage.style.display = 'block'; // Force show
-            }
 
+
+    async function switchTab(tabName) {
+    // Hide all pages
+    const pages = document.querySelectorAll('.page');
+    pages.forEach(page => {
+        page.classList.remove('active');
+        // Remove inline styles to let CSS classes control display
+        page.style.display = '';
+    });
+    
+    // Remove active class from all tabs
+    const tabs = document.querySelectorAll('.nav-tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    // Show selected page
+    const selectedPage = document.getElementById(tabName);
+    const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+    
+    if (selectedTab) selectedTab.classList.add('active');
+    if (selectedPage) {
+        selectedPage.classList.add('active');
+        // Don't set inline display style - let CSS handle it
+    }
+    
+
+    
             
             updateURL(tabName);
             console.log("PREVIOUS TAB NAME");
