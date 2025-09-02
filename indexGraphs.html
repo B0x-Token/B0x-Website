@@ -4186,6 +4186,12 @@ body #stats .content {
             color: #64b5f6;
             word-wrap: break-word;
         }
+        #stats .blocks-table .hash2 {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 20px;
+            color: #64b5f6;
+            word-wrap: break-word;
+        }
 
         #stats .blocks-table .miner-cell {
             background: rgba(156, 39, 176, 0.2);
@@ -4642,6 +4648,16 @@ body, html {
     color: #64b5f6;
     word-wrap: break-word;
     max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* BLOCKS TABLE SPECIFIC STYLES */
+#stats .blocks-table .hash2 {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: clamp(7px, 1.4vw, 16px);
+    color: #64b5f6;
+    word-wrap: break-word;
+    max-width: 70px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -22756,7 +22772,7 @@ var index = 0;
 var dt = new Date();
 
 // Updated innerHTML generation for blocks table
-var innerhtml_buffer = '<tr><th>Time (Approx)</th><th>zkSync Era Block #</th>'
+var innerhtml_buffer = '<tr><th>Time (Approx)</th><th>Base Block #</th>'
   + '<th>Transaction Hash</th><th style="width: 200px;">Miner</th><th>Reward Amount</th></tr>';
 
 mined_blocks.forEach(function(block_info) {
@@ -22827,7 +22843,7 @@ mined_blocks.forEach(function(block_info) {
   } else {
     // Generate styled HTML for blocks with proper CSS classes
     innerhtml_buffer += '<tr><td align="right" style="width: 200px;">'
-      + get_date_from_eth_block(eth_block) + '</td><td class="hash">'
+      + get_date_from_eth_block(eth_block) + '</td><td class="hash2">'
       + '<a href="' + block_url + '" target="_blank">' + eth_block + '</a></td><td class="hash">'
       + '<a href="' + transaction_url + '" title="' + tx_hash + '" target="_blank">'
       + tx_hash.substr(0, 16) + '...</a></td><td align="right" style="text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">'
