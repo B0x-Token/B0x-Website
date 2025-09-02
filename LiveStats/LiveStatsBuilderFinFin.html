@@ -2839,18 +2839,13 @@ button:disabled:hover {
 /*graphs*/
 /* Solution 1: Maximum width with minimal spacing */
 .chart-container {
-    width: 100%;
+    width: 1200px;
     height: 400px;
     margin: 10px 0; /* Minimal vertical spacing */
     padding: 0;
     position: relative;
 }
 
-.chart-container canvas {
-    width: 100% !important;
-    height: 100% !important;
-    aspect-ratio: unset !important;
-}
 
 /* Solution 2: Viewport-based sizing for maximum fill */
 .full-width-chart {
@@ -3008,7 +3003,7 @@ body, html {
 /* Solution 1: Force canvas sizing with viewport units */
 .chart-container {
     width: 100%;
-    height: 35vh;
+    height: 30%;
     margin: 4vh 0 !important;
     padding: 0;
     position: relative;
@@ -3016,8 +3011,7 @@ body, html {
 
 .chart-container canvas {
     width: 100% !important;
-    height: 35vh !important; /* Force canvas to match container */
-    aspect-ratio: unset !important;
+    height: 30% !important; /* Force canvas to match container */
     display: block !important;
 }
 
@@ -3026,7 +3020,18 @@ body, html {
     text-align: center;
     margin: 120px 0 60px 0 !important; /* Space around headings */
 }
+.chart-container {
+    width: 100%;        /* full width of parent */
+    max-width: 100vw;   /* prevent overflow */
+    margin: 0 auto;
+}
 
+.chart-container > div {
+    width: 100%;        /* full width of container */
+    height: 400px;      /* or whatever height you want */
+    max-height: 600px;  /* optional, limit height */
+    position: relative; /* required for Chart.js canvas sizing */
+}
 
     </style>
 </head>
@@ -4683,11 +4688,10 @@ html<div style="display:none;" id="row-miners2">
         }
 
         function generateHashrateAndBlocktimeGraph(ethersProviderInstance, target_cv_obj, era_cv_obj, price_cv_obj, price_cv_obj3, tokens_minted_cv_obj) {
-            el('#difficultystats').innerHTML = '<canvas id="chart-hashrate-difficulty" width="4rem" height="2rem"></canvas>';
-            el('#blocktimestats').innerHTML =  '<canvas id="chart-rewardtime" width="4rem" height="2rem"></canvas>';
-            el('#priceOverTimestats').innerHTML =  '<canvas id="chart-pricetime" width="4rem" height="2rem"></canvas>';
-            el('#avgRevenue').innerHTML =  '<canvas id="chart-AvgRevenue" width="4rem" height="2rem"></canvas>';
-
+           el('#difficultystats').innerHTML = '<canvas id="chart-hashrate-difficulty"></canvas>';
+            el('#blocktimestats').innerHTML  = '<canvas id="chart-rewardtime"></canvas>';
+            el('#priceOverTimestats').innerHTML  = '<canvas id="chart-pricetime"></canvas>';
+            el('#avgRevenue').innerHTML  = '<canvas id="chart-AvgRevenue"></canvas>';
             var target_values = target_cv_obj.getValues;
             var era_values = era_cv_obj.getValues;
             var tokens_minted_values = tokens_minted_cv_obj.getValues;
@@ -4869,7 +4873,7 @@ html<div style="display:none;" id="row-miners2">
                 },
                 options: { 
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     parsing: {
                         xAxisKey: 'x',
                         yAxisKey: 'y'
@@ -4986,6 +4990,18 @@ html<div style="display:none;" id="row-miners2">
                     }
                 }
             });
+// Solution 1: Set canvas size before creating chart
+const rewardTimeCanvas = document.getElementById('chart-rewardtime');
+const container = rewardTimeCanvas.parentElement;
+
+// Calculate the actual size you want
+const containerHeight = window.innerHeight * 0.35; // 35vh in pixels
+const containerWidth = container.offsetWidth;
+
+// Set canvas size explicitly
+rewardTimeCanvas.style.width = containerWidth + 'px';
+rewardTimeCanvas.style.height = containerHeight + 'px';
+
 
 
 // Create Block Time & Supply Chart
@@ -5031,7 +5047,7 @@ var rewardtime_chart = new Chart(rewardTimeCtx, {
     },
     options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         parsing: {
             xAxisKey: 'x',
             yAxisKey: 'y'
@@ -5185,7 +5201,7 @@ var price_chart = new Chart(priceTimeCtx, {
     },
     options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         parsing: {
             xAxisKey: 'x',
             yAxisKey: 'y'
@@ -5328,7 +5344,7 @@ var revenue_chart = new Chart(revenueCtx, {
     },
     options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         parsing: {
             xAxisKey: 'x',
             yAxisKey: 'y'
