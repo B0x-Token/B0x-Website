@@ -13326,7 +13326,7 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
                 // Your existing getOutput function
                 {
                     "inputs": [],
-                    "name": "getFaucetokens_Testnet",
+                    "name": "getFaucetTokens_Testnet",
                     "outputs": [],
                     "stateMutability": "nonpayable",
                     "type": "function"
@@ -13358,7 +13358,7 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
             console.log("Transaction confirmed!");
 
 
-            const tx2 = await MAIN_TOKEN_CONTRACT.getFaucetokens_Testnet();
+            const tx2 = await MAIN_TOKEN_CONTRACT.getFaucetTokens_Testnet();
 
 
             console.log("getFaucetokens_Testnet transaction sent:", tx2.hash);
@@ -13366,6 +13366,7 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
             console.log("Transaction confirmed!");
 
 
+        new Promise(resolve => setTimeout(resolve, 2000));
             fetchBalances();
 
 
@@ -13571,10 +13572,22 @@ const amountInputETH = document.querySelector('#convert input[type="number"]');
 
                 showInfoNotification('Approve Token', 'Requesting approval for unlimited amount to avoid future approvals...');
                 // If not sufficient, request approval for max amount
-                const approvalSuccess = await approveToken(tokenToApprove, spenderAddress, ethers.constants.MaxUint256);
-                approvalSuccess.wait();
-                showSuccessNotification('Approved Tokens!', 'Tokens have been approved on the contract successfully', approvalSuccess.hash());
-                return approvalSuccess;
+                 const txResponse = await approveToken(tokenToApprove, spenderAddress, ethers.constants.MaxUint256);
+                        // Only call .wait() if txResponse has it
+                let txReceipt;
+                if (txResponse.wait) {
+                    txReceipt = await txResponse.wait(); // wait for mining
+                } else {
+                    txReceipt = txResponse; // already a receipt
+                }
+
+                showSuccessNotification(
+                    'Approved Tokens!',
+                    'Tokens have been approved on the contract successfully',
+                    txReceipt.transactionHash
+                );
+                
+                return txReceipt;
 
             } catch (error) {
                 console.error("Approve if needed failed:", error);
@@ -16994,6 +17007,7 @@ if (stakeDecreasePositionSelect) {
                 console.log("create Position transaction sent:", tx.hash);
                 console.log("Transaction confirmed!");
                 //alert("Successfully created position!");
+                new Promise(resolve => setTimeout(resolve, 2000));
 
                 enableButton('getCreatePositionBtn', 'Create Position');
                 fetchBalances();
