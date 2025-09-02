@@ -1,0 +1,13 @@
+{
+    "last_block": 30543273,
+    "user_addresses": [
+        "0xd0bB31f9301Efe43c3141c9D8D09a48614Ad0593"
+    ],
+    "users": {
+        "0xd0bB31f9301Efe43c3141c9D8D09a48614Ad0593": {
+            "balance": 15108567415727,
+            "0xBTCStaked": 99999999,
+            "B0xStaked": 2282688093555842816
+        }
+    }
+}
