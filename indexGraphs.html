@@ -22200,7 +22200,7 @@ while (run < iterations) {
     const maxAttemptsPerRun = 5;
     
     while (!success && runAttempts < maxAttemptsPerRun && lastrun == run) {
-        console.log('=== ABOUT TO CALL GETLOGS ===');
+     /*   console.log('=== ABOUT TO CALL GETLOGS ===');
         console.log('fromBlock:', start_log_search_at_loop);
         console.log('toBlock:', stop_log_search_at_loop);
         console.log('address:', ProofOfWorkAddresss);
@@ -22212,7 +22212,7 @@ console.log('start_log_search_at:', start_log_search_at);
 console.log('calculation: start_log_search_at + (run * 500):', start_log_search_at, '+', '(', run, '* 500) =', start_log_search_at + (run * 500));
 console.log('final start_log_search_at_loop:', start_log_search_at_loop);
 console.log('final stop_log_search_at_loop:', stop_log_search_at_loop);
-console.log('================================');
+console.log('================================');*/
         try {
             if(!getLogs){
                 getLogs=true;
@@ -22271,9 +22271,9 @@ let runInProgress = false;
                     console.log("NEGATIVE EPOCHS MINED:", epochsMined);
                 }
                 
-                console.log("epoch mined: epochsMined", epochsMined);
-                console.log("epoch mined previousEpochCount:", previousEpochCount);
-                console.log("epoch mined epochCount:", epochCount);
+               // console.log("epoch mined: epochsMined", epochsMined);
+               // console.log("epoch mined previousEpochCount:", previousEpochCount);
+               // console.log("epoch mined epochCount:", epochCount);
                 
                 var savePrevoiusCount = previousEpochCount;
                 
@@ -22381,6 +22381,8 @@ let runInProgress = false;
             console.log('==================');
             
             runAttempts++;
+
+                run = run -1;
             
             if (runAttempts < maxAttemptsPerRun) {
                 console.log('Retrying in', 1000 * runAttempts, 'ms...');
