@@ -20031,11 +20031,13 @@ function updateURL(tabName) {
         // Initialize Ethers connection
         async function initEthers() {
             try {
-                if (window.ethereum) {
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    await switchToBaseMainnet();
-                    ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
-                    ethersSigner = ethersProvider.getSigner();
+                if(false){
+                //if (window.ethereum) {
+                    //no metamask for Graphs
+                   // await window.ethereum.request({ method: 'eth_requestAccounts' });
+                   // await switchToBaseMainnet();
+                   // ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
+                   // ethersSigner = ethersProvider.getSigner();
                 } else {
                     ethersProvider = new ethers.providers.JsonRpcProvider(BWORK_RPC);
                 }
