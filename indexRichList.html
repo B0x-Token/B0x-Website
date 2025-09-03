@@ -19861,6 +19861,9 @@ function initializeTabFromURL() {
         
         // Check if the tab parameter is valid
         if (validTabs.includes(tabParam)) {
+            if(tab == 'staking-rich-list'){
+                tab =='stats-staking-rich-list';
+            }
 
             if(tabParam == 'staking-rich-list' || tabParam == 'staking-graphs' || tabParam == 'stats-mining-calc' ){
                 switchTabForStats();
@@ -19905,12 +19908,17 @@ function initializeTabFromDirectParam() {
         'stats-graphs',
         'staking-rich-list',
         'stats-mining-calc',
-        'stats-home'
+        'stats-home',
+        'stats-staking-rich-list'
     ];
+
     
     // Check if any of the valid tab names exist as parameters
     for (const tab of validTabs) {
         if (urlParams.has(tab)) {
+            if(tab == 'staking-rich-list'){
+                tab =='stats-staking-rich-list';
+            }
             if(tab == 'staking-rich-list' || tab == 'staking-graphs' || tab == 'stats-home' || tab == 'stats-mining-calc'){
                 
                 switchTabForStats();
@@ -19939,6 +19947,9 @@ function updateURL(tabName) {
     }
     if(tabName =="stats-home"){
         tabName='stats';
+    }
+    if(tabName =="stats-staking-rich-list"){
+        tabName='staking-rich-list';
     }
 
     const baseUrl = window.location.origin + window.location.pathname;
