@@ -19862,7 +19862,7 @@ function initializeTabFromURL() {
         // Check if the tab parameter is valid
         if (validTabs.includes(tabParam)) {
             if(tabParam == 'staking-rich-list'){
-                tabParam =='stats-staking-rich-list';
+                tabParam ='stats-staking-rich-list';
             }
 
             if(tabParam == 'staking-rich-list' || tabParam == 'staking-graphs' || tabParam == 'stats-mining-calc' ||  tabParam ==  'stats-staking-rich-list'){
@@ -19917,7 +19917,7 @@ function initializeTabFromDirectParam() {
     for (const tab of validTabs) {
         if (urlParams.has(tab)) {
             if(tab == 'staking-rich-list'){
-                tab =='stats-staking-rich-list';
+                tab ='stats-staking-rich-list';
             }
             if(tab == 'staking-rich-list' || tab == 'staking-graphs' || tab == 'stats-home' || tab == 'stats-mining-calc' || tab=='stats-staking-rich-list'){
                 
