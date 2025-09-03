@@ -20036,12 +20036,40 @@ function updateURL(tabName) {
 
     async function switchTabForStats(){
             var tabName = 'stats';
-            console.log('switchTabForStats called with:', tabName); // Debug log
+    // Hide all pages
+    const pages = document.querySelectorAll('.page');
+    pages.forEach(page => {
+        page.classList.remove('active');
+        // Remove inline styles to let CSS classes control display
+        page.style.display = '';
+    });
+    
+    // Remove active class from all tabs
+    const tabs = document.querySelectorAll('.nav-tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    // Show selected page
+    const selectedPage = document.getElementById(tabName);
+    const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+    
+    if (selectedTab) selectedTab.classList.add('active');
+    if (selectedPage) {
+        selectedPage.classList.add('active');
+        // Don't set inline display style - let CSS handle it
+    }
+    
+
+    
             
-            // Remove active class from all sub-tabs and sub-pages
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
+            console.log("PREVIOUS TAB NAME");
+            if(tabName =='stats' && PreviousTabName !='stats'){
+                switchTab2('stats-home');
+                await GetContractStats();
+                await updateAllMinerInfoFirst();
+                
+            }else{
+
+
             // Remove active class from all sub-tabs and sub-pages
             document.querySelectorAll('.nav-tab2').forEach(tab => {
                 tab.classList.remove('active');
@@ -20050,21 +20078,18 @@ function updateURL(tabName) {
                 page.classList.remove('active');
                 page.style.display = 'none'; // Force hide
             });
-
-
-            
-            // Add active class to selected sub-tab and sub-page
-            const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
-            const selectedPage = document.getElementById(tabName);
-            
-            console.log('Selected tab:', selectedTab); // Debug log
-            console.log('Selected page:', selectedPage); // Debug log
-            
-            if (selectedTab) selectedTab.classList.add('active');
-            if (selectedPage) {
-                selectedPage.classList.add('active');
-                selectedPage.style.display = 'block'; // Force show
             }
+            PreviousTabName = tabName;
+            console.log("PREVIOUS TAB NAME: ",PreviousTabName);
+                if (tabName === 'stats') {
+                    // Remove padding when switching to stats
+                    document.querySelector('.content').style.padding = '0px';
+                } else {
+                    // Restore padding for other tabs
+                    document.querySelector('.content').style.padding = '40px';
+                }
+                
+    
 
 
     }
