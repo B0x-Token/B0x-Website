@@ -7088,108 +7088,6 @@ const tokenAddresses = {
 
 
 
-// Function to get URL parameters
-function getURLParameter(name) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(name);
-}
-
-// Function to switch tab on page load based on URL parameter
-function initializeTabFromURL() {
-    // Check for 'tab' parameter in URL (e.g., ?tab=convert)
-    const tabParam = getURLParameter('tab');
-    
-    if (tabParam) {
-        // List of valid tab names to prevent invalid tab switching
-        const validTabs = [
-            'swap',
-            'create',
-            'increase',
-            'decrease',
-            'staking-main-page',
-            'stake-increase',
-            'stake-decrease',
-            'convert',
-            'settings',
-            'staking-management',
-            'testnet-faucet',
-            'contract-info',
-            'stats',
-            'socials'
-        ];
-        
-        // Check if the tab parameter is valid
-        if (validTabs.includes(tabParam)) {
-            switchTab(tabParam);
-        } else {
-            console.warn(`Invalid tab parameter: ${tabParam}`);
-            // Optionally switch to default tab
-            switchTab('swap');
-        }
-    }
-    // If no tab parameter, the default active tab will remain (swap)
-}
-
-// Alternative function if you prefer to use just the parameter name without 'tab='
-// For URLs like ?convert instead of ?tab=convert
-function initializeTabFromDirectParam() {
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Valid tab names
-    const validTabs = [
-        'swap',
-        'create',
-        'increase',
-        'decrease',
-        'staking-main-page',
-        'stake-increase',
-        'stake-decrease',
-        'convert',
-        'settings',
-        'staking-management',
-        'testnet-faucet',
-        'contract-info',
-        'stats',
-        'socials'
-    ];
-    
-    // Check if any of the valid tab names exist as parameters
-    for (const tab of validTabs) {
-        if (urlParams.has(tab)) {
-            switchTab(tab);
-            return; // Exit after first match to prevent multiple tab switches
-        }
-    }
-}
-
-// Run on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Use this for URLs like ?tab=convert
-    initializeTabFromURL();
-    
-    // AND use this for URLs like ?convert
-    initializeTabFromDirectParam();
-});
-
-// Optional: Function to update URL when tab is switched manually
-function updateURL(tabName) {
-    const url = new URL(window.location);
-    url.searchParams.set('tab', tabName);
-    window.history.replaceState(null, '', url);
-}
-
-// Enhanced switchTab function that also updates the URL (optional)
-// If you want to modify your existing switchTab function:
-/*
-function switchTab(tabName) {
-    // Your existing tab switching logic here
-    // ...
-    
-    // Update URL to reflect current tab
-    updateURL(tabName);
-}
-*/
-
 
 
 
@@ -19952,14 +19850,25 @@ function initializeTabFromURL() {
             'settings',
             'staking-management',
             'testnet-faucet',
-            'contract-info',
-            'stats',
-            'socials'
+            'staking-main-page',
+            'stats-graphs',
+            'staking-rich-list',
+            'stats-home',
+        'stats-mining-calc'
         ];
+
+        
         
         // Check if the tab parameter is valid
         if (validTabs.includes(tabParam)) {
-            switchTab(tabParam);
+
+            if(tabParam == 'staking-rich-list' || tabParam == 'staking-graphs' || tabParam == 'stats-mining-calc' ){
+                switchTabForStats();
+                switchTab2(tabParam);
+            }else{
+
+                switchTab(tabParam);
+            }
         } else {
             console.warn(`Invalid tab parameter: ${tabParam}`);
             // Optionally switch to default tab
@@ -19991,13 +19900,25 @@ function initializeTabFromDirectParam() {
         'testnet-faucet',
         'contract-info',
         'stats',
-        'socials'
+        'socials',
+        'staking-main-page',
+        'stats-graphs',
+        'staking-rich-list',
+        'stats-mining-calc',
+        'stats-home'
     ];
     
     // Check if any of the valid tab names exist as parameters
     for (const tab of validTabs) {
         if (urlParams.has(tab)) {
-            switchTab(tab);
+            if(tab == 'staking-rich-list' || tab == 'staking-graphs' || tab == 'stats-home' || tab == 'stats-mining-calc'){
+                
+                switchTabForStats();
+                switchTab2(tab);
+            }else{
+
+                switchTab(tab);
+            }
             return; // Exit after first match to prevent multiple tab switches
         }
     }
@@ -20013,6 +19934,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function updateURL(tabName) {
+    if(tabName == "staking-main-page"){
+        tabName='stats';
+    }
+    if(tabName =="stats-home"){
+        tabName='stats';
+    }
 
     const baseUrl = window.location.origin + window.location.pathname;
     // Add a valueless parameter
@@ -20084,8 +20011,40 @@ function updateURL(tabName) {
     }
 
 
+    async function switchTabForStats(){
+            var tabName = 'stats';
+            console.log('switchTab2 called with:', tabName); // Debug log
+            
+            // Remove active class from all sub-tabs and sub-pages
+            document.querySelectorAll('.nav-tab2').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.stats-page').forEach(page => {
+                page.classList.remove('active');
+                page.style.display = 'none'; // Force hide
+            });
+
+
+            
+            // Add active class to selected sub-tab and sub-page
+            const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+            const selectedPage = document.getElementById(tabName);
+            
+            console.log('Selected tab:', selectedTab); // Debug log
+            console.log('Selected page:', selectedPage); // Debug log
+            
+            if (selectedTab) selectedTab.classList.add('active');
+            if (selectedPage) {
+                selectedPage.classList.add('active');
+                selectedPage.style.display = 'block'; // Force show
+            }
+
+
+    }
+
      // Sub-navigation function for stats section
         async function switchTab2(tabName) {
+            updateURL(tabName);
             console.log('switchTab2 called with:', tabName); // Debug log
             
             // Remove active class from all sub-tabs and sub-pages
@@ -23838,15 +23797,10 @@ async function useNextDiff(){
 
 
 
-    </script>
-
-
-
 
 
 <!--RICH LIST SCRIPT-->
 
-    <script>
         let stakingData = null;
         let filteredData = [];
         let currentPage = 1;
@@ -24039,7 +23993,6 @@ async function useNextDiff(){
         // Load data on page load
         window.addEventListener('load', loadData);
     </script>
-
 
 
 
