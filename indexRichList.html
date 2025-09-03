@@ -19861,11 +19861,11 @@ function initializeTabFromURL() {
         
         // Check if the tab parameter is valid
         if (validTabs.includes(tabParam)) {
-            if(tab == 'staking-rich-list'){
-                tab =='stats-staking-rich-list';
+            if(tabParam == 'staking-rich-list'){
+                tabParam =='stats-staking-rich-list';
             }
 
-            if(tabParam == 'staking-rich-list' || tabParam == 'staking-graphs' || tabParam == 'stats-mining-calc' ){
+            if(tabParam == 'staking-rich-list' || tabParam == 'staking-graphs' || tabParam == 'stats-mining-calc' ||  tabParam ==  'stats-staking-rich-list'){
                 switchTabForStats();
                 switchTab2(tabParam);
             }else{
@@ -19919,7 +19919,7 @@ function initializeTabFromDirectParam() {
             if(tab == 'staking-rich-list'){
                 tab =='stats-staking-rich-list';
             }
-            if(tab == 'staking-rich-list' || tab == 'staking-graphs' || tab == 'stats-home' || tab == 'stats-mining-calc'){
+            if(tab == 'staking-rich-list' || tab == 'staking-graphs' || tab == 'stats-home' || tab == 'stats-mining-calc' || tab=='stats-staking-rich-list'){
                 
                 switchTabForStats();
                 switchTab2(tab);
