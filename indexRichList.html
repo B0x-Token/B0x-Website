@@ -19833,44 +19833,52 @@ function getURLParameter(name) {
 
 // Function to switch tab on page load based on URL parameter
 function initializeTabFromURL() {
+    console.log("THIS THIS THIS");
     // Check for 'tab' parameter in URL (e.g., ?tab=convert)
     const tabParam = getURLParameter('tab');
     
     if (tabParam) {
         // List of valid tab names to prevent invalid tab switching
         const validTabs = [
-            'swap',
-            'create',
-            'increase',
-            'decrease',
-            'staking-main-page',
-            'stake-increase',
-            'stake-decrease',
-            'convert',
-            'settings',
-            'staking-management',
-            'testnet-faucet',
-            'staking-main-page',
-            'stats-graphs',
-            'staking-rich-list',
-            'stats-home',
-        'stats-mining-calc'
+        'swap',
+        'create',
+        'increase',
+        'decrease',
+        'staking-main-page',
+        'stake-increase',
+        'stake-decrease',
+        'convert',
+        'settings',
+        'staking-management',
+        'testnet-faucet',
+        'contract-info',
+        'stats',
+        'socials',
+        'staking-main-page',
+        'stats-graphs',
+        'staking-rich-list',
+        'stats-mining-calc',
+        'stats-home',
+        'stats-staking-rich-list'
         ];
 
         
         
         // Check if the tab parameter is valid
         if (validTabs.includes(tabParam)) {
-            if(tabParam == 'staking-rich-list'){
-                tabParam ='stats-staking-rich-list';
+            var tabName = tabParam;
+            if(tabName == 'staking-rich-list'){
+                tabName ='stats-staking-rich-list';
             }
 
-            if(tabParam == 'staking-rich-list' || tabParam == 'staking-graphs' || tabParam == 'stats-mining-calc' ||  tabParam ==  'stats-staking-rich-list'){
+            if(tabName == 'staking-rich-list' || tabName == 'stats-graphs' || tabName == 'stats-mining-calc' ||  tabName ==  'stats-staking-rich-list'){
+                console.log("Switch tab: ",tabName);
                 switchTabForStats();
-                switchTab2(tabParam);
+                switchTab2(tabName);
             }else{
+                console.log("Switch tab: ",tabName);
 
-                switchTab(tabParam);
+                switchTab(tabName);
             }
         } else {
             console.warn(`Invalid tab parameter: ${tabParam}`);
@@ -19916,16 +19924,20 @@ function initializeTabFromDirectParam() {
     // Check if any of the valid tab names exist as parameters
     for (const tab of validTabs) {
         if (urlParams.has(tab)) {
+            var tabname = tab;
+                console.log("Switch tab: ",tabname);
             if(tab == 'staking-rich-list'){
-                tab ='stats-staking-rich-list';
+
+                tabname ='stats-staking-rich-list';
             }
-            if(tab == 'staking-rich-list' || tab == 'staking-graphs' || tab == 'stats-home' || tab == 'stats-mining-calc' || tab=='stats-staking-rich-list'){
+            if(tabname == 'staking-rich-list' || tabname == 'stats-graphs' || tabname == 'stats-home' || tabname == 'stats-mining-calc' || tabname=='stats-staking-rich-list'){
                 
                 switchTabForStats();
-                switchTab2(tab);
+                switchTab2(tabname);
             }else{
+                console.log("Switch tab: ",tabname);
 
-                switchTab(tab);
+                switchTab(tabname);
             }
             return; // Exit after first match to prevent multiple tab switches
         }
@@ -20024,8 +20036,12 @@ function updateURL(tabName) {
 
     async function switchTabForStats(){
             var tabName = 'stats';
-            console.log('switchTab2 called with:', tabName); // Debug log
+            console.log('switchTabForStats called with:', tabName); // Debug log
             
+            // Remove active class from all sub-tabs and sub-pages
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
             // Remove active class from all sub-tabs and sub-pages
             document.querySelectorAll('.nav-tab2').forEach(tab => {
                 tab.classList.remove('active');
