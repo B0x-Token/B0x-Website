@@ -3846,13 +3846,13 @@ async function restoreDefaultAddressesfromGithub() {
                         chain: "ethereum"
                     },
                     {
-                        name: "RightsTo0xBitcoin Token (fix 4 mainet) ",
+                        name: "RightsTo0xBitcoin Token ",
                         address: tokenAddressesETH['RightsTo0xBTC'],
                         symbol: "R0xBTC",
                         imageSymbol: "RightsTo0xBTC",
                         decimals: 18,
                         isToken: true,
-                        chain: "base"
+                        chain: "ethereum"
                     },
                     {
                         name: "RightsTo0xBitcoin Token ",
@@ -3861,6 +3861,12 @@ async function restoreDefaultAddressesfromGithub() {
                         imageSymbol: "RightsTo0xBTC",
                         decimals: 18,
                         isToken: true,
+                        chain: "base"
+                    },
+                    {
+                        name: "Position Finder Helper Contract ",
+                        address: contractAddress_PositionFinderPro,
+                        isToken: false,
                         chain: "base"
                     },
                     {
