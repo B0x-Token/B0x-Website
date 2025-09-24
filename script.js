@@ -1411,8 +1411,8 @@ var defaultBACKUPDataSource_Testnet = "https://data.github.bzerox.org/";
                         providerETH = new ethers.providers.Web3Provider(window.ethereum);
                         signerETH = providerETH.getSigner();
                     } catch (error) {
-                        console.error('Error with Base Sepolia network:', error);
-                        throw new Error(`Failed to setup Base Sepolia network: ${error.message}`);
+                        console.error('Error with Ethereum network:', error);
+                        throw new Error(`Failed to setup Ethereum network: ${error.message}`);
                     }
                 }
 
@@ -3793,7 +3793,7 @@ async function restoreDefaultAddressesfromGithub() {
                         imageSymbol: "B0x",
                         decimals: 18,
                         isToken: true,
-                        chain: "baseSepolia"
+                        chain: "base"
                     },
                     {
                         name: "0xBitcoin Token ",
@@ -3802,30 +3802,30 @@ async function restoreDefaultAddressesfromGithub() {
                         imageSymbol: "0xBTC",
                         decimals: 8,
                         isToken: true,
-                        chain: "baseSepolia"
+                        chain: "base"
                     },
                     {
                         name: "Proof of Work / Mining Address ",
                         address: ProofOfWorkAddresss,
                         isToken: false,
-                        chain: "baseSepolia"
+                        chain: "base"
                     },
                     {
                         name: "B0x Token Uniswap Liquidity Pool Staking Contract ",
                         address: contractAddressLPRewardsStaking,
                         isToken: false,
-                        chain: "baseSepolia"
+                        chain: "base"
                     }, {
                         name: "B0x Uniswap Router",
                         address: contractAddress_Swapper,
                         isToken: false,
-                        chain: "baseSepolia"
+                        chain: "base"
                     },
                     {
                         name: "Hook Address for Uniswap ",
                         address: hookAddress,
                         isToken: false,
-                        chain: "baseSepolia"
+                        chain: "base"
                     },
                     {
                         name: "B0x Token ",
@@ -3852,7 +3852,7 @@ async function restoreDefaultAddressesfromGithub() {
                         imageSymbol: "RightsTo0xBTC",
                         decimals: 18,
                         isToken: true,
-                        chain: "baseSepolia"
+                        chain: "base"
                     },
                     {
                         name: "RightsTo0xBitcoin Token ",
@@ -3861,13 +3861,13 @@ async function restoreDefaultAddressesfromGithub() {
                         imageSymbol: "RightsTo0xBTC",
                         decimals: 18,
                         isToken: true,
-                        chain: "baseSepolia"
+                        chain: "base"
                     },
                     {
                         name: "Uniswapv4PoolCreator ",
                         address: UnsiwapV4PoolCreatorAddress,
                         isToken: false,
-                        chain: "baseSepolia"
+                        chain: "base"
                     }
                 ];
 
