@@ -11300,7 +11300,15 @@ function isEnabled(id, bool = null) {
     
     // Set state to disabled
     isEnabled(ID, false);
+
+    if(msg ==  "No positions to increase Liquidity on, stake a position" || msg == "No positions to Decrease Liquidity on, create a position"){
+      
+                    inFunctionDontRefresh = false;
+    }else{
+
+
                     inFunctionDontRefresh = true;
+    }
                     console.log("inFunctionDontRefresh disableButtonwith Spinner: ",inFunctionDontRefresh);
 
                     const btn = document.getElementById(ID);
