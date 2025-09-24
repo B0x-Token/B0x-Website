@@ -1840,7 +1840,7 @@ var defaultBACKUPDataSource_Testnet = "https://data.github.bzerox.org/";
                         const shortAddress = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
 
                         // Create the BaseScan URL
-                        const baseScanUrl = `https://sepolia.basescan.org/address/${userAddress}`;
+                        const baseScanUrl = `https://basescan.org/address/${userAddress}`;
 
                         walletAddressSpan.style.display = 'block';
                         // Update the span with a clickable link that fills the entire button
@@ -3773,7 +3773,7 @@ async function restoreDefaultAddressesfromGithub() {
                     },
                     baseSepolia: {
                         name: "Base Sepolia Testnet",
-                        explorerUrl: "https://sepolia.basescan.org/address/", // https://sepolia.basescan.org/ for  Base Sepolia testnet
+                        explorerUrl: "https://basescan.org/address/", // https://sepolia.basescan.org/ for  Base Sepolia testnet
                         chainId: 84532, // Base Seplia Testnet (use 84532 for Base Sepolia testnet)
                         rpcUrl: customRPC,
                         nativeCurrency: {
@@ -16666,9 +16666,9 @@ function isEnabled(id, bool = null) {
 
                 const _MINT_TOPIC = "0xcf6fbb9dcea7d07263ab4f5c3a92f53af33dffc421d9d121e1c74b307e68189d";
 
-                var _BLOCK_EXPLORER_ADDRESS_URL = 'https://sepolia.basescan.org/address/';
-                var _BLOCK_EXPLORER_TX_URL = 'https://sepolia.basescan.org/tx/';
-                var _BLOCK_EXPLORER_BLOCK_URL = 'https://sepolia.basescan.org/block/';
+                var _BLOCK_EXPLORER_ADDRESS_URL = 'https://basescan.org/address/';
+                var _BLOCK_EXPLORER_TX_URL = 'https://basescan.org/tx/';
+                var _BLOCK_EXPLORER_BLOCK_URL = 'https://basescan.org/block/';
 
                 /* TODO use hours_into_past */
                 async function updateAllMinerInfoFirst() {
@@ -18742,7 +18742,7 @@ maxTokensEl.textContent = tokensPerDayMax.toFixed(2);
                     let notificationId;
 
                     if (txHash) {
-                        enhancedMessage = `${msg2} <br><a href="https://sepolia.basescan.org/tx/${txHash}" target="_blank" style="color: #10b981; text-decoration: underline; font-weight: 600;">View on Explorer →</a>`;
+                        enhancedMessage = `${msg2} <br><a href="https://basescan.org/tx/${txHash}" target="_blank" style="color: #10b981; text-decoration: underline; font-weight: 600;">View on Explorer →</a>`;
                     }
 
                     // Show notification for 30 seconds (30000ms)
