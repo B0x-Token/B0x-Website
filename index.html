@@ -132,14 +132,14 @@
                 <button class="nav-tab" onclick="switchTab('stake-decrease')" data-tab="stake-decrease">Stake
                     Decrease</button>
                 <button class="nav-tab" onclick="switchTab('convert')" data-tab="convert">Convert 0xBTC <-> B0x</button>
-                <button class="nav-tab" onclick="switchTab('settings')" data-tab="settings">Settings</button>
+                <button class="nav-tab" onclick="switchTab('stats')" data-tab="stats">Live Statistics</button>
                 <button class="nav-tab" onclick="switchTab('staking-management')" data-tab="staking-management">Stake
                     Management</button>
-                <button class="nav-tab" onclick="switchTab('testnet-faucet')" data-tab="testnet-faucet">Testnet Token
-                    Faucet</button>
+               <!--<button class="nav-tab" onclick="switchTab('testnet-faucet')" data-tab="testnet-faucet">Testnet Token
+                    Faucet</button>-->
+                <button class="nav-tab" onclick="switchTab('settings')" data-tab="settings">Settings</button>
                 <button class="nav-tab" onclick="switchTab('contract-info')" data-tab="contract-info">Contract
                     Info</button>
-                <button class="nav-tab" onclick="switchTab('stats')" data-tab="stats">Live Statistics</button>
                 <button class="nav-tab" onclick="switchTab('whitepaper')" data-tab="whitepaper">Whitepaper</button>
                 <button class="nav-tab" onclick="switchTab('socials')" data-tab="socials">Social Media</button>
                 <button class="nav-tab" onclick="switchTab('miner')" data-tab="miner">Miner Setup</button>
@@ -497,8 +497,8 @@
                                             <h3 class="category-title">Daily Earnings Estimate</h3>
                                             <div class="result-item">
                                                 <span class="result-label">Tokens per day (MAX):</span>
-                                                <span id="max-tokens" class="result-value">0.00</span> B0x Tokens
-                                            </div>
+                                                <span id="max-tokens" class="result-value">0.00</span> B0x
+                                              </div>
                                             <div class="result-note">
                                                 Based on your calculated hashrate
                                             </div>
@@ -570,12 +570,6 @@
                                 </div>
                             </div>
 
-                            <p class="reference">For a more detailed calculator and individual GPU benchmarks, visit:
-                            </p>
-                            <ul class="reference-list">
-                                <li><a href="#" class="reference-link">0xBTC Mining Calculator</a> by minerjoe78,
-                                    milkers, and others</li>
-                            </ul>
                         </div>
                     </div>
 
@@ -1709,11 +1703,11 @@
                     Alternative Website
                 </a>
 
-                <a href="https://dev.testnet.bzerox.org" class="social-link website" target="_blank" rel="noopener noreferrer">
+                <a href="https://dev.bzerox.org" class="social-link website" target="_blank" rel="noopener noreferrer">
                     <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
                     </svg>
-                    Developer Documents Testnet
+                    Developer / Documents Mainnet
                 </a>
                 <a href="https://www.reddit.com/r/bzerox/" class="social-link reddit" target="_blank" rel="noopener noreferrer">
                     <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -2128,7 +2122,7 @@
                                     <div class="b0x-download-card">
                                         <h3>🪟 Windows Miner</h3>
                                         <p>For Windows 10/11 users</p>
-                                        <a href="https://github.com/B0x-Token/B0xToken-Windows-Miner-Testnet/"
+                                        <a href="https://github.com/B0x-Token/B0xToken-Windows-Miner-Mainnet/"
                                             target="_blank" class="b0x-download-btn">
                                             Download Windows Miner
                                         </a>
@@ -2137,7 +2131,7 @@
                                     <div class="b0x-download-card">
                                         <h3>🐧 Ubuntu Miner</h3>
                                         <p>For Ubuntu 20+ users</p>
-                                        <a href="https://github.com/B0x-Token/B0xToken-Miner-Testnet-Ubuntu-20-"
+                                        <a href="https://github.com/B0x-Token/B0xToken-Miner-Mainnet-Ubuntu/"
                                             target="_blank" class="b0x-download-btn">
                                             Download Ubuntu Miner
                                         </a>
@@ -2162,12 +2156,12 @@
 
                                 <div class="b0x-config-block">
                                     "minerAddress": "0xF2E00a6DbA02eD1115e5BEf3CcD7B5dD47141dDC",<br></br>
-                                    "privateKey": "0xf7a41f2d35af57da25aa46c3e0ac4fd7e83bd900d45851750026d2afe4e10190",
+                                    "privateKey": "0xf7a41INPUTYOURPRIVATEKEYHEREc3e0ac4fd7e83bd900de10190",
                                 </div>
 
                                 <div class="b0x-important-note">
-                                    ⚠️ <strong>Important:</strong> Replace with your Base Sepolia Blockchain account
-                                    that has Base Seplia ETH in it. Using this exposed key will result in loss of funds.
+                                    ⚠️ <strong>Important:</strong> Replace with your Base Blockchain account
+                                    that has Base Ethereum in it. Using this exposed key will result in loss of funds.
                                     **ESPECIALLY TRUE ON MAINNET, USING the included testnet key will result in loss of funds,
                                     you must supply your own private key and address for mining!**
                                 </div>
@@ -2195,40 +2189,41 @@
 
                                 <div class="b0x-config-block">
                                     "minSecondsPerAnswer": 0,<br></br>
-                                    "maxUSDperToken": -0.02055,</div>
+                                    "maxUSDperToken": -0.10,</div>
                                 <p><strong>maxUSDperToken:</strong> Maximum USD you plan to spend per B0x token
-                                    (negative means it costs money to mint - this is normal).</p>
+                                    (negative means it costs money to mint - this is normal).
+                                    -0.10 means 10c per Token is the maximum you want to spend per token in ur mints
+                                </p>
 
                                 <h3 style="color: white; margin-top: 25px;">Network Configuration (Testnet):</h3>
                                 <div class="b0x-config-block">
-                                    "web3api": "https://sepolia.base.org",<br></br>
-                                    "contractAddress": "0x925C42A57328FD8a7b07ecA444A34963e07C8999",<br></br>
-                                    "chainID": 84532,</div>
+                                    "web3api": "https://base.llamarpc.com",<br></br>
+                                    "contractAddress": "0xE377d143a472EB0b255264f22af858075b6b9529",<br></br>
+                                    "chainID": 8453,</div>
                             </div>
 
                             <div class="b0x-section">
-                                <h2 class="b0x-section-title">💰 Get Test ETH & Bridge to Base Sepolia</h2>
+                                <h2 class="b0x-section-title">💰 Get Base Ethereum & Bridgeing to Base</h2>
 
                                 <div class="b0x-step">
                                     <span class="b0x-step-number">5</span>
-                                    <strong>Get Sepolia ETH:</strong> First, get Sepolia ETH from the faucet, then
-                                    bridge it to Base Sepolia.
+                                    <strong>Get Base Ethereum:</strong> First, get Base Ethereum frome bridge
                                 </div>
 
                                 <div class="b0x-bridge-links">
-                                    <a href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia"
+                                    <a href="https://jumper.exchange/?fromChain=8453&toChain=8453&toToken=0x0000000000000000000000000000000000000000"
                                         target="_blank" class="b0x-bridge-btn">
-                                        🚰 Get Sepolia ETH Faucet
+                                        🚰 Get Base Ethereum from the Bridge
                                     </a>
-                                    <a href="https://superbridge.app/base-sepolia" target="_blank"
-                                        class="b0x-bridge-btn">
-                                        🌉 Bridge to Base Sepolia
+                                </div>      <div class="b0x-bridge-links">
+                                    <a href="https://superbridge.app/?fromChainId=1&toChainId=8453"
+                                        target="_blank" class="b0x-bridge-btn">
+                                        🚰 Get Base Ethereum from the SuperBridge Bridge
                                     </a>
                                 </div>
-
                                 <div class="b0x-important-note">
-                                    ⏱️ <strong>Wait Time:</strong> After bridging, wait approximately 5 minutes for Base
-                                    Sepolia ETH to appear in your wallet.
+                                    ⏱️ <strong>Wait Time:</strong> After bridging, wait approximately 1-5 minutes for                        
+                                    Base Ethereum to appear in your wallet.
                                 </div>
                             </div>
 

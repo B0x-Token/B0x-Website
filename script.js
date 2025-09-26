@@ -17979,7 +17979,7 @@ async function GetContractStatsWithMultiCall() {
                 }
                 return result.returnData;
             });
-            console.log("Aggregate3 multicall executed successfully at block:", blockNumber.toString());
+            console.log("    multicall executed successfully at block:", blockNumber.toString());
         } catch (aggregate3Error) {
             console.log("Aggregate3 failed, trying regular aggregate...", aggregate3Error.message);
             
@@ -18360,6 +18360,7 @@ async function GetContractStatsWithMultiCall() {
                 const realisticBlockTimeEl = document.getElementById('realistic-block-time');
                 const maxTokensEl = document.getElementById('max-tokens');
 
+
                
                 // Calculate mining results based on the formula in HTML
                 function calculateMining() {
@@ -18376,10 +18377,13 @@ async function GetContractStatsWithMultiCall() {
                         // Reset display if no valid hashrate
                         avgBlockTimeEl.textContent = '∞';
                         realisticBlockTimeEl.textContent = '∞';
-                        minTokensEl.textContent = '0.00';
+                       //minTokensEl.textContent = '0.00';
                         maxTokensEl.textContent = '0.00';
                         return;
                     }
+
+
+let EpochPerSeconds = convertToSeconds();
 
                     // Calculate average time to solve a block (in seconds)
                     // Formula from HTML: time = (2^22 × difficulty) / hashrate
@@ -18389,7 +18393,7 @@ async function GetContractStatsWithMultiCall() {
                     const realistic10BlockTime = avgBlockTime * 10;
 
                     // Calculate blocks per day
-                    const blocksPerDay = SECONDS_PER_DAY / avgBlockTime;
+                    const blocksPerDay = SECONDS_PER_DAY / (avgBlockTime);
 
                     var blocksPerDay2 = SECONDS_PER_DAY / 600;
 
@@ -18397,21 +18401,43 @@ async function GetContractStatsWithMultiCall() {
                     // Calculate rewards based on block time rules:
                     // Fast blocks (< 10 min): reward = 25 × (block_time / 600)
                     // Slow blocks (≥ 10 min): reward = 25 tokens
-                    let rewardPerBlock;
-                    if (avgBlockTime >= 600) {
+                  //  let rewardPerBlock;
+
+                    let rewardPerBlock = parseInt(document.querySelector('.stat-value-rewardPerSolve').textContent.trim());
+// This gets "0.060 minutes" as a string
+
+
+                    var newRewardPerBlock = rewardPerBlock;
+                    if( rewardPerBlock == 0){
+                        newRewardPerBlock = 25;
+                    }
+
+
+            var MaxBoxPossibleInADay = calculateTheoreticalRewards(avgBlockTime, newRewardPerBlock);
+                    console.log("MaxBoxPossibleInADay: ", MaxBoxPossibleInADay);
+
+
+                    if ((avgBlockTime+EpochPerSeconds) >= 600) {
                         // Slow blocks: ≥10 minutes = fixed 25 tokens
-                        rewardPerBlock = 25;
+                        //rewardPerBlock = 25;
 
                     } else {
                         // Fast blocks: reward inversely proportional to speed
-                        rewardPerBlock = 25 * (avgBlockTime / 600);
-                        if (rewardPerBlock < 6.25) {
-                            rewardPerBlock = 6.25;
+                        newRewardPerBlock = rewardPerBlock * (600 / (avgBlockTime+EpochPerSeconds));
+                        if (newRewardPerBlock < rewardPerBlock/4) {
+                            newRewardPerBlock = rewardPerBlock/4;
                         }
 
                     }
                     // Should always use actual blocks per day based on your hashrate
-const tokensPerDayMax = blocksPerDay * rewardPerBlock;
+var tokensPerDayMax = blocksPerDay * newRewardPerBlock;
+
+if(tokensPerDayMax > MaxBoxPossibleInADay){
+    tokensPerDayMax = MaxBoxPossibleInADay;
+}
+console.log("Blocks Per Day: ",blocksPerDay);
+console.log("Blocks Per Day newRewardPerBlock : ",newRewardPerBlock);
+console.log("Blocks Per Day tokensPerDayMax: ",tokensPerDayMax);
 maxTokensEl.textContent = tokensPerDayMax.toFixed(2);
 
 
@@ -18428,26 +18454,165 @@ maxTokensEl.textContent = tokensPerDayMax.toFixed(2);
                     }
                 }
 
-                // Format time display
-                function formatTime(seconds) {
-                    if (seconds < 1) {
-                        return (seconds * 1000).toFixed(1) + 'ms';
-                    } else if (seconds < 60) {
-                        return seconds.toFixed(1);
-                    } else if (seconds < 3600) {
-                        const minutes = Math.floor(seconds / 60);
-                        const remainingSeconds = (seconds % 60).toFixed(1);
-                        return `${minutes}m ${remainingSeconds}s`;
-                    } else if (seconds < 86400) {
-                        const hours = Math.floor(seconds / 3600);
-                        const minutes = Math.floor((seconds % 3600) / 60);
-                        return `${hours}h ${minutes}m`;
-                    } else {
-                        const days = Math.floor(seconds / 86400);
-                        const hours = Math.floor((seconds % 86400) / 3600);
-                        return `${days}d ${hours}h`;
+
+function calculateTheoreticalRewards(addINInputedAvergeMineInSeconds, currentAvgReward) {
+    // Get current average reward
+    const currentAverageReward = currentAvgReward;
+    
+    // Get current average reward time in seconds (using your previous conversion function)
+    const timeElement = document.querySelector('.stat-value-averageRewardTime');
+    const timeValue = parseFloat(timeElement.textContent.trim());
+    const blkToGo = document.querySelector('.stat-value-blocksToGo');
+    const BlksToGo = parseFloat(blkToGo.textContent.trim());
+    const timeUnit = timeElement.querySelector('.avgRewardUnit').textContent.trim().toLowerCase();
+    
+    const timeConversions = {
+        'second': 1, 'seconds': 1,
+        'minute': 60, 'minutes': 60,
+        'hour': 3600, 'hours': 3600,
+        'day': 86400, 'days': 86400,
+        'week': 604800, 'weeks': 604800,
+        'month': 2592000, 'months': 2592000,
+        'year': 31536000, 'years': 31536000
+    };
+    
+    let currentAverageRewardTime = addINInputedAvergeMineInSeconds * BlksToGo + (2016-BlksToGo) * timeValue * (timeConversions[timeUnit] || 1);
+    currentAverageRewardTime = currentAverageRewardTime / (2 * 2016);
+    
+    console.log(`Starting values:`);
+    console.log(`Current Average Reward: ${currentAverageReward} B0x`);
+    console.log(`Current Average Reward Time: ${currentAverageRewardTime} seconds (${currentAverageRewardTime/60} minutes)`);
+    
+    const TARGET_TIME = 600; // 10 minutes in seconds
+    const ONE_DAY = 86400; // 24 hours in seconds
+    const BLOCKS_PER_ADJUSTMENT = 2016;
+    let totalRewards = 0;
+    let currentReward = currentAverageReward;
+    let currentTime = currentAverageRewardTime; // average seconds per block
+    let adjustmentRound = 0;
+    let difficultyMultiplier = 1;
+    
+    // Continue until we've simulated enough time or reached stability
+    while (adjustmentRound < 100) {
+        adjustmentRound++;
+        
+        // How many blocks fit into 24h at current block time
+        let blocksPerDay = Math.floor(ONE_DAY / currentTime);
+        let blocksThisPeriod = Math.min(BLOCKS_PER_ADJUSTMENT, blocksPerDay);
+        
+        let periodRewards = currentReward * blocksThisPeriod;
+        totalRewards += periodRewards;
+        
+        console.log(`\n--- Adjustment Round ${adjustmentRound} ---`);
+        console.log(`Current time per block: ${currentTime.toFixed(2)} seconds (${(currentTime/60).toFixed(2)} minutes)`);
+        console.log(`Current reward per block: ${currentReward} B0x`);
+        console.log(`Blocks this period (capped by 1 day): ${blocksThisPeriod}`);
+        console.log(`Rewards this period: ${periodRewards} B0x`);
+        console.log(`Total rewards so far: ${totalRewards} B0x`);
+        
+        // Check if we need difficulty adjustment
+        if (currentTime < TARGET_TIME) {
+            difficultyMultiplier = currentTime / TARGET_TIME;
+            
+            if(difficultyMultiplier < 0.25) difficultyMultiplier = 0.25;
+            if(difficultyMultiplier > 4) difficultyMultiplier = 4;
+            
+            console.log(`Time (${currentTime}s) < Target (${TARGET_TIME}s) - Difficulty adjustment`);
+            console.log(`Difficulty multiplier: ${difficultyMultiplier.toFixed(4)}`);
+            
+            // Adjust time and reward
+            currentTime += currentTime / difficultyMultiplier;
+            currentReward = currentReward * difficultyMultiplier;
+            
+            console.log(`New time after adjustment: ${currentTime.toFixed(2)} seconds (${(currentTime/60).toFixed(2)} minutes)`);
+        } else {
+            console.log(`Time (${currentTime}s) >= Target (${TARGET_TIME}s) - Equilibrium reached`);
+            break;
+        }
+        
+        // Stop if we’ve already simulated a day
+        if (adjustmentRound * ONE_DAY >= ONE_DAY) {
+            console.log(`Simulated one full day`);
+            break;
+        }
+    }
+    
+    console.log(`\n=== Final Results ===`);
+    console.log(`Total adjustment rounds: ${adjustmentRound}`);
+    console.log(`Final time per block: ${currentTime.toFixed(2)} seconds (${(currentTime/60).toFixed(2)} minutes)`);
+    console.log(`Final reward per block: ${currentReward} B0x`);
+    console.log(`Total theoretical rewards in 24h: ${totalRewards} B0x`);
+    
+    return totalRewards;
+}
+
+
+                function convertToSeconds() {
+                        const element = document.querySelector('.stat-value-averageRewardTime');
+                        const fullText = element.textContent.trim(); // "0.060 minutes"
+                        const unitElement = element.querySelector('.avgRewardUnit');
+                        const unit = unitElement.textContent.trim().toLowerCase(); // "minutes"
+                        const value = parseFloat(fullText); // 0.060
+
+                        let rewardPerBlock;
+                        
+                        switch(unit) {
+                            case 'second':
+                            case 'seconds':
+                                rewardPerBlock = value;
+                                break;
+                            case 'minute':
+                            case 'minutes':
+                                rewardPerBlock = value * 60;
+                                break;
+                            case 'hour':
+                            case 'hours':
+                                rewardPerBlock = value * 3600; // 60 * 60
+                                break;
+                            case 'day':
+                            case 'days':
+                                rewardPerBlock = value * 86400; // 24 * 60 * 60
+                                break;
+                            case 'week':
+                            case 'weeks':
+                                rewardPerBlock = value * 604800; // 7 * 24 * 60 * 60
+                                break;
+                            case 'month':
+                            case 'months':
+                                rewardPerBlock = value * 2592000; // 30 * 24 * 60 * 60 (assuming 30 days)
+                                break;
+                            case 'year':
+                            case 'years':
+                                rewardPerBlock = value * 31536000; // 365 * 24 * 60 * 60
+                                break;
+                            default:
+                                rewardPerBlock = value; // default to original value if unit not recognized
+                                console.warn(`Unknown time unit: ${unit}`);
+                        }
+                        console.log("REWARD PER BLOCK TIME: ", Math.round(rewardPerBlock));
+                        return Math.round(rewardPerBlock); // Round to nearest whole second
                     }
-                }
+
+// Format time display
+function formatTime(seconds) {
+    if (seconds < 1) {
+        return (seconds * 1000).toFixed(1) + 'ms';
+    } else if (seconds < 60) {
+        return seconds.toFixed(1) + 's';   // ✅ always show "s"
+    } else if (seconds < 3600) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = (seconds % 60).toFixed(1);
+        return `${minutes}m ${remainingSeconds}s`;
+    } else if (seconds < 86400) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        return `${hours}h ${minutes}m`;
+    } else {
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        return `${days}d ${hours}h`;
+    }
+}
 
                 // Use current difficulty
                 function useCurrentDiff() {
