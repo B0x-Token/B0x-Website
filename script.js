@@ -99,7 +99,7 @@ const UnsiwapV4PoolCreatorAddress = "0x398395C860EcaaF9B58FEBd0b91118c129DbcBe7"
 const USDCToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const positionManager_address = "0x7c5f5a4bbd8fd63184577525326123b519429bdc";
 const contractAddress_PositionFinderPro = '0xb46CAfc364868105FfE7dFF8ea0c2d25c5b80eCa'; // Replace with actual contract address
-const contractAddress_Swapper = '0x3C18e8E88603b79ECf225D8990e43771efe4010D'; // Replace with actual contract address
+const contractAddress_Swapper = '0xeb6fD0882Ff46E27beD39aEA37CAd159Ba3cA1Dd'; // Replace with actual contract address
 const contractAddressLPRewardsStaking = '0x2C0B7f3542e06b81334A10B3ece8De98884449c8';
 const hookAddress = '0xA54CbcF7449421E5842C483CC30d992ced301000';
 const ProofOfWorkAddresss = '0xE377d143a472EB0b255264f22af858075b6b9529';
@@ -6589,7 +6589,13 @@ async function restoreDefaultAddressesfromGithub() {
                     console.log("\n=== END DEBUG ===");
                 }
 
+                async function getSwapOfTwoTokensMultiHop(){
 
+
+
+
+
+                }
                 async function getSwapOfTwoTokens() {
 
                     // Run the debug function
@@ -6632,9 +6638,15 @@ async function restoreDefaultAddressesfromGithub() {
                     var tokenOutputAddress = tokenAddresses[toSelectValue];
                     console.log("tokenInputAddress:", tokenInputAddress);
                     console.log("tokenOutputAddress:", tokenOutputAddress);
+                    
+                    if(tokenInputAddress == "0x0000000000000000000000000000000000000000" || tokenOutputAddress == "0x0000000000000000000000000000000000000000" )
+                    {
+                           var intermediate = tokenAddresses["0xBTC"]
+                           //NOW GET THE ESTIMATE THEN DO TEH SWAP 
+                         await getSwapOfTwoTokensMultiHop();
+                            return;
 
-
-
+                    }
                     // Get the currently selected value
                     const selectedValue2 = amountInput.value;
                     console.log("Currently amountInput value:", selectedValue2);
@@ -6687,14 +6699,18 @@ async function restoreDefaultAddressesfromGithub() {
                     );
 
                     try {
+                        
+                    var tokenInputAddress = tokenAddresses[selectedValue];
+                    var tokenOutputAddress = tokenAddresses[toSelectValue];
                         // Call the view function
                         const result = await tokenSwapperContract.callStatic.getOutput(
-                            Address_ZEROXBTC_TESTNETCONTRACT,
-                            tokenAddress,
+                            tokenInputAddress,
+                            tokenOutputAddress,
                             tokenInputAddress,
                             HookAddress,
                             amountToSwap
                         );
+
 
                         // First debug what we're getting back
                         console.log("Raw result type:", typeof result);
@@ -6721,11 +6737,13 @@ async function restoreDefaultAddressesfromGithub() {
                         const formattedResult = ethers.utils.formatEther(result);
                         // Format to display as a readable number
                         let readableAmountOut2Output = ethers.utils.formatEther(amountOut);
-                        let readableAmountIN2Input = ethers.utils.formatUnits(amountToSwap, 8);
+                        let readableAmountIN2Input = ethers.utils.formatEther(amountToSwap);
 
                         if (tokenInputAddress == Address_ZEROXBTC_TESTNETCONTRACT) {
                             // Keep the current formatting
-                        } else {
+                            readableAmountOut2Output = ethers.utils.formatEther(amountOut);
+                            readableAmountIN2Input = ethers.utils.formatUnits(amountToSwap, 8);
+                        } else if(tokenOutputAddress == Address_ZEROXBTC_TESTNETCONTRACT){
                             readableAmountOut2Output = ethers.utils.formatUnits(amountOut, 8);
                             readableAmountIN2Input = ethers.utils.formatEther(amountToSwap);
                         }
@@ -6850,6 +6868,417 @@ async function restoreDefaultAddressesfromGithub() {
                     }
 
                 }
+
+async function getSwapOfTwoTokensMultiHop() {
+    // Run the debug function
+    if (!walletConnected) {
+        await connectWallet();
+    }
+
+    var selectSlippage = document.getElementById('slippageToleranceSwap');
+    var selectSlippageValue = selectSlippage.value;
+    const numberValueSlippage = parseFloat(selectSlippageValue.replace('%', ''));
+    const decimalValueSlippage = numberValueSlippage / 100;
+    console.log("selectSlippageValue: ", selectSlippageValue);
+    console.log("decimalValueSlippage: ", decimalValueSlippage);
+
+    // Get FROM and TO tokens
+    const fromSelect = document.querySelector('#swap .form-group:nth-child(4) select');
+    const selectedValue = fromSelect.value;
+    const amountInput = document.querySelector('#swap .form-group:nth-child(5) input');
+    const toSelect = document.querySelector('#swap .form-group:nth-child(7) select');
+    const toSelectValue = toSelect.value;
+
+    var tokenInputAddress = tokenAddresses[selectedValue];
+    var tokenOutputAddress = tokenAddresses[toSelectValue];
+    
+    console.log("tokenInputAddress:", tokenInputAddress);
+    console.log("tokenOutputAddress:", tokenOutputAddress);
+
+    // Check if this is a multi-hop swap (one token is ETH)
+    const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
+    const isMultiHop = (tokenInputAddress === ETH_ADDRESS && tokenOutputAddress == tokenAddresses["B0x"] ) || (tokenOutputAddress === ETH_ADDRESS && tokenInputAddress == tokenAddresses["B0x"])
+    
+        const fromToken = selectedValue.trim();
+        const toToken = toSelectValue.trim();
+
+        if (isMultiHop) {
+            await handleMultiHopSwap(fromToken, toToken, amountInput.value, decimalValueSlippage);
+        } else {
+            await handleSingleHopSwap(fromToken, toToken, amountInput.value, decimalValueSlippage);
+        }
+}
+
+async function handleMultiHopSwap(fromToken, toToken, amountStr, decimalValueSlippage) {
+    console.log("Handling multi-hop swap");
+    console.log("TO TOKEN DEBUG: ",toToken);
+    var amountToSwap = ethers.utils.parseUnits(amountStr, 18);
+        console.log("11111111 Handling multi-hop swap");
+    
+    // Adjust decimals for 0xBTC
+    if (fromToken == "0xBTC") {
+        amountToSwap = ethers.utils.parseUnits(amountStr, 8);
+    }
+        console.log("22222222 Handling multi-hop swap");
+    // Define pool configurations
+    const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
+    const OXBTC_ADDRESS = Address_ZEROXBTC_TESTNETCONTRACT;
+    const B0X_ADDRESS = tokenAddresses["B0x"];; // Your B0x token address
+    
+        console.log("33333333 Handling multi-hop swap");
+    // Pool 1: B0x/0xBTC, Pool 2: 0xBTC/ETH
+    let pool1TokenA, pool1TokenB, pool2TokenA, pool2TokenB;
+    let tokenInputAddress, tokenOutputAddress;
+    let hook1Address = hookAddress; // Your existing hook
+    let hook2Address = hookAddress; // You might need different hooks for different pools
+
+        console.log("4444444 Handling multi-hop swap");
+    // Determine pool configuration based on swap direction
+    if (fromToken === "B0x" && toToken === "ETH") {
+        // B0x -> 0xBTC -> ETH
+        pool1TokenA = B0X_ADDRESS;
+        pool1TokenB = OXBTC_ADDRESS;
+        pool2TokenA = OXBTC_ADDRESS;
+        pool2TokenB = ETH_ADDRESS;
+        tokenInputAddress = B0X_ADDRESS;
+        tokenOutputAddress = ETH_ADDRESS;
+    } else if (fromToken === "ETH" && toToken === "B0x") {
+        // ETH -> 0xBTC -> B0x
+        pool1TokenA = ETH_ADDRESS;
+        pool1TokenB = OXBTC_ADDRESS;
+        pool2TokenA = OXBTC_ADDRESS;
+        pool2TokenB = B0X_ADDRESS;
+        tokenInputAddress = ETH_ADDRESS;
+        tokenOutputAddress = B0X_ADDRESS;
+    } else if (fromToken === "0xBTC" && toToken === "ETH") {
+        // Direct 0xBTC -> ETH (single hop through 0xBTC/ETH pool)
+        // This could still use multi-hop function or fall back to single hop
+        return await handleSingleHopSwap(fromToken, toToken, amountStr, decimalValueSlippage);
+    } else if (fromToken === "ETH" && toToken === "0xBTC") {
+        // Direct ETH -> 0xBTC (single hop through ETH/0xBTC pool)
+        return await handleSingleHopSwap(fromToken, toToken, amountStr, decimalValueSlippage);
+    } else {
+        console.error("Unsupported multi-hop configuration");
+        return;
+    }
+
+    // Enhanced ABI with multi-hop functions
+    const tokenSwapperMultiHopABI = [
+        // Multi-hop quote function
+        {
+            "inputs": [
+                { "name": "pool1TokenA", "type": "address" },
+                { "name": "pool1TokenB", "type": "address" },
+                { "name": "pool2TokenA", "type": "address" },
+                { "name": "pool2TokenB", "type": "address" },
+                { "name": "tokenIn", "type": "address" },
+                { "name": "tokenOut", "type": "address" },
+                { "name": "hook1Address", "type": "address" },
+                { "name": "hook2Address", "type": "address" },
+                { "name": "amountIn", "type": "uint128" }
+            ],
+            "name": "getOutputMultiHop",
+            "outputs": [{ "name": "amountOut", "type": "uint256" }],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        // Multi-hop swap function
+       
+        // Multi-hop swap function (PAYABLE)
+        {
+            "inputs": [
+                { "name": "pool1TokenA", "type": "address" },
+                { "name": "pool1TokenB", "type": "address" },
+                { "name": "pool2TokenA", "type": "address" },
+                { "name": "pool2TokenB", "type": "address" },
+                { "name": "tokenIn", "type": "address" },
+                { "name": "tokenOut", "type": "address" },
+                { "name": "amountIn", "type": "uint256" },
+                { "name": "minAmountOut", "type": "uint256" },
+                { "name": "hook1Address", "type": "address" },
+                { "name": "hook2Address", "type": "address" },
+                { "name": "WhereToSendFunds", "type": "address" }
+            ],
+            "name": "swapTwoPoolsMultiHop",
+            "outputs": [{ "name": "", "type": "bool" }],
+            "stateMutability": "payable", // Changed from "nonpayable" to "payable"
+            "type": "function"
+        }
+    ];
+
+    const tokenSwapperContract = new ethers.Contract(
+        contractAddress_Swapper,
+        tokenSwapperMultiHopABI,
+        signer
+    );
+
+    let amountOut, MinamountOut;
+
+    try {
+    console.log("Multi-hop swap parameters:");
+    console.log("Pool1TokenA:", pool1TokenA);
+    console.log("Pool1TokenB:", pool1TokenB);
+    console.log("Pool2TokenA:", pool2TokenA);
+    console.log("Pool2TokenB:", pool2TokenB);
+    console.log("TokenIn:", tokenInputAddress);
+    console.log("TokenOut:", tokenOutputAddress);
+    console.log("hook1Address:", hook1Address);
+    console.log("hook2Address:", hook2Address);
+    console.log("AmountIn:", amountToSwap.toString());
+        // Get quote for multi-hop swap
+        const result = await tokenSwapperContract.callStatic.getOutputMultiHop(
+            pool1TokenA,
+            pool1TokenB,
+            pool2TokenA,
+            pool2TokenB,
+            tokenInputAddress,
+            tokenOutputAddress,
+            hook1Address,
+            hook2Address,
+            amountToSwap
+        );
+
+        amountOut = result;
+        console.log(`Multi-hop predicted amountOut: ${amountOut.toString()}`);
+
+        // Format for display
+        let readableAmountOut, readableAmountIn;
+        
+        if (fromToken === "0xBTC") {
+            readableAmountIn = ethers.utils.formatUnits(amountToSwap, 8);
+        } else {
+            readableAmountIn = ethers.utils.formatEther(amountToSwap);
+        }
+
+        if (toToken === "0xBTC") {
+            readableAmountOut = ethers.utils.formatUnits(amountOut, 8);
+        } else {
+            readableAmountOut = ethers.utils.formatEther(amountOut);
+        }
+
+        // Calculate minimum amount out with slippage
+        if (typeof amountOut === 'bigint') {
+            MinamountOut = amountOut * BigInt(Math.floor((1 - decimalValueSlippage) * 10000)) / 10000n;
+        } else {
+            MinamountOut = amountOut.mul(Math.floor((1 - decimalValueSlippage) * 10000)).div(10000);
+        }
+
+        alert(`Multi-hop trade: ${readableAmountIn} ${fromToken} for ${readableAmountOut} ${toToken}`);
+
+    } catch (error) {
+        console.error(`Error getting multi-hop quote:`, error);
+        return;
+    }
+
+    console.log("Multi-hop swap parameters:");
+    console.log("Pool1TokenA:", pool1TokenA);
+    console.log("Pool1TokenB:", pool1TokenB);
+    console.log("Pool2TokenA:", pool2TokenA);
+    console.log("Pool2TokenB:", pool2TokenB);
+    console.log("TokenIn:", tokenInputAddress);
+    console.log("TokenOut:", tokenOutputAddress);
+    console.log("AmountIn:", amountToSwap.toString());
+    console.log("MinAmountOut:", MinamountOut.toString());
+
+    try {
+        // Approve token if it's not ETH
+        if (tokenInputAddress !== ETH_ADDRESS) {
+            const amountToSwapBN = ethers.BigNumber.from(amountToSwap.toString());
+            await approveIfNeeded(tokenInputAddress, contractAddress_Swapper, amountToSwapBN);
+        }
+
+        // Execute multi-hop swap
+        const tx = await tokenSwapperContract.swapTwoPoolsMultiHop(
+            pool1TokenA,
+            pool1TokenB,
+            pool2TokenA,
+            pool2TokenB,
+            tokenInputAddress,
+            tokenOutputAddress,
+            amountToSwap,
+            MinamountOut,
+            hook1Address,
+            hook2Address,
+            userAddress,
+            {
+                // Add value if swapping from ETH
+                value: tokenInputAddress === ETH_ADDRESS ? amountToSwap : 0
+            }
+        );
+
+        console.log("Multi-hop swap transaction sent:", tx.hash);
+        await tx.wait();
+        console.log("Multi-hop transaction confirmed!");
+        showSuccessNotification('Multi-Hop Swap Complete!', 'Transaction complete, successfully swapped tokens', tx.hash);
+        
+        // Refresh balances
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        await throttledGetSqrtRtAndPriceRatio("SwapFunction");
+        fetchBalances();
+
+    } catch (error) {
+        console.error(`Error executing multi-hop swap:`, error);
+        alert("User rejected multi-hop swap request!");
+    }
+}
+
+async function handleSingleHopSwap(fromToken, toToken, amountStr, decimalValueSlippage) {
+    console.log("Handling single-hop swap");
+    
+    // Parse amount with correct decimals
+    let amountToSwap;
+    if (fromToken === "0xBTC") {
+        amountToSwap = ethers.utils.parseUnits(amountStr, 8);
+    } else {
+        amountToSwap = ethers.utils.parseUnits(amountStr, 18);
+    }
+
+    const tokenInputAddress = tokenAddresses[fromToken];
+    const tokenOutputAddress = tokenAddresses[toToken];
+
+    // Single-hop ABI
+    const singleHopABI = [
+        {
+            "inputs": [
+                { "name": "tokenZeroxBTC", "type": "address" },
+                { "name": "tokenBZeroX", "type": "address" },
+                { "name": "tokenIn", "type": "address" },
+                { "name": "hookAddress", "type": "address" },
+                { "name": "amountIn", "type": "uint128" }
+            ],
+            "name": "getOutput",
+            "outputs": [{ "name": "amountOut", "type": "uint256" }],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                { "name": "tokenA", "type": "address" },
+                { "name": "tokenB", "type": "address" },
+                { "name": "tokenIn", "type": "address" },
+                { "name": "tokenOut", "type": "address" },
+                { "name": "amountIn", "type": "uint256" },
+                { "name": "minAmountOut", "type": "uint256" },
+                { "name": "hookAddress", "type": "address" },
+                { "name": "WhereToSendFunds", "type": "address" }
+            ],
+            "name": "swapTokenTWOTOKENS",
+            "outputs": [{ "name": "", "type": "bool" }],
+            "stateMutability": "payable",
+            "type": "function"
+        }
+    ];
+
+    const contract = new ethers.Contract(contractAddress_Swapper, singleHopABI, signer);
+
+    try {
+        // Get quote
+        const result = await contract.callStatic.getOutput(
+            tokenOutputAddress,
+            tokenInputAddress,
+            tokenInputAddress,
+            hookAddress,
+            amountToSwap
+        );
+
+        const amountOut = result;
+        
+        // Calculate minimum with slippage
+        let minAmountOut;
+        if (typeof amountOut === 'bigint') {
+            minAmountOut = amountOut * BigInt(Math.floor((1 - decimalValueSlippage) * 10000)) / 10000n;
+        } else {
+            minAmountOut = amountOut.mul(Math.floor((1 - decimalValueSlippage) * 10000)).div(10000);
+        }
+
+        // Format for display
+        let readableAmountIn, readableAmountOut;
+        if (fromToken === "0xBTC") {
+            readableAmountIn = ethers.utils.formatUnits(amountToSwap, 8);
+        } else {
+            readableAmountIn = ethers.utils.formatEther(amountToSwap);
+        }
+
+        if (toToken === "0xBTC") {
+            readableAmountOut = ethers.utils.formatUnits(amountOut, 8);
+        } else {
+            readableAmountOut = ethers.utils.formatEther(amountOut);
+        }
+
+        alert(`You will trade ${readableAmountIn} ${fromToken} for ${readableAmountOut} ${toToken}`);
+
+        // Approve if needed
+        if (tokenInputAddress !== "0x0000000000000000000000000000000000000000") {
+            await approveIfNeeded(tokenInputAddress, contractAddress_Swapper, amountToSwap);
+        }
+
+        // Execute swap.
+
+        console.log("DOGDAYS tokenInputAddress: ", tokenInputAddress);
+        console.log("DOGDAYS tokenOutputAddress: ", tokenOutputAddress);
+        console.log("DOGDAYS tokenInputAddress: ", tokenInputAddress);
+        console.log("DOGDAYS tokenOutputAddress: ", tokenOutputAddress);
+        console.log("DOGDAYS amountToSwap: ", amountToSwap.toString());
+        console.log("DOGDAYS minAmountOut: ", minAmountOut.toString());
+        console.log("DOGDAYS hookAddress: ", hookAddress);
+        console.log("DOGDAYS userAddress: ", userAddress);
+        const tx = await contract.swapTokenTWOTOKENS(
+            tokenInputAddress,
+            tokenOutputAddress,
+            tokenInputAddress,
+            tokenOutputAddress,
+            amountToSwap,
+            minAmountOut,
+            hookAddress,
+            userAddress
+        );
+
+        showInfoNotification();
+        console.log("Single-hop swap transaction sent:", tx.hash);
+        await tx.wait();
+        console.log("Transaction confirmed!");
+        showSuccessNotification('Swap Complete!', 'Single-hop swap successful', tx.hash);
+
+        // Refresh UI
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        await throttledGetSqrtRtAndPriceRatio("SwapFunction");
+        fetchBalances();
+
+    } catch (error) {
+        console.error("Single-hop swap failed:", error);
+        alert("Swap failed!");
+    }
+}
+
+
+// Example usage function to test multi-hop
+async function testMultiHopQuote() {
+    const tokenSwapperContract = new ethers.Contract(
+        contractAddress_Swapper,
+        [/* multi-hop ABI */],
+        provider // Use provider for read-only calls
+    );
+
+    try {
+        // Test B0x -> ETH quote (1 B0x)
+        const quote = await tokenSwapperContract.callStatic.getOutputMultiHop(
+            tokenAddress,                    // pool1TokenA (B0x)
+            Address_ZEROXBTC_TESTNETCONTRACT, // pool1TokenB (0xBTC)
+            Address_ZEROXBTC_TESTNETCONTRACT, // pool2TokenA (0xBTC)
+            "0x0000000000000000000000000000000000000000", // pool2TokenB (ETH)
+            tokenAddress,                    // tokenIn (B0x)
+            "0x0000000000000000000000000000000000000000", // tokenOut (ETH)
+            HookAddress,                     // hook1Address
+            HookAddress,                     // hook2Address
+            ethers.utils.parseEther("1")     // 1 B0x
+        );
+
+        console.log("1 B0x =", ethers.utils.formatEther(quote), "ETH");
+    } catch (error) {
+        console.error("Quote test failed:", error);
+    }
+}
+
 
 
                 async function getConvertTotal(usemetamask) {
@@ -7128,177 +7557,273 @@ async function restoreDefaultAddressesfromGithub() {
                 }
 
 
+async function getEstimate() {
+    if (!walletConnected) {
+        await connectWallet();
+    }
 
-                async function getEstimate() {
+    const fromSelect = document.querySelector('#swap .form-group:nth-child(4) select');
+    const toSelect = document.querySelector('#swap .form-group:nth-child(7) select');
+    
+    // Get the currently selected values
+    const selectedValue = fromSelect.value;
+    const toSelectValue = toSelect.value;
+    console.log("From token:", selectedValue);
+    console.log("To token:", toSelectValue);
 
+    var tokenInputAddress = tokenAddresses[selectedValue];
+    var tokenOutputAddress = tokenAddresses[toSelectValue];
+    console.log("tokenInputAddress:", tokenInputAddress);
+    console.log("tokenOutputAddress:", tokenOutputAddress);
 
-                    if (!walletConnected) {
-                        await connectWallet();
-                    }
+    const amountInput = document.querySelector('#swap .form-group:nth-child(5) input');
+    const selectedValue2 = amountInput.value;
+    console.log("Amount input value:", selectedValue2);
 
-                    const fromSelect = document.querySelector('#swap .form-group:nth-child(4) select');
+    var amountToSwap = ethers.utils.parseUnits(selectedValue2, 18);
+    if (amountToSwap == 0) {
+        console.log("AmountToSwap 0 returning");
+        return;
+    }
 
+    // Handle 0xBTC decimal precision
+    if (selectedValue == "0xBTC") {
+        console.log("LOGGED 0xBTC selected Value");
+        const numericValue = parseFloat(selectedValue2);
+        const decimalPlaces = (selectedValue2.split('.')[1] || '').length;
 
-                    // Get the currently selected value
-                    const selectedValue = fromSelect.value;
-                    console.log("Currently selected value:", selectedValue);
+        let valueToUse;
+        if (decimalPlaces > 8) {
+            const parts = selectedValue2.split('.');
+            valueToUse = parts[0] + '.' + parts[1].substring(0, 8);
+            console.log(`Truncated from ${decimalPlaces} to 8 decimal places: ${valueToUse}`);
+        } else {
+            valueToUse = selectedValue2;
+        }
+        amountToSwap = ethers.utils.parseUnits(valueToUse, 8);
+        amountInput.value = ethers.utils.formatUnits(amountToSwap, 8);
+    }
 
-                    // Or get the selected option element itself
-                    const selectedOption = fromSelect.options[fromSelect.selectedIndex];
-                    console.log("Selected option text:", selectedOption.text);
-                    console.log("Selected option value:", selectedOption.value);
+    // Check if this requires multi-hop (one token is ETH)
+    const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
+    const isMultiHop = (tokenInputAddress === ETH_ADDRESS && tokenOutputAddress == tokenAddresses["B0x"] ) || (tokenOutputAddress === ETH_ADDRESS && tokenInputAddress == tokenAddresses["B0x"])
+    
+    let amountOut = 0;
 
+    if (isMultiHop) {
+        // Use multi-hop estimate
+        amountOut = await getMultiHopEstimate(
+            selectedValue, 
+            toSelectValue, 
+            tokenInputAddress, 
+            tokenOutputAddress, 
+            amountToSwap
+        );
+    } else {
+        // Use single-hop estimate (your existing logic)
+        console.log("getSingleHopEstimate tokenInputAddress: ", tokenInputAddress);
+        console.log("getSingleHopEstimate tokenOutputAddress: ", tokenOutputAddress);
+        console.log("getSingleHopEstimate amountToSwap: ", amountToSwap);
+        amountOut = await getSingleHopEstimate(tokenInputAddress, tokenOutputAddress, amountToSwap);
+    }
 
-                    var tokenInputAddress = tokenAddresses[selectedValue];
-                    console.log("tokenInputAddresstokenInputAddresstokenInputAddresstokenInputAddress", tokenInputAddress);
-                    const amountInput = document.querySelector('#swap .form-group:nth-child(5) input');
-                    // Get the currently selected value
-                    const selectedValue2 = amountInput.value;
-                    console.log("Currently amountInput value:", selectedValue2);
-                    var amountToSwap = ethers.utils.parseUnits(selectedValue2, 18);  // Correctly represents 12 * 10^8
-                    if (amountToSwap == 0) {
-                        console.log("AmountToSwap 0 returning");
-                        return;
-                    }
+    // Update the display
+    updateEstimateDisplay(selectedValue, toSelectValue, amountOut, amountToSwap);
+}
 
-                    if (selectedValue == "0xBTC") {
-                        console.log("LOGGED 0xBTC selected Value");
+async function getSingleHopEstimate(tokenInputAddress, tokenOutputAddress,  amountToSwap) {
+    const tokenSwapperABI = [
+        {
+            "inputs": [
+                { "name": "tokenZeroxBTC", "type": "address" },
+                { "name": "tokenBZeroX", "type": "address" },
+                { "name": "tokenIn", "type": "address" },
+                { "name": "hookAddress", "type": "address" },
+                { "name": "amountIn", "type": "uint128" }
+            ],
+            "name": "getOutput",
+            "outputs": [{ "name": "amountOut", "type": "uint256" }],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ];
 
-                        const numericValue = parseFloat(selectedValue2);
+    const tokenSwapperContract = new ethers.Contract(
+        contractAddress_Swapper,
+        tokenSwapperABI,
+        provider // Use provider for read-only calls
+    );
 
-                        // Count decimal places
-                        const decimalPlaces = (selectedValue2.split('.')[1] || '').length;
+    try {
+        const result = await tokenSwapperContract.callStatic.getOutput(
+            tokenOutputAddress,
+            tokenInputAddress,
+            tokenInputAddress,
+            HookAddress,
+            amountToSwap
+        );
 
-                        let valueToUse;
-                        if (decimalPlaces > 8) {
-                            // Chop off decimals after 8th place (no rounding)
-                            const parts = selectedValue2.split('.');
-                            valueToUse = parts[0] + '.' + parts[1].substring(0, 8);
-                            console.log(`Truncated from ${decimalPlaces} to 8 decimal places: ${valueToUse}`);
-                        } else {
-                            valueToUse = selectedValue2; // Keep original string
-                        }
-                        amountToSwap = ethers.utils.parseUnits(valueToUse, 8);  // Correctly represents 12 * 10^8
-                        amountInput.value = ethers.utils.formatUnits(amountToSwap, 8);;
+        return extractAmountFromResult(result);
+    } catch (error) {
+        console.error("Error getting single-hop estimate:", error);
+        return 0;
+    }
+}
 
-                    }
-                    let amountOut = 0;
-                    const tokenSwapperABI = [
-                        // Your existing getOutput function
-                        {
-                            "inputs": [
-                                { "name": "tokenZeroxBTC", "type": "address" },
-                                { "name": "tokenBZeroX", "type": "address" },
-                                { "name": "tokenIn", "type": "address" },
-                                { "name": "hookAddress", "type": "address" },
-                                { "name": "amountIn", "type": "uint128" }
-                            ],
-                            "name": "getOutput",
-                            "outputs": [{ "name": "amountOut", "type": "uint256" }],
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        // Add the swapTokenTWOTOKENS function
-                        {
-                            "inputs": [
-                                { "name": "tokenA", "type": "address" },
-                                { "name": "tokenB", "type": "address" },
-                                { "name": "tokenIn", "type": "address" },
-                                { "name": "tokenOut", "type": "address" },
-                                { "name": "amountIn", "type": "uint256" },
-                                { "name": "minAmountOut", "type": "uint256" },
-                                { "name": "hookAddress", "type": "address" },
-                                { "name": "WhereToSendFunds", "type": "address" }
-                            ],
-                            "name": "swapTokenTWOTOKENS",
-                            "outputs": [{ "name": "", "type": "bool" }],
-                            "stateMutability": "nonpayable", // This will modify state
-                            "type": "function"
-                        }
-                    ];
+async function getMultiHopEstimate(fromToken, toToken, tokenInputAddress, tokenOutputAddress, amountToSwap) {
+    const multiHopABI = [
+        {
+            "inputs": [
+                { "name": "pool1TokenA", "type": "address" },
+                { "name": "pool1TokenB", "type": "address" },
+                { "name": "pool2TokenA", "type": "address" },
+                { "name": "pool2TokenB", "type": "address" },
+                { "name": "tokenIn", "type": "address" },
+                { "name": "tokenOut", "type": "address" },
+                { "name": "hook1Address", "type": "address" },
+                { "name": "hook2Address", "type": "address" },
+                { "name": "amountIn", "type": "uint128" }
+            ],
+            "name": "getOutputMultiHop",
+            "outputs": [{ "name": "amountOut", "type": "uint256" }],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ];
 
+    const tokenSwapperContract = new ethers.Contract(
+        contractAddress_Swapper,
+        multiHopABI,
+        provider
+    );
 
-                    tokenSwapperContract = new ethers.Contract(
-                        contractAddress_Swapper, // your tokenSwapper contract address
-                        tokenSwapperABI,
-                        signer // Use signer since the function isn't view/pure
-                    );
+    // Define addresses
+    const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
+    const OXBTC_ADDRESS = Address_ZEROXBTC_TESTNETCONTRACT;
+    const B0X_ADDRESS = tokenAddress;
 
+    // Determine pool configuration based on swap direction
+    let pool1TokenA, pool1TokenB, pool2TokenA, pool2TokenB;
+    let hook1Address = HookAddress;
+    let hook2Address = HookAddress; // You might need different hooks
 
-                    /*
-                    console.log("EERRROR HERE");
-                    console.log("EERRROR Address_ZEROXBTC_TESTNETCONTRACT: ",Address_ZEROXBTC_TESTNETCONTRACT);
-                    console.log("EERRROR tokenAddress: ",tokenAddress);
-                    console.log("EERRROR tokenInputAddress: ",tokenInputAddress);
-                    console.log("EERRROR HookAddress: ",HookAddress);
-                    console.log("EERRROR amountToSwap: ",amountToSwap);
-                    console.log("EERRROR amountToSwap: ",amountToSwap);
-                    console.log("EERRROR contractAddress_Swapper: ",contractAddress_Swapper);
-                    */
+    if (fromToken === "B0x" && toToken === "ETH") {
+        // B0x -> 0xBTC -> ETH
+        pool1TokenA = B0X_ADDRESS;
+        pool1TokenB = OXBTC_ADDRESS;
+        pool2TokenA = OXBTC_ADDRESS;
+        pool2TokenB = ETH_ADDRESS;
+    } else if (fromToken === "ETH" && toToken === "B0x") {
+        // ETH -> 0xBTC -> B0x
+        pool1TokenA = ETH_ADDRESS;
+        pool1TokenB = OXBTC_ADDRESS;
+        pool2TokenA = OXBTC_ADDRESS;
+        pool2TokenB = B0X_ADDRESS;
+    } else if (fromToken === "0xBTC" && toToken === "ETH") {
+        // 0xBTC -> ETH (direct)
+        pool1TokenA = OXBTC_ADDRESS;
+        pool1TokenB = ETH_ADDRESS;
+        pool2TokenA = ETH_ADDRESS; // Dummy, won't be used
+        pool2TokenB = ETH_ADDRESS; // Dummy, won't be used
+        // This might need special handling or fall back to single-hop
+        return await getSingleHopEstimate(tokenInputAddress, amountToSwap);
+    } else if (fromToken === "ETH" && toToken === "0xBTC") {
+        // ETH -> 0xBTC (direct)
+        pool1TokenA = ETH_ADDRESS;
+        pool1TokenB = OXBTC_ADDRESS;
+        pool2TokenA = OXBTC_ADDRESS; // Dummy, won't be used
+        pool2TokenB = OXBTC_ADDRESS; // Dummy, won't be used
+        // This might need special handling or fall back to single-hop
+        return await getSingleHopEstimate(tokenInputAddress, amountToSwap);
+    } else {
+        console.error("Unsupported multi-hop configuration for estimate");
+        return 0;
+    }
 
-                    // Call the view function
-                    const result = await tokenSwapperContract.callStatic.getOutput(
-                        Address_ZEROXBTC_TESTNETCONTRACT,
-                        tokenAddress,
-                        tokenInputAddress,
-                        HookAddress,
-                        amountToSwap
-                    );
+    try {
+        console.log("Getting multi-hop estimate with params:");
+        console.log("Pool1TokenA:", pool1TokenA);
+        console.log("Pool1TokenB:", pool1TokenB);
+        console.log("Pool2TokenA:", pool2TokenA);
+        console.log("Pool2TokenB:", pool2TokenB);
+        console.log("TokenIn:", tokenInputAddress);
+        console.log("TokenOut:", tokenOutputAddress);
+        console.log("AmountIn:", amountToSwap.toString());
 
-                    // First debug what we're getting back
-                    console.log("Raw result type:", typeof result);
-                    console.log("Raw result structure:", Object.keys(result).join(", "));
+        const result = await tokenSwapperContract.callStatic.getOutputMultiHop(
+            pool1TokenA,
+            pool1TokenB,
+            pool2TokenA,
+            pool2TokenB,
+            tokenInputAddress,
+            tokenOutputAddress,
+            hook1Address,
+            hook2Address,
+            amountToSwap
+        );
 
-                    if (typeof result === 'bigint' || typeof result === 'number') {
-                        // If it's already a primitive value
-                        amountOut = result;
-                    } else if (result._isBigNumber || result instanceof ethers.BigNumber) {
-                        // For ethers v5 BigNumber
-                        amountOut = result;
-                    } else if (typeof result === 'object' && result !== null) {
-                        // For objects, try to extract the value
-                        // With ethers v6, we might get the value directly
-                        if (typeof result.toString === 'function' && result.toString().match(/^[0-9]+$/)) {
-                            amountOut = result;
-                        } else {
-                            // Attempt to extract value based on common patterns
-                            amountOut = result[0] || result.amountOut || result._hex || result.value || result;
-                        }
-                    }
+        console.log("Multi-hop estimate result:", result.toString());
+        return extractAmountFromResult(result);
+    } catch (error) {
+        console.error("Error getting multi-hop estimate:", error);
+        // Fall back to showing 0 or some error state
+        return 0;
+    }
+}
 
-                    console.log(`Found valid amountOut: ${amountOut.toString()}`);
-                    const formattedResult = ethers.utils.formatEther(result);
-                    // Format to display as a readable number
-                    let readableAmountOut2Output = ethers.utils.formatEther(amountOut);
-                    let readableAmountIN2Input = ethers.utils.formatUnits(amountToSwap, 8);
+function extractAmountFromResult(result) {
+    console.log("Raw result type:", typeof result);
+    console.log("Raw result structure:", Object.keys(result).join(", "));
 
-                    if (tokenInputAddress == Address_ZEROXBTC_TESTNETCONTRACT) {
-                        // Keep the current formatting
-                    } else {
-                        readableAmountOut2Output = ethers.utils.formatUnits(amountOut, 8);
-                        readableAmountIN2Input = ethers.utils.formatEther(amountToSwap);
-                    }
+    if (typeof result === 'bigint' || typeof result === 'number') {
+        return result;
+    } else if (result._isBigNumber || result instanceof ethers.BigNumber) {
+        return result;
+    } else if (typeof result === 'object' && result !== null) {
+        if (typeof result.toString === 'function' && result.toString().match(/^[0-9]+$/)) {
+            return result;
+        } else {
+            return result[0] || result.amountOut || result._hex || result.value || result;
+        }
+    }
+    return result;
+}
 
-                    // Fix the BigInt arithmetic issue
-                    if (typeof amountOut === 'bigint') {
-                        MinamountOut = amountOut - 10n; // Use 10n for BigInt
-                    } else {
-                        MinamountOut = amountOut - 10;
-                    }
+function updateEstimateDisplay(fromToken, toToken, amountOut, amountToSwap) {
+    console.log(`Estimate result: ${amountOut.toString()}`);
+    
+    // Format readable amounts for logging
+    let readableAmountOut, readableAmountIn;
+    
+    if (fromToken === "0xBTC") {
+        readableAmountIn = ethers.utils.formatUnits(amountToSwap, 8);
+    } else {
+        readableAmountIn = ethers.utils.formatEther(amountToSwap);
+    }
 
-                    // Update the estimated output display
-                    const estimatedOutputInput = document.querySelector('#swap .form-group:nth-child(8) input');
+    if (toToken === "0xBTC") {
+        readableAmountOut = ethers.utils.formatUnits(amountOut, 8);
+    } else {
+        readableAmountOut = ethers.utils.formatEther(amountOut);
+    }
 
+    console.log(`Readable estimate: ${readableAmountIn} ${fromToken} → ${readableAmountOut} ${toToken}`);
 
-                    // Fix 4: Using ethers.js formatUnits (if you're using ethers.js)
-                    if (selectedValue == "0xBTC") {
-                        estimatedOutputInput.value = ethers.utils.formatUnits(amountOut, 18);
-                    } else {
-                        estimatedOutputInput.value = ethers.utils.formatUnits(amountOut, 8);
-                    }
-                }
+    // Update the estimated output display
+    const estimatedOutputInput = document.querySelector('#swap .form-group:nth-child(8) input');
+    
+    if (estimatedOutputInput) {
+        // Format based on output token
+        if (toToken === "0xBTC") {
+            estimatedOutputInput.value = ethers.utils.formatUnits(amountOut, 8);
+        } else {
+            estimatedOutputInput.value = ethers.utils.formatEther(amountOut);
+        }
+    }
 
-
+    // Store the amount for later use in swap
+    window.lastEstimatedAmount = amountOut;
+}
 
 
 
