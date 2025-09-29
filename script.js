@@ -21874,13 +21874,13 @@ async function runContinuous(blocksPerScan = 1000, sleepSeconds = 10) {
                             updateLoadingStatusWidget('Loading All Positions for users Loop #:'+ x + " MaxLoop #: " + numOfLoops);
                             setLoadingProgress(Math.floor((x + 1) / (numOfLoops) * 100));
             if (currentBlockzzzz <= latestBlock) {
-                            updateLoadingStatusWidget('Loading All Positions for users Loop #:'+ x + " MaxLoop #: " + numOfLoops);
-                            setLoadingProgress(Math.floor((x + 1) / (numOfLoops) * 100));
-                            x=x+1;
                 const remainingBlocks = latestBlock - currentBlockzzzz + 1;
                 console.log(`\n${remainingBlocks} blocks behind latest (${currentBlockzzzz} → ${latestBlock})`);
                 
                 while (currentBlockzzzz <= latestBlock && isRunning) {
+
+                    x=x+1;
+                    updateLoadingStatusWidget('Loading All Positions for users Loop #:'+ x + " MaxLoop #: " + numOfLoops);
                     const currentLatest = await getLatestBlock();
                     const blocksToScan = Math.min(blocksPerScan, currentLatest - currentBlockzzzz + 1);
                     const toBlock = currentBlockzzzz + blocksToScan - 1;
