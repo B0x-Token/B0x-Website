@@ -21896,6 +21896,7 @@ async function runContinuous(blocksPerScan = 1000, sleepSeconds = 10) {
                     } else {
                         break;
                     }
+                    saveDataLocally();
                 }
                 
                 saveDataLocally();
