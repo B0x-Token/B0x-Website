@@ -690,7 +690,8 @@ function showLoadingWidget(message = 'Loading...', title = 'Loading') {
 }
 
 function updateLoadingStatusWidget(message) {
-    document.getElementById('loading-widget-message').textContent = message;
+        document.getElementById('loading-widget-message').innerHTML = message;  // Use innerHTML, not textContent
+
 }
 
 function setLoadingProgress(percentage) {
@@ -22381,13 +22382,17 @@ function calculateBlockRanges(fromBlock, toBlock) {
 
     return ranges;
 }
-async function scanBlocks(fromBlock, toBlock) {
+
+async function scanBlocks(fromBlock, toBlock, loopNumbers) {
     console.log(`\nScanning blocks ${fromBlock} to ${toBlock}...`);
     const blockRanges = calculateBlockRanges(fromBlock, toBlock);
     const allTransfers = {};
 
     for (const { start, end } of blockRanges) {
-        console.log(` Scanning sub-range: ${start} to ${end} (${end - start + 1} blocks)`);
+                    xzzzzz12312312312 = xzzzzz12312312312 + 1;
+updateLoadingStatusWidget('Loading All Positions for users<br>Loop #:' + xzzzzz12312312312 + " MaxLoop #: " + loopNumbers.toFixed(0));
+
+                    console.log(` Scanning sub-range: ${start} to ${end} (${end - start + 1} blocks)`);
 
         // Get Transfer logs (includes both minting from 0x00 and regular transfers)
         const transferLogs = await getLogs(
@@ -22538,6 +22543,7 @@ function triggerRefresh() {
     console.log("Force refresh triggered - will check for new blocks immediately");
 }
 
+            let xzzzzz12312312312 = 0;
 async function runContinuous(blocksPerScan = 1000, sleepSeconds = 10) {
     console.log("Starting continuous monitoring...");
     console.log("Will continuously scan to the newest block");
@@ -22550,26 +22556,25 @@ async function runContinuous(blocksPerScan = 1000, sleepSeconds = 10) {
 
         WeAreSearchingLogsRightNow = true;
         try {
-            var x = 0;
+            xzzzzz12312312312 = 0;
             const latestBlock = await getLatestBlock();
-            var numOfLoops = (latestBlock - currentBlockzzzz) / 499;
-            updateLoadingStatusWidget('Loading All Positions for users Loop #:' + x + " MaxLoop #: " + numOfLoops);
-            setLoadingProgress(Math.floor((x + 1) / (numOfLoops) * 100));
+            var numOfLoops = Math.ceil((latestBlock - currentBlockzzzz) / 499);
+
+            updateLoadingStatusWidget('Loading All Positions for users<br>Loop #:' + xzzzzz12312312312 + " MaxLoop #: " + numOfLoops.toFixed(0));
+            setLoadingProgress(Math.floor((xzzzzz12312312312 + 1) / (numOfLoops) * 100));
             if (currentBlockzzzz <= latestBlock) {
                 const remainingBlocks = latestBlock - currentBlockzzzz + 1;
                 console.log(`\n${remainingBlocks} blocks behind latest (${currentBlockzzzz} → ${latestBlock})`);
 
                 while (currentBlockzzzz <= latestBlock && isRunning) {
 
-                    x = x + 1;
-                    updateLoadingStatusWidget('Loading All Positions for users Loop #:' + x + " MaxLoop #: " + numOfLoops);
                     const currentLatest = await getLatestBlock();
                     const blocksToScan = Math.min(blocksPerScan, currentLatest - currentBlockzzzz + 1);
                     const toBlock = currentBlockzzzz + blocksToScan - 1;
 
                     if (blocksToScan > 0) {
                         console.log(`Scanning blocks ${currentBlockzzzz} to ${toBlock} (${blocksToScan} blocks)`);
-                        await scanBlocks(currentBlockzzzz, toBlock);
+                        await scanBlocks(currentBlockzzzz, toBlock, numOfLoops);
                         currentBlockzzzz = toBlock + 1;
 
                         if (currentBlockzzzz <= currentLatest && isRunning) {
