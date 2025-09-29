@@ -1086,7 +1086,7 @@
                             <option>2.0%</option>
                         </select>
                     </div>
-
+                    <div id="estimateDisplay"></div>
                     <button class="btn-primary" id="executeSwapBtn" onclick="executeSwap()">Execute Swap</button>
                 </div>
 
@@ -2284,26 +2284,26 @@
                 <!-- ADMIN FUNCTION DAPP PAGE -->
                 <div id="admin-functions" class="page">
 
+                    <div class="info-card">
+                        <h3>ADMIN FUNCTIONS Update Fees or Add/Remove Reward Tokens</h3>
+                        <p>Update Pool Fee and Add ERC20 Token Reward and Remove ERC20 Reward</p>
+                    </div>
                     <button class="btn-primary" id="currentPoolFeeBtn"
                         onclick="getCurrentPoolFee()">getCurrentPoolFee</button>
+                    <button class="btn-primary" id="currentPoolFeeBtn"
+                        onclick="getCurrentPoolFee0xBTCETH()">getCurrentPoolFee0xBTCETH</button>
                     <div class="info-card2">
                         <h3>Current Pool Fee<h3>
                                 <p>Not loaded yet...</p>
                     </div>
 
-
-                    <div class="info-card">
-                        <h3>ADMIN FUNCTIONS FILL IN HERE</h3>
-                        <p>ADMIN FUNCTIONS FILL IN HERE2.</p>
-                        <p>Update Pool Fee and Add ERC20 Token Reward and Remove ERC20 Reward</p>
-                    </div>
                     <h1>Hook Admin Functions</h1>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>New Fee %</label>
                             <div style="position: relative; display: inline-block; width: 100%;">
-                                <input type="number" id="UpdateAdminFee" value="1" step="0.1" min="0" max="100"
+                                <input type="number" id="UpdateAdminFee" value="10" step="1" min="0.1" max="90"
                                     style="width: 100%; padding: 10px 25px 10px 10px; border: 1px solid #ddd; border-radius: 4px;">
                                 <span
                                     style="position: absolute; left: 55px; top: 50%; transform: translateY(-50%); color: #666; pointer-events: none;">%</span>
@@ -2311,7 +2311,8 @@
                         </div>
                     </div>
 
-                    <button class="btn-primary" onclick="updateAdminFeeForPool()">Update Admin PooL Fee</button>
+                    <button class="btn-primary" onclick="updateAdminFeeForPool()">Update Admin PooL Fee B0x 0xBTC Pool</button>
+                    <button class="btn-primary" onclick="updateAdminFeeForPool0xBTCETH()">Update Admin PooL Fee 0xBTC ETH Pool</button>
                     <br></br><br></br><br></br>
                     <h1>Staking Admin Functions</h1>
 
