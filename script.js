@@ -21782,8 +21782,9 @@ async function scanBlocks(fromBlock, toBlock) {
             
             Object.assign(allTransfers, validTransfers);
         }
-    }
-    
+
+
+
     // Update NFT ownership (now includes both new mints and transfers)
     if (Object.keys(allTransfers).length > 0) {
         Object.assign(nftOwners, allTransfers);
@@ -21799,6 +21800,9 @@ async function scanBlocks(fromBlock, toBlock) {
     }
     
     saveDataLocally();
+
+
+    }
 }
 
 function printSummary() {
