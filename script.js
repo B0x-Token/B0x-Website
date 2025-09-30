@@ -856,6 +856,11 @@ async function GetRewardAPY(_tokenAddresses, _rewardRate, zeroXBTC_In_Staking) {
     var total_rewardRate_WETH = 0;
     var total_rewardRate_0xBTC = 0;
     var total_rewardRate_B0x = 0;
+    if(_tokenAddresses) {
+
+    
+        
+
     for (var x = 0; x < _tokenAddresses.length; x++) {
         var tknAdd = _tokenAddresses[x];
         if (tknAdd == tokenAddresses['WETH']) {
@@ -868,6 +873,8 @@ async function GetRewardAPY(_tokenAddresses, _rewardRate, zeroXBTC_In_Staking) {
             total_rewardRate_B0x = _rewardRate[x];
         }
     }
+
+}
 
 
 
@@ -905,14 +912,13 @@ async function GetRewardAPY(_tokenAddresses, _rewardRate, zeroXBTC_In_Staking) {
             "type": "function"
         }
     ];
-
-
+console.log("Custom RPC1: ", customRPC);
+    const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
     tokenSwapperContract = new ethers.Contract(
         contractAddress_Swapper, // your tokenSwapper contract address
         tokenSwapperABI,
-        signer // Use signer since the function isn't view/pure
+        provider_zzzzz12 // Use signer since the function isn't view/pure
     );
-
 
     /*
     console.log("EERRROR HERE");
@@ -1560,7 +1566,7 @@ async function getRewardStats() {
 
     console.log("rewardtokenDecimals: ", rewardtokenDecimals.toString());
     console.log("rewardtokenRewardRate: ", rewardtokenRewardRate.toString());
-    getRewardStats
+    
     console.log("rewardtokenPeriodEndsAt: ", rewardtokenPeriodEndsAt.toString());
 
 
@@ -7553,17 +7559,46 @@ async function withdrawFromV2toV1() {
         return false;
     }
 }
-
+// Retry utility function with exponential backoff
+async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000, maxDelay = 10000) {
+    let lastError;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            return await fn();
+        } catch (error) {
+            lastError = error;
+            
+            // Don't retry on final attempt
+            if (attempt === maxRetries) {
+                break;
+            }
+            
+            // Calculate exponential backoff with jitter
+            const exponentialDelay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+            const jitter = Math.random() * 0.3 * exponentialDelay; // 0-30% jitter
+            const delay = exponentialDelay + jitter;
+            
+            console.log(`Attempt ${attempt + 1} failed, retrying in ${Math.round(delay)}ms...`, error.message);
+            
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+    
+    // All retries failed
+    console.error(`All ${maxRetries + 1} attempts failed:`, lastError);
+    throw lastError;
+}
 
 async function getEstimate() {
     if (!walletConnected) {
-        await connectWallet();
+        console.log("Wallet not connected");
     }
 
     const fromSelect = document.querySelector('#swap .form-group:nth-child(4) select');
     const toSelect = document.querySelector('#swap .form-group:nth-child(7) select');
 
-    // Get the currently selected values
     const selectedValue = fromSelect.value;
     const toSelectValue = toSelect.value;
     console.log("From token:", selectedValue);
@@ -7608,55 +7643,50 @@ async function getEstimate() {
 
     let amountOut = 0;
 
-    if (isMultiHop) {
-        // Use multi-hop estimate
-        amountOut = await getMultiHopEstimate(
-            selectedValue,
-            toSelectValue,
-            tokenInputAddress,
-            tokenOutputAddress,
-            amountToSwap
-        );
-    } else {
-        // Use single-hop estimate (your existing logic)
-        console.log("getSingleHopEstimate tokenInputAddress: ", tokenInputAddress);
-        console.log("getSingleHopEstimate tokenOutputAddress: ", tokenOutputAddress);
-        console.log("getSingleHopEstimate amountToSwap: ", amountToSwap);
-        amountOut = await getSingleHopEstimate(tokenInputAddress, tokenOutputAddress, amountToSwap);
+    try {
+        if (isMultiHop) {
+            // Use multi-hop estimate with retry
+            amountOut = await retryWithBackoff(() => 
+                getMultiHopEstimate(
+                    selectedValue,
+                    toSelectValue,
+                    tokenInputAddress,
+                    tokenOutputAddress,
+                    amountToSwap
+                )
+            );
+        } else {
+            // Use single-hop estimate with retry
+            console.log("getSingleHopEstimate tokenInputAddress: ", tokenInputAddress);
+            console.log("getSingleHopEstimate tokenOutputAddress: ", tokenOutputAddress);
+            console.log("getSingleHopEstimate amountToSwap: ", amountToSwap);
+            amountOut = await retryWithBackoff(() => 
+                getSingleHopEstimate(tokenInputAddress, tokenOutputAddress, amountToSwap)
+            );
+        }
+
+        // Update the display  
+        const involves0xBTC = selectedValue === "0xBTC" || toSelectValue === "0xBTC";
+        await updateEstimateDisplayWithBridgeInfo(selectedValue, toSelectValue, amountOut, amountToSwap, involves0xBTC);
+        await updateEstimateDisplay(selectedValue, toSelectValue, amountOut, amountToSwap);
+    } catch (error) {
+        console.error("Failed to get estimate after retries:", error);
+        // Show error to user
+        const estimateDisplay = document.getElementById('estimateDisplay');
+        if (estimateDisplay) {
+            estimateDisplay.innerHTML = `
+                <div class="estimate-error" style="color: #dc3545; padding: 10px; border: 1px solid #dc3545; border-radius: 5px;">
+                    <strong>⚠️ Unable to get estimate</strong>
+                    <p>Please try again in a moment. If the problem persists, check your connection.</p>
+                </div>
+            `;
+        }
     }
 
-    // Update the display  
-    // With this:
-    const involves0xBTC = selectedValue === "0xBTC" || toSelectValue === "0xBTC";
-    await updateEstimateDisplayWithBridgeInfo(selectedValue, toSelectValue, amountOut, amountToSwap, involves0xBTC);
-    // Update the display
-    updateEstimateDisplay(selectedValue, toSelectValue, amountOut, amountToSwap);
+    updateWidget();
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function updateEstimateDisplay(fromToken, toToken, amountOut, amountToSwap) {
+async function updateEstimateDisplay(fromToken, toToken, amountOut, amountToSwap) {
     console.log(`Estimate result: ${amountOut.toString()}`);
     
     // Format readable amounts for logging
@@ -7692,16 +7722,6 @@ function updateEstimateDisplay(fromToken, toToken, amountOut, amountToSwap) {
     window.lastEstimatedAmount = amountOut;
 }
 
-
-
-
-
-
-
-
-
-
-
 // Calculate effective price per 0xBTC from swap
 function calculateEffectivePrice(amountIn, amountOut, fromToken, toToken, ethPrice) {
     let pricePerOxBTC = 0;
@@ -7718,7 +7738,7 @@ function calculateEffectivePrice(amountIn, amountOut, fromToken, toToken, ethPri
         } else if (toToken === "B0x") {
             // 0xBTC -> B0x
             const b0xPerOxBTC = amountOutFormatted / amountInFormatted;
-            pricePerOxBTC = b0xPerOxBTC * usdCostB0x; // Using your existing usdCostB0x variable
+            pricePerOxBTC = b0xPerOxBTC * usdCostB0x;
         }
     } else if (toToken === "0xBTC") {
         // Buying 0xBTC
@@ -7732,7 +7752,7 @@ function calculateEffectivePrice(amountIn, amountOut, fromToken, toToken, ethPri
         } else if (fromToken === "B0x") {
             // B0x -> 0xBTC
             const b0xPerOxBTC = amountInFormatted / amountOutFormatted;
-            pricePerOxBTC = b0xPerOxBTC * usdCostB0x; // Using your existing usdCostB0x variable
+            pricePerOxBTC = b0xPerOxBTC * usdCostB0x;
         }
     }
     
@@ -7792,30 +7812,42 @@ async function getEstimateWithBridgeComparison() {
     
     let amountOut = 0;
 
-    if (isMultiHop) {
-        amountOut = await getMultiHopEstimate(
+    try {
+        if (isMultiHop) {
+            amountOut = await retryWithBackoff(() =>
+                getMultiHopEstimate(
+                    selectedValue, 
+                    toSelectValue, 
+                    tokenInputAddress, 
+                    tokenOutputAddress, 
+                    amountToSwap
+                )
+            );
+        } else {
+            amountOut = await retryWithBackoff(() =>
+                getSingleHopEstimate(tokenInputAddress, tokenOutputAddress, amountToSwap)
+            );
+        }
+
+        // Update the display with bridge comparison
+        await updateEstimateDisplayWithBridgeInfo(
             selectedValue, 
             toSelectValue, 
-            tokenInputAddress, 
-            tokenOutputAddress, 
-            amountToSwap
+            amountOut, 
+            amountToSwap, 
+            involves0xBTC
         );
-    } else {
-        amountOut = await getSingleHopEstimate(tokenInputAddress, tokenOutputAddress, amountToSwap);
+    } catch (error) {
+        console.error("Failed to get estimate with bridge comparison after retries:", error);
+        throw error;
     }
-
-    // Update the display with bridge comparison
-    await updateEstimateDisplayWithBridgeInfo(
-        selectedValue, 
-        toSelectValue, 
-        amountOut, 
-        amountToSwap, 
-        involves0xBTC
-    );
 }
 
 // Enhanced display update with bridge comparison using your existing oxbtcPriceUSD
 async function updateEstimateDisplayWithBridgeInfo(fromToken, toToken, amountOut, amountIn, involves0xBTC) {
+    if(!walletConnected){
+       await GetRewardAPY();
+    }
     // Trim both tokens to remove any whitespace
     fromToken = fromToken.trim();
     toToken = toToken.trim();
@@ -7846,35 +7878,34 @@ async function updateEstimateDisplayWithBridgeInfo(fromToken, toToken, amountOut
     }
 
     // Only do bridge comparison for multi-hop swaps that go through 0xBTC
-    // Specifically: ETH -> 0xBTC -> B0x (where 0xBTC is the intermediate token)
     console.log("FROM TOKEN: ", fromToken);
     console.log("TO TOKEN: ", toToken);
     const isETHtoB0xVia0xBTC = (fromToken === "ETH" && toToken === "B0x");
     console.log("isETHtoB0xVia0xBTC", isETHtoB0xVia0xBTC);
-    
     if (isETHtoB0xVia0xBTC && oxbtcPriceUSD && oxbtcPriceUSD > 0) {
         try {
             // Get current ETH price
             const ethPrice = wethPriceUSD || 3000; // Fallback price
             
             // For multi-hop ETH -> 0xBTC -> B0x, we need the actual intermediate 0xBTC amount
-            // Query the first leg: ETH -> 0xBTC to get the intermediate amount (with slippage/fees)
             const OXBTC_ADDRESS = tokenAddresses["0xBTC"];
             const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
             
-            const intermediate0xBTCAmount = await getSingleHopEstimate(ETH_ADDRESS, OXBTC_ADDRESS, amountIn);
+            // Wrap the getSingleHopEstimate call with retry logic
+            const intermediate0xBTCAmount = await retryWithBackoff(() =>
+                getSingleHopEstimate(ETH_ADDRESS, OXBTC_ADDRESS, amountIn)
+            );
             const oxbtcReceived = parseFloat(ethers.utils.formatUnits(intermediate0xBTCAmount, 8));
             
             console.log("ETH input:", amountIn.toString());
             console.log("Intermediate 0xBTC amount (with fees/slippage):", oxbtcReceived);
             console.log("Final B0x output:", readableAmountOut);
             
-            // Calculate effective 0xBTC price: (ETH spent * ETH price) / 0xBTC received
+            // Calculate effective 0xBTC price
             const ethSpent = parseFloat(readableAmountIn);
             const totalETHSpentUSD = ethSpent * ethPrice;
             const swapPrice = totalETHSpentUSD / oxbtcReceived;
             
-            // Use your existing mainnet price variable
             const mainnetPrice = oxbtcPriceUSD;
             
             console.log("ETH spent:", ethSpent);
@@ -7883,17 +7914,16 @@ async function updateEstimateDisplayWithBridgeInfo(fromToken, toToken, amountOut
             console.log("Mainnet 0xBTC Price (from oxbtcPriceUSD):", mainnetPrice);
             console.log("Swap Effective Price:", swapPrice);
             
-            // Estimate bridge costs (adjust these values based on your bridge)
-            const BRIDGE_BASE_FEE_USD = 0; // Typical bridge fee in USD
-            const BRIDGE_GAS_COST_USD = 3; // Estimated gas cost for bridging
+            // Estimate bridge costs
+            const BRIDGE_BASE_FEE_USD = 0;
+            const BRIDGE_GAS_COST_USD = 3;
             const totalBridgeCost = BRIDGE_BASE_FEE_USD + BRIDGE_GAS_COST_USD;
             
-            // For multi-hop, use the intermediate 0xBTC amount we calculated
             const amount0xBTC = oxbtcReceived;
             
             // Calculate total cost difference
-            const swapCost = totalETHSpentUSD; // What you're actually spending
-            const bridgeCost = (amount0xBTC * mainnetPrice) + totalBridgeCost; // Cost if you bridged
+            const swapCost = totalETHSpentUSD;
+            const bridgeCost = (amount0xBTC * mainnetPrice) + totalBridgeCost;
             const potentialSavings = swapCost - bridgeCost;
             
             // Calculate price difference percentage
@@ -7911,32 +7941,32 @@ async function updateEstimateDisplayWithBridgeInfo(fromToken, toToken, amountOut
                 
                 // Show recommendation if price difference is significant (>5%)
                 if (swapPrice > mainnetPrice * 1.05) {
-comparisonHTML += `
-    <div style="margin-top: 10px; padding: 10px; border-radius: 5px; border-left: 4px solid #ffc107;">
-        <strong style="color: white;">⚠️ Consider Bridging Instead!</strong>
-        <p style="margin: 5px 0; color: white;">You're paying <strong>${priceDifference}%</strong> more than mainnet price.</p>
-        <p style="margin: 5px 0; color: white;"><strong>Cost Breakdown:</strong></p>
-        <ul style="margin: 5px 0; padding-left: 20px; color: white;">
-            <li>Swap cost: ${swapCost.toFixed(2)}</li>
-            <li>Bridge cost: ${bridgeCost.toFixed(2)} (includes ~${totalBridgeCost} in fees)</li>
-        </ul>
-        <p style="margin: 5px 0; color: white;"><strong>Potential savings: ~${potentialSavings.toFixed(2)}</strong></p>
-        <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
-            <a href="https://swap.defillama.com/?chain=ethereum&from=0x0000000000000000000000000000000000000000&tab=swap&to=0xb6ed7644c69416d67b522e20bc294a9a9b405b31" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               style="display: inline-block; padding: 8px 16px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
-                Swap 0xBTC on Mainnet
-            </a>
-            <a href="https://superbridge.app/?fromChainId=1&toChainId=8453&tokenAddress=0xb6ed7644c69416d67b522e20bc294a9a9b405b31" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               style="display: inline-block; padding: 8px 16px; background-color: #0052FF; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
-                Bridge 0xBTC to Base
-            </a>
-        </div><br>Then simply swap your newly Bridged 0xBitcoin -> B0x to get the savings!
-    </div>
-`;
+                    comparisonHTML += `
+                        <div style="margin-top: 10px; padding: 10px; border-radius: 5px; border-left: 4px solid #ffc107;">
+                            <strong style="color: white;">⚠️ Consider Bridging Instead!</strong>
+                            <p style="margin: 5px 0; color: white;">You're paying <strong>${priceDifference}%</strong> more than mainnet price.</p>
+                            <p style="margin: 5px 0; color: white;"><strong>Cost Breakdown:</strong></p>
+                            <ul style="margin: 5px 0; padding-left: 20px; color: white;">
+                                <li>Swap cost: ${swapCost.toFixed(2)}</li>
+                                <li>Bridge cost: ${bridgeCost.toFixed(2)} (includes ~${totalBridgeCost} in fees)</li>
+                            </ul>
+                            <p style="margin: 5px 0; color: white;"><strong>Potential savings: ~${potentialSavings.toFixed(2)}</strong></p>
+                            <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                                <a href="https://swap.defillama.com/?chain=ethereum&from=0x0000000000000000000000000000000000000000&tab=swap&to=0xb6ed7644c69416d67b522e20bc294a9a9b405b31" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   style="display: inline-block; padding: 8px 16px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                                    Swap 0xBTC on Mainnet
+                                </a>
+                                <a href="https://superbridge.app/?fromChainId=1&toChainId=8453&tokenAddress=0xb6ed7644c69416d67b522e20bc294a9a9b405b31" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   style="display: inline-block; padding: 8px 16px; background-color: #0052FF; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                                    Bridge 0xBTC to Base
+                                </a>
+                            </div><br>Then simply swap your newly Bridged 0xBitcoin -> B0x to get the savings!
+                        </div>
+                    `;
                 } else if (swapPrice < mainnetPrice * 0.95) {
                     comparisonHTML += `
                         <div style="margin-top: 10px; padding: 10px;  border-radius: 5px; border-left: 4px solid #17a2b8;">
@@ -7957,39 +7987,13 @@ comparisonHTML += `
                 estimateDisplay.innerHTML += comparisonHTML;
             }
         } catch (error) {
-            console.error("Error comparing with mainnet price:", error);
+            console.error("Error comparing with mainnet price (all retries failed):", error);
             // Silently fail - don't break the UI
         }
+    } else {
+        console.log("Not able to get Swapprice > 0")
     }
 }
-
-// You can also add this to your existing getEstimate() function
-// Just replace the last line with:
-// await updateEstimateDisplayWithBridgeInfo(selectedValue, toSelectValue, amountOut, amountToSwap, involves0xBTC);
-
-
-
-
-
-
-// You can also add this to your existing getEstimate() function
-// Just replace the last line with:
-// await updateEstimateDisplayWithBridgeInfo(selectedValue, toSelectValue, amountOut, amountToSwap, involves0xBTC);
-
-// You can also add this to your existing getEstimate() function
-// Just replace the last line with:
-// await updateEstimateDisplayWithBridgeInfo(selectedValue, toSelectValue, amountOut, amountToSwap, involves0xBTC);
-// You can also add this to your existing getEstimate() function
-// Just replace the last line with:
-// await updateEstimateDisplayWithBridgeInfo(selectedValue, toSelectValue, amountOut, amountToSwap, involves0xBTC);
-
-// You can also add this to your existing getEstimate() function
-// Just replace the last line with:
-// await updateEstimateDisplayWithBridgeInfo(selectedValue, toSelectValue, amountOut, amountToSwap, involves0xBTC);
-// You can also add this to your existing getEstimate() function
-// Just replace the last line with:
-// await updateEstimateDisplayWithBridgeInfo(selectedValue, toSelectValue, amountOut, amountToSwap, involves0xBTC);
-
 
 async function getSingleHopEstimate(tokenInputAddress, tokenOutputAddress, amountToSwap) {
     const tokenSwapperABI = [
@@ -8008,26 +8012,25 @@ async function getSingleHopEstimate(tokenInputAddress, tokenOutputAddress, amoun
         }
     ];
 
+console.log("Custom RPC1: ", customRPC);
+    const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
+
     const tokenSwapperContract = new ethers.Contract(
         contractAddress_Swapper,
         tokenSwapperABI,
-        provider // Use provider for read-only calls
+        provider_zzzzz12
     );
 
-    try {
-        const result = await tokenSwapperContract.callStatic.getOutput(
-            tokenOutputAddress,
-            tokenInputAddress,
-            tokenInputAddress,
-            HookAddress,
-            amountToSwap
-        );
+    // This function will be wrapped by retryWithBackoff, so just throw on error
+    const result = await tokenSwapperContract.callStatic.getOutput(
+        tokenOutputAddress,
+        tokenInputAddress,
+        tokenInputAddress,
+        HookAddress,
+        amountToSwap
+    );
 
-        return extractAmountFromResult(result);
-    } catch (error) {
-        console.error("Error getting single-hop estimate:", error);
-        return 0;
-    }
+    return extractAmountFromResult(result);
 }
 
 async function getMultiHopEstimate(fromToken, toToken, tokenInputAddress, tokenOutputAddress, amountToSwap) {
@@ -8051,10 +8054,13 @@ async function getMultiHopEstimate(fromToken, toToken, tokenInputAddress, tokenO
         }
     ];
 
+console.log("Custom RPC1: ", customRPC);
+    const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
+
     const tokenSwapperContract = new ethers.Contract(
         contractAddress_Swapper,
         multiHopABI,
-        provider
+        provider_zzzzz12
     );
 
     // Define addresses
@@ -8065,7 +8071,7 @@ async function getMultiHopEstimate(fromToken, toToken, tokenInputAddress, tokenO
     // Determine pool configuration based on swap direction
     let pool1TokenA, pool1TokenB, pool2TokenA, pool2TokenB;
     let hook1Address = HookAddress;
-    let hook2Address = HookAddress; // You might need different hooks
+    let hook2Address = HookAddress;
 
     if (fromToken === "B0x" && toToken === "ETH") {
         // B0x -> 0xBTC -> ETH
@@ -8081,54 +8087,43 @@ async function getMultiHopEstimate(fromToken, toToken, tokenInputAddress, tokenO
         pool2TokenB = B0X_ADDRESS;
     } else if (fromToken === "0xBTC" && toToken === "ETH") {
         // 0xBTC -> ETH (direct)
-        pool1TokenA = OXBTC_ADDRESS;
-        pool1TokenB = ETH_ADDRESS;
-        pool2TokenA = ETH_ADDRESS; // Dummy, won't be used
-        pool2TokenB = ETH_ADDRESS; // Dummy, won't be used
-        // This might need special handling or fall back to single-hop
-        return await getSingleHopEstimate(tokenInputAddress, amountToSwap);
+        return await retryWithBackoff(() =>
+            getSingleHopEstimate(tokenInputAddress, tokenOutputAddress, amountToSwap)
+        );
     } else if (fromToken === "ETH" && toToken === "0xBTC") {
         // ETH -> 0xBTC (direct)
-        pool1TokenA = ETH_ADDRESS;
-        pool1TokenB = OXBTC_ADDRESS;
-        pool2TokenA = OXBTC_ADDRESS; // Dummy, won't be used
-        pool2TokenB = OXBTC_ADDRESS; // Dummy, won't be used
-        // This might need special handling or fall back to single-hop
-        return await getSingleHopEstimate(tokenInputAddress, amountToSwap);
+        return await retryWithBackoff(() =>
+            getSingleHopEstimate(tokenInputAddress, tokenOutputAddress, amountToSwap)
+        );
     } else {
         console.error("Unsupported multi-hop configuration for estimate");
-        return 0;
+        throw new Error("Unsupported multi-hop configuration");
     }
 
-    try {
-        console.log("Getting multi-hop estimate with params:");
-        console.log("Pool1TokenA:", pool1TokenA);
-        console.log("Pool1TokenB:", pool1TokenB);
-        console.log("Pool2TokenA:", pool2TokenA);
-        console.log("Pool2TokenB:", pool2TokenB);
-        console.log("TokenIn:", tokenInputAddress);
-        console.log("TokenOut:", tokenOutputAddress);
-        console.log("AmountIn:", amountToSwap.toString());
+    console.log("Getting multi-hop estimate with params:");
+    console.log("Pool1TokenA:", pool1TokenA);
+    console.log("Pool1TokenB:", pool1TokenB);
+    console.log("Pool2TokenA:", pool2TokenA);
+    console.log("Pool2TokenB:", pool2TokenB);
+    console.log("TokenIn:", tokenInputAddress);
+    console.log("TokenOut:", tokenOutputAddress);
+    console.log("AmountIn:", amountToSwap.toString());
 
-        const result = await tokenSwapperContract.callStatic.getOutputMultiHop(
-            pool1TokenA,
-            pool1TokenB,
-            pool2TokenA,
-            pool2TokenB,
-            tokenInputAddress,
-            tokenOutputAddress,
-            hook1Address,
-            hook2Address,
-            amountToSwap
-        );
+    // This function will be wrapped by retryWithBackoff, so just throw on error
+    const result = await tokenSwapperContract.callStatic.getOutputMultiHop(
+        pool1TokenA,
+        pool1TokenB,
+        pool2TokenA,
+        pool2TokenB,
+        tokenInputAddress,
+        tokenOutputAddress,
+        hook1Address,
+        hook2Address,
+        amountToSwap
+    );
 
-        console.log("Multi-hop estimate result:", result.toString());
-        return extractAmountFromResult(result);
-    } catch (error) {
-        console.error("Error getting multi-hop estimate:", error);
-        // Fall back to showing 0 or some error state
-        return 0;
-    }
+    console.log("Multi-hop estimate result:", result.toString());
+    return extractAmountFromResult(result);
 }
 
 function extractAmountFromResult(result) {
@@ -13317,12 +13312,12 @@ function formatBalanceExact(balance, decimals) {
 async function fetchBalances() {
     const walletAddress = userAddress;
     if (!walletAddress) {
-        showStatus('Please enter a wallet address', 'error');
+        alert('Please enter a wallet address', 'error');
         return;
     }
 
     if (!walletAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
-        showStatus('Please enter a valid Ethereum address', 'error');
+        alert('Please enter a valid Ethereum address', 'error');
         return;
     }
 
@@ -13366,7 +13361,7 @@ async function fetchBalancesETH() {
 
     const walletAddress = userAddress;
     if (!walletAddress) {
-        showStatus('Please enter a wallet address', 'error');
+        alert('Please enter a wallet address', 'error');
         return;
     }
 
@@ -14255,11 +14250,13 @@ async function calculateAndDisplayHashrate() {
             "type": "function"
         }];
 
+console.log("Custom RPC1: ", customRPC);
+    const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
 
         hashrateMiningContract = new ethers.Contract(
             ProofOfWorkAddresss, // your tokenSwapper contract address
             hashrateABI,
-            signer // Use signer since the function isn't view/pure
+            provider_zzzzz12 
         );
 
 
@@ -14319,11 +14316,14 @@ async function calculateAndDisplayHashrate() {
             "type": "function"
         }];
 
+console.log("Custom RPC1: ", customRPC);
+await sleep(500);
+    const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
 
         hashrateMiningContract = new ethers.Contract(
             ProofOfWorkAddresss, // your tokenSwapper contract address
             hashrateABI,
-            signer // Use signer since the function isn't view/pure
+            provider_zzzzz12 // Use signer since the function isn't view/pure
         );
 
 
@@ -14389,12 +14389,13 @@ async function calculateAndDisplayHashrate() {
 
 
 // Mock data update function (replace with actual API calls)
-function updateWidget() {
+async function updateWidget() {
     // Set loading state
     document.getElementById('usd-price').textContent = 'Loading...';
     document.getElementById('btc-price').textContent = 'Loading...';
     document.getElementById('hashrate').textContent = 'Loading...';
 
+        await calculateAndDisplayHashrate();
     // Simulate API calls (replace with actual implementations)
     setTimeout(() => {
         // Mock USD price
@@ -14410,7 +14411,7 @@ function updateWidget() {
         const miningDifficulty = 1000000; // Replace with contract call
         const hashrate = calculateHashrate(timePerEpoch, miningDifficulty);
         document.getElementById('hashrate').textContent = formattedHashrate
-    }, 1000);
+    }, 3000);
 
 
 }
