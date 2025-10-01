@@ -14907,9 +14907,6 @@ async function fetchBalancesETH() {
 }
 
 async function getAllPoolFees() {
-    if (!walletConnected) {
-        await connectWallet();
-    }
 
     const MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11"; // Multicall3 on Base
     
