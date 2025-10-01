@@ -307,7 +307,6 @@
     }
 
 
-
 body::before {
     content: '';
     position: fixed;
@@ -315,13 +314,12 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(10,10,10,1);
-    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA4IDQnPjxkZWZzPjxwYXR0ZXJuIGlkPSdkaWFtb25kJyB3aWR0aD0nOCcgaGVpZ2h0PSc0JyBwYXR0ZXJuVW5pdHM9J3VzZXJTcGFjZU9uVXNlJz48cGF0aCBkPSdNIDAgMiBMIDIgMCBMIDQgMiBMIDIgNCBaJyBmaWxsPSdyZ2JhKDEwLDEwLDEwLDEpJyBzdHJva2U9J3JnYmEoMTIwLDExOSwxOTgsMC4xKScgc3Ryb2tlLXdpZHRoPScwLjInLz48cGF0aCBkPSdNIDQgMiBMIDYgMCBMIDggMiBMIDYgNCBaJyBmaWxsPSdyZ2JhKDEwLDEwLDEwLDEpJyBzdHJva2U9J3JnYmEoMTIwLDExOSwxOTgsMC4xKScgc3Ryb2tlLXdpZHRoPScwLjInLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSc4JyBoZWlnaHQ9JzQnIGZpbGw9J3VybCgjZGlhbW9uZCknLz48L3N2Zz4=");
+    background-color: rgb(96,31,158);
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA4IDQnPjxkZWZzPjxwYXR0ZXJuIGlkPSdkaWFtb25kJyB3aWR0aD0nOCcgaGVpZ2h0PSc0JyBwYXR0ZXJuVW5pdHM9J3VzZXJTcGFjZU9uVXNlJz48cGF0aCBkPSdNIDAgMiBMIDIgMCBMIDQgMiBMIDIgNCBaJyBmaWxsPSdyZ2IoOTYsMzEsMTU4KScgc3Ryb2tlPSdyZ2JhKDE1MCwxMDAsMjAwLDAuMiknIHN0cm9rZS13aWR0aD0nMC4yJy8+PHBhdGggZD0nTSA0IDIgTCA2IDAgTCA4IDIgTCA2IDQgWicgZmlsbD0ncmdiKDk2LDMxLDE1OCknIHN0cm9rZT0ncmdiYSgxNTAsMTAwLDIwMCwwLjIpJyBzdHJva2Utd2lkdGg9JzAuMicvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9JzgnIGhlaWdodD0nNCcgZmlsbD0ndXJsKCNkaWFtb25kKScvPjwvc3ZnPg==");
     background-size: 80px 40px;
     pointer-events: none;
     z-index: -1;
 }
-
 
 
 .container {
