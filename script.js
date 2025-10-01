@@ -23418,7 +23418,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 var inFunctionDontRefresh = false;
-let count = 40;
+let count = 50;
 let interval = null;
 let checker = null;
 let isCountdownActive = false;
@@ -23438,7 +23438,7 @@ function resetCountdown() {
     
     // Reset the countdown state
     isCountdownActive = false;
-    count = 40;
+    count = 50;
     updateCountdownDisplay();
     
     // Trigger the countdown complete handler
