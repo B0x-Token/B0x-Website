@@ -190,7 +190,7 @@ let MinamountOut; // Declare this variable globally
 
 
 
-
+var pricesLoaded = false;
 async function fetchPriceData() {
     console.log("customDataSource customDataSource: ", customDataSource);
     const primaryUrl = customDataSource + 'price_data_bwork.json';
@@ -230,6 +230,7 @@ async function fetchPriceData() {
         console.log(`Last updated: ${lastUpdatedString}`);
         console.log(`Loaded ${prices.length} price data points`);
 
+        pricesLoaded = true;
         return {
             prices: prices,
             timestamps: timestamps,
@@ -274,6 +275,7 @@ async function fetchPriceData() {
             console.log(`Last updated: ${lastUpdatedString}`);
             console.log(`Loaded ${prices.length} price data points from backup`);
 
+            pricesLoaded = true;
             return {
                 prices: prices,
                 timestamps: timestamps,
@@ -293,7 +295,7 @@ async function fetchPriceData() {
                 blocks: [],
                 lastUpdated: 'Unable to fetch data - all sources failed'
             };
-
+pricesLoaded = true;
             return fallbackData;
         }
     }
@@ -336,6 +338,7 @@ var defaultBACKUPDataSource_Testnet = "https://data.github.bzerox.org/";
 
 var graphData, prices, timestamps;
 async function initializeChart() {
+    
     console.log("Loading setting: customDataSource: ", customDataSource);
     await loadSettings();
     console.log("AFTER setting: customDataSource: ", customDataSource);
@@ -620,11 +623,6 @@ async function initializeChart() {
 
 
 }
-
-// Initialize the chart when the page loads
-initializeChart().catch(error => {
-    console.error('Failed to initialize chart:', error);
-});
 
 
 
@@ -1434,9 +1432,23 @@ var totalLiquidityInStakingContract = 0;
 var Rewardduration = 0;
 
 
+// Add this variable at the top of your file (outside the function)
+let lastRewardStatsCall = 0;
+const REWARD_STATS_COOLDOWN = 60000; // 60 seconds in milliseconds
 
 async function getRewardStats() {
-
+  // Check if 60 seconds have passed since last call
+    const now = Date.now();
+    if (now - lastRewardStatsCall < REWARD_STATS_COOLDOWN) {
+        console.log("getRewardStats called too soon, skipping...");
+        return;
+    }
+    
+    // Update the last call timestamp
+    lastRewardStatsCall = now;
+    
+    // Your existing function code goes here
+    console.log("Running getRewardStats...");
     //Gets user rewardsOwed, gets symbol, decimals, names and addresses of all
 
 
@@ -2379,65 +2391,60 @@ function updateTotalLiqIncrease() {
 
 
 
-
-
 function updateTotalLiqIncreaseSTAKING() {
-
     const positionSelect = document.querySelector('#stake-increase select');
     const selectedPositionId = positionSelect.value;
     const position = stakingPositionData[selectedPositionId];
-    console.log("Postion Staking Udpate Liq: ", position);
+    console.log("Position Staking Update Liq: ", position);
+    
     if (!position) {
-
-
-
         if (Object.keys(stakingPositionData).length === 0) {
             console.log("hello world");
             disableButtonWithSpinner('increaseLiquidityStakedBtn', "No positions to increase Liquidity on, stake a position");
         } else {
             enableButton('increaseLiquidityStakedBtn', 'Increase Staked Position Liquidity');
         }
-
         return;
     }
-    var x = 0;
-    var inputTokenA = 0;
-    var inputTokenB = 0;
+    
+    let inputTokenA = 0;
+    let inputTokenB = 0;
+    
     // Update form labels and placeholders
     const formGroups = document.querySelectorAll('#stake-increase .form-row .form-group');
     formGroups.forEach(group => {
         const label = group.querySelector('label');
-        const input = group.querySelector('input'); // Get the input element
-
-        // Get the input value
-        if (input) {
-            const inputValue = input.value;
-            console.log("input value is: ", inputValue);
-            console.log(`${label?.textContent}: ${inputValue}`);
-            if (x == 0) {
-                inputTokenA = parseFloat(inputValue) || 0; // Convert to number
-            } else {
-                inputTokenB = parseFloat(inputValue) || 0; // Convert to number
+        const input = group.querySelector('input');
+        
+        if (input && label) {
+            const inputValue = parseFloat(input.value) || 0;
+            const labelText = label.textContent.trim();
+            
+            console.log(`Label: ${labelText}, Value: ${inputValue}`);
+            
+            // Match the label to the correct token
+            if (labelText.includes(position.tokenA)) {
+                inputTokenA = inputValue;
+                console.log(`Matched tokenA: ${position.tokenA} = ${inputTokenA}`);
+            } else if (labelText.includes(position.tokenB)) {
+                inputTokenB = inputValue;
+                console.log(`Matched tokenB: ${position.tokenB} = ${inputTokenB}`);
             }
-            // Or do something with the value
-            // someFunction(inputValue);
         }
-        x = x + 1;
     });
-
+    
+    console.log(`Final values - TokenA (${position.tokenA}): ${inputTokenA}, TokenB (${position.tokenB}): ${inputTokenB}`);
+    
     // Update new total liquidity field
     const totalLiquidityInput = document.querySelector('#stake-increase input[readonly]');
-    totalLiquidityInput.value = `${(parseFloat(position.currentTokenA) + parseFloat(inputTokenA)).toFixed(4)} ${position.tokenA} & ${(parseFloat(position.currentTokenB) + parseFloat(inputTokenB)).toFixed(4)} ${position.tokenB}`;
-
-
+    totalLiquidityInput.value = `${(parseFloat(position.currentTokenA) + inputTokenA).toFixed(4)} ${position.tokenA} & ${(parseFloat(position.currentTokenB) + inputTokenB).toFixed(4)} ${position.tokenB}`;
+    
     if (Object.keys(stakingPositionData).length === 0) {
         console.log("hello world");
         disableButtonWithSpinner('increaseLiquidityStakedBtn', "No positions to increase Liquidity on, stake a position");
     } else {
         enableButton('increaseLiquidityStakedBtn', 'Increase Staked Position Liquidity');
     }
-
-
 }
 
 
@@ -12503,77 +12510,98 @@ async function getRatioCreatePositiontokenA() {
 
 
 
-
-
-
 // Enhanced function with proper priority token handling
 function calculateOptimalAmounts(tokenAValue, tokenBValue, tokenAAmount, tokenBAmount, walletBalances, ratioz, priorityToken = null, StakeSection = false) {
+    tokenAValue = tokenAValue.trim();
+    tokenBValue = tokenBValue.trim();
     const tokenAinputAddress = tokenAddresses[tokenAValue];
     const tokenBinputAddress = tokenAddresses[tokenBValue];
-
+    
+    console.log("TOKENA VALUE OPTIMAL : ", tokenAValue);
+    console.log("TOKENB VALUE OPTIMAL : ", tokenBValue);
+    console.log("tokenAAmount VALUE OPTIMAL : ", tokenAAmount);
+    console.log("tokenBAmount VALUE OPTIMAL : ", tokenBAmount);
+    console.log("tokenAinputAddress VALUE OPTIMAL : ", tokenAinputAddress);
+    console.log("tokenBinputAddress VALUE OPTIMAL : ", tokenBinputAddress);
+    
     // Determine which amount to use as the base calculation based on priority
     let baseAmount, baseTokenValue, baseTokenAddress, otherTokenValue;
 
     if (priorityToken === 'A') {
-        // Use tokenA as the priority (base calculation)
         baseAmount = tokenAAmount;
         baseTokenValue = tokenAValue;
         baseTokenAddress = tokenAinputAddress;
         otherTokenValue = tokenBValue;
     } else if (priorityToken === 'B') {
-        // Use tokenB as the priority (base calculation)
         baseAmount = tokenBAmount;
         baseTokenValue = tokenBValue;
         baseTokenAddress = tokenBinputAddress;
         otherTokenValue = tokenAValue;
     }
+    
     // Parse the base amount with correct decimals
     const baseAmountParsed = ethers.utils.parseUnits(baseAmount, baseTokenValue === "0xBTC" ? 8 : 18);
+    
+    console.log("Base Amount Parsed:", baseAmountParsed.toString());
+    console.log("Base Token:", baseTokenValue);
+    console.log("Priority Token:", priorityToken);
 
     // Calculate the required amounts based on which token is the base
     let amountToDeposit, amountWith8Decimals0xBTC;
+    const calculatedPriceRatio = BigInt(ratioz);
+    
+    // Determine token order for ratio calculation
+    const is0xBTCToken0 = BigInt(Address_ZEROXBTC_TESTNETCONTRACT.toLowerCase()) < BigInt(tokenAddresses['B0x'].toLowerCase());
+    console.log("is0xBTCToken0:", is0xBTCToken0);
+    
     if (baseTokenAddress === Address_ZEROXBTC_TESTNETCONTRACT) {
-        // Base token is 0xBTC, calculate the other token amount needed
-        const calculatedPriceRatio = BigInt(ratioz);
-        var priceIn18Decimals = 0n; // Fixed: Should be BigInt
-
-        if (BigInt(Address_ZEROXBTC_TESTNETCONTRACT.toLowerCase()) > BigInt(tokenAddresses['B0x'].toLowerCase())) {
-            console.log("This one here2");
-            // INVERTED: Use division instead of multiplication
-            priceIn18Decimals = (10n ** 36n) / (calculatedPriceRatio * (10n ** 10n)); // Invert the ratio
-            const amountZer0XIn18Decimals = BigInt(baseAmountParsed) * 10n ** 10n;
-            amountWith8Decimals0xBTC = baseAmountParsed;
-            amountToDeposit = (amountZer0XIn18Decimals * priceIn18Decimals) / (10n ** 18n);
+        // Base token is 0xBTC, calculate the B0x amount needed
+        console.log("Base is 0xBTC, calculating B0x needed");
+        
+        let priceIn18Decimals;
+        if (is0xBTCToken0) {
+            // 0xBTC is token0, ratio is 0xBTC/B0x
+            // To get B0x from 0xBTC: multiply by ratio
+            priceIn18Decimals = calculatedPriceRatio / (10n ** 10n); // Convert 28 decimals to 18
+            console.log("0xBTC is token0, using direct ratio");
         } else {
-            console.log("This one here");
-            // Use direct ratio instead of inversion
-            priceIn18Decimals = calculatedPriceRatio / (10n ** 10n); // Convert 28 decimals to 18 decimals
-            const amountZer0XIn18Decimals = BigInt(baseAmountParsed) * 10n ** 10n;
-            amountWith8Decimals0xBTC = baseAmountParsed;
-            amountToDeposit = (amountZer0XIn18Decimals * priceIn18Decimals) / (10n ** 18n);
-            console.log("Depositing 0xBTC: ", amountWith8Decimals0xBTC.toString());
-            console.log("Depositing b0x: ", amountToDeposit.toString());
+            // 0xBTC is token1, ratio is B0x/0xBTC  
+            // To get B0x from 0xBTC: divide by inverted ratio (multiply by inverse)
+            priceIn18Decimals = (10n ** 36n) / (calculatedPriceRatio * (10n ** 10n));
+            console.log("0xBTC is token1, inverting ratio");
         }
-
+        
+        const amountZer0XIn18Decimals = BigInt(baseAmountParsed) * (10n ** 10n);
+        amountWith8Decimals0xBTC = baseAmountParsed;
+        amountToDeposit = (amountZer0XIn18Decimals * priceIn18Decimals) / (10n ** 18n);
+        
+        console.log("Calculated B0x from 0xBTC:");
+        console.log("  0xBTC amount:", ethers.utils.formatUnits(amountWith8Decimals0xBTC, 8));
+        console.log("  B0x needed:", ethers.utils.formatUnits(amountToDeposit, 18));
+        
     } else {
         // Base token is B0x, calculate how much 0xBTC is needed
-        const calculatedPriceRatio = BigInt(ratioz);
-        var priceIn18Decimals = 0n; // Fixed: Should be BigInt
-        if (BigInt(Address_ZEROXBTC_TESTNETCONTRACT.toLowerCase()) > BigInt(tokenAddresses['B0x'].toLowerCase())) {
-            // INVERTED: Use division instead of multiplication
-            priceIn18Decimals = (10n ** 36n) / (calculatedPriceRatio * (10n ** 10n)); // Invert the ratio
-            amountToDeposit = baseAmountParsed;
-            // Calculate 0xBTC needed: B0x amount / inverted price ratio
-            amountWith8Decimals0xBTC = (BigInt(baseAmountParsed) * (10n ** 18n)) / priceIn18Decimals / (10n ** 10n);
+        console.log("Base is B0x, calculating 0xBTC needed");
+        
+        let priceIn18Decimals;
+        if (is0xBTCToken0) {
+            // 0xBTC is token0, ratio is 0xBTC/B0x
+            // To get 0xBTC from B0x: divide by ratio
+            priceIn18Decimals = calculatedPriceRatio / (10n ** 10n);
+            console.log("0xBTC is token0, using direct ratio for division");
         } else {
-            // Use DIRECT ratio instead of inversion
-            priceIn18Decimals = calculatedPriceRatio / (10n ** 10n); // Convert 29 decimals to 18 decimals (no inversion)
-            amountToDeposit = baseAmountParsed;
-            // Calculate 0xBTC needed: B0x amount / direct price ratio
-            amountWith8Decimals0xBTC = (BigInt(baseAmountParsed) * (10n ** 18n)) / priceIn18Decimals / (10n ** 10n);
+            // 0xBTC is token1, ratio is B0x/0xBTC
+            // To get 0xBTC from B0x: multiply by inverted ratio
+            priceIn18Decimals = (10n ** 36n) / (calculatedPriceRatio * (10n ** 10n));
+            console.log("0xBTC is token1, inverting ratio for multiplication");
         }
-        console.log("aa amountWith8Decimals0xBTC", amountWith8Decimals0xBTC);
-        console.log("aa baseAmountParsed: ", baseAmountParsed.toString());
+        
+        amountToDeposit = baseAmountParsed;
+        amountWith8Decimals0xBTC = (BigInt(baseAmountParsed) * (10n ** 18n)) / priceIn18Decimals / (10n ** 10n);
+        
+        console.log("Calculated 0xBTC from B0x:");
+        console.log("  B0x amount:", ethers.utils.formatUnits(amountToDeposit, 18));
+        console.log("  0xBTC needed:", ethers.utils.formatUnits(amountWith8Decimals0xBTC, 8));
     }
 
     // Get position data to include unclaimed fees
@@ -12590,17 +12618,14 @@ function calculateOptimalAmounts(tokenAValue, tokenBValue, tokenAAmount, tokenBA
     let total_available_zeroxbtc;
 
     if (position && position.tokenA === tokenAddresses['0xBTC']) {
-        // 0xBTC is tokenA, add unclaimedFeesTokenA
         const walletAmount = ethers.utils.parseUnits(walletBalances['0xBTC'], 8);
         const unclaimedAmount = ethers.utils.parseUnits(position.unclaimedFeesTokenA.toString(), 8);
         total_available_zeroxbtc = walletAmount.add(unclaimedAmount).toString();
     } else if (position && position.tokenB === tokenAddresses['0xBTC']) {
-        // 0xBTC is tokenB, add unclaimedFeesTokenB
         const walletAmount = ethers.utils.parseUnits(walletBalances['0xBTC'], 8);
         const unclaimedAmount = ethers.utils.parseUnits(position.unclaimedFeesTokenB.toString(), 8);
         total_available_zeroxbtc = walletAmount.add(unclaimedAmount).toString();
     } else {
-        // No position or 0xBTC not in position, use wallet only
         total_available_zeroxbtc = ethers.utils.parseUnits(walletBalances['0xBTC'], 8).toString();
     }
 
@@ -12608,28 +12633,27 @@ function calculateOptimalAmounts(tokenAValue, tokenBValue, tokenAAmount, tokenBA
     let total_available_b0x;
 
     if (position && position.tokenA === tokenAddresses['B0x']) {
-        // B0x is tokenA, add unclaimedFeesTokenA
         const walletAmount = ethers.utils.parseUnits(walletBalances['B0x'], 18);
         const unclaimedAmount = ethers.utils.parseUnits(position.unclaimedFeesTokenA.toString(), 18);
         total_available_b0x = walletAmount.add(unclaimedAmount).toString();
     } else if (position && position.tokenB === tokenAddresses['B0x']) {
-        // B0x is tokenB, add unclaimedFeesTokenB
         const walletAmount = ethers.utils.parseUnits(walletBalances['B0x'], 18);
         const unclaimedAmount = ethers.utils.parseUnits(position.unclaimedFeesTokenB.toString(), 18);
         total_available_b0x = walletAmount.add(unclaimedAmount).toString();
     } else {
-        // No position or B0x not in position, use wallet only
         total_available_b0x = ethers.utils.parseUnits(walletBalances['B0x'], 18).toString();
     }
 
     const zeroxbtcExceeded = parseFloat(zeroxbtcdecimal) > parseFloat(total_available_zeroxbtc);
     const b0xExceeded = parseFloat(b0xdecimal) > parseFloat(total_available_b0x);
-    console.log("aazeroxbtcExceeded: ", zeroxbtcExceeded);
-    console.log("aab0xExceeded: ", b0xExceeded);
-    console.log("aaparseFloat(b0xdecimal): ", parseFloat(b0xdecimal));
-    console.log("aaparseFloat(total_available_b0x): ", parseFloat(total_available_b0x));
-    console.log("aaparseFloat(zeroxbtcdecimal): ", parseFloat(zeroxbtcdecimal));
-    console.log("aaparseFloat(total_available_zeroxbtc): ", parseFloat(total_available_zeroxbtc));
+    
+    console.log("zeroxbtcExceeded:", zeroxbtcExceeded);
+    console.log("b0xExceeded:", b0xExceeded);
+    console.log("0xBTC needed:", ethers.utils.formatUnits(zeroxbtcdecimal, 8));
+    console.log("0xBTC available:", ethers.utils.formatUnits(total_available_zeroxbtc, 8));
+    console.log("B0x needed:", ethers.utils.formatUnits(b0xdecimal, 18));
+    console.log("B0x available:", ethers.utils.formatUnits(total_available_b0x, 18));
+    
     // If both are within limits, return as is
     if (!zeroxbtcExceeded && !b0xExceeded) {
         return {
@@ -12672,40 +12696,33 @@ function calculateOptimalAmounts(tokenAValue, tokenBValue, tokenAAmount, tokenBA
         maxB0x = ethers.utils.parseUnits(walletBalances['B0x'], 18);
     }
 
-
     // Calculate what amounts would be needed if we max out each token
-    const calculatedPriceRatio = BigInt(ratioz);
-    var priceIn18Decimals = 0n; // Fixed: Should be BigInt
-
-
-    var amountZer0XIn18Decimals = 0;
-    var zeroxbtcNeededForMaxB0x = 0;
-    var b0xNeededForMax0xBTC = 0;
-    if (BigInt(Address_ZEROXBTC_TESTNETCONTRACT.toLowerCase()) > BigInt(tokenAddresses['B0x'].toLowerCase())) {
-        // INVERTED: Use division instead of multiplication
-        priceIn18Decimals = (10n ** 36n) / (calculatedPriceRatio * (10n ** 10n)); // Invert the ratio
+    let priceIn18Decimals;
+    let amountZer0XIn18Decimals;
+    let zeroxbtcNeededForMaxB0x;
+    let b0xNeededForMax0xBTC;
+    
+    if (is0xBTCToken0) {
+        // 0xBTC is token0
+        priceIn18Decimals = calculatedPriceRatio / (10n ** 10n);
+        
         // If we max out 0xBTC, how much B0x do we need?
-        amountZer0XIn18Decimals = BigInt(maxZeroxbtc) * 10n ** 10n;
+        amountZer0XIn18Decimals = BigInt(maxZeroxbtc) * (10n ** 10n);
         b0xNeededForMax0xBTC = (amountZer0XIn18Decimals * priceIn18Decimals) / (10n ** 18n);
 
         // If we max out B0x, how much 0xBTC do we need?
         zeroxbtcNeededForMaxB0x = (BigInt(maxB0x) * (10n ** 18n)) / priceIn18Decimals / (10n ** 10n);
-        console.log("TIK TIK");
     } else {
-        // INVERTED: Use division instead of multiplication  
-        priceIn18Decimals = calculatedPriceRatio / (10n ** 10n); // Convert 28 decimals to 18 decimals
-
-
+        // 0xBTC is token1
+        priceIn18Decimals = (10n ** 36n) / (calculatedPriceRatio * (10n ** 10n));
+        
         // If we max out 0xBTC, how much B0x do we need?
-        amountZer0XIn18Decimals = BigInt(maxZeroxbtc) * 10n ** 10n;
+        amountZer0XIn18Decimals = BigInt(maxZeroxbtc) * (10n ** 10n);
         b0xNeededForMax0xBTC = (amountZer0XIn18Decimals * priceIn18Decimals) / (10n ** 18n);
 
         // If we max out B0x, how much 0xBTC do we need?
         zeroxbtcNeededForMaxB0x = (BigInt(maxB0x) * (10n ** 18n)) / priceIn18Decimals / (10n ** 10n);
-        // Determine which scenario is actually possible
-        console.log("TIK 0000)");
     }
-
 
     // Determine which scenario is actually possible
     const canMaxOut0xBTC = b0xNeededForMax0xBTC <= BigInt(maxB0x);
@@ -12719,41 +12736,34 @@ function calculateOptimalAmounts(tokenAValue, tokenBValue, tokenAAmount, tokenBA
         // Both are possible, choose based on priority
         if (priorityToken === 'A') {
             if (tokenAinputAddress === Address_ZEROXBTC_TESTNETCONTRACT) {
-                // Token A is 0xBTC, max it out
                 actualLimitingFactor = 'B0x';
                 finalAmountWith8Decimals0xBTC = maxZeroxbtc;
                 finalAmountToDeposit = b0xNeededForMax0xBTC;
             } else {
-                // Token A is B0x, max it out
                 actualLimitingFactor = '0xBTC';
                 finalAmountToDeposit = maxB0x;
                 finalAmountWith8Decimals0xBTC = zeroxbtcNeededForMaxB0x;
             }
         } else if (priorityToken === 'B') {
             if (tokenBinputAddress === Address_ZEROXBTC_TESTNETCONTRACT) {
-                // Token B is 0xBTC, max it out
                 actualLimitingFactor = 'B0x';
                 finalAmountWith8Decimals0xBTC = maxZeroxbtc;
                 finalAmountToDeposit = b0xNeededForMax0xBTC;
             } else {
-                // Token B is B0x, max it out
                 actualLimitingFactor = '0xBTC';
                 finalAmountToDeposit = maxB0x;
                 finalAmountWith8Decimals0xBTC = zeroxbtcNeededForMaxB0x;
             }
         }
     } else if (canMaxOut0xBTC) {
-        // Only 0xBTC can be maxed out
         actualLimitingFactor = 'B0x';
         finalAmountWith8Decimals0xBTC = maxZeroxbtc;
         finalAmountToDeposit = b0xNeededForMax0xBTC;
     } else if (canMaxOutB0x) {
-        // Only B0x can be maxed out
         actualLimitingFactor = '0xBTC';
         finalAmountToDeposit = maxB0x;
         finalAmountWith8Decimals0xBTC = zeroxbtcNeededForMaxB0x;
     } else {
-        // Neither can be maxed out - use the most limiting factor
         const zeroxbtcRatio = parseFloat(total_available_zeroxbtc) / parseFloat(zeroxbtcdecimal);
         const b0xRatio = parseFloat(total_available_b0x) / parseFloat(b0xdecimal);
 
@@ -12787,8 +12797,6 @@ function calculateOptimalAmounts(tokenAValue, tokenBValue, tokenAAmount, tokenBA
         }
     };
 }
-
-
 
 
 // Example of how to use this in your max button handlers
@@ -13068,37 +13076,58 @@ function calculateOptimalAmountsWithTokenBPrioritySTAKESECTIONI(tokenAValue, tok
 
 
 
-
-
-
 // Modified getRatioIncreasePositiontokenB function
 async function getRatioStakeIncreasePositiontokenB() {
+    console.log("running: getRatioStakeIncreasePositiontokenB");
 
     if (!walletConnected) {
         await connectWallet();
     }
+
+    isProgrammaticUpdate = true;
+
+    // Get token types from labels within increase page
     const tokenALabel = document.querySelector('#stake-increase #tokenALabelINC');
     const tokenBLabel = document.querySelector('#stake-increase #tokenBLabelINC');
     const tokenAInput = document.querySelector('#stake-increase #tokenAAmount');
     const tokenBInput = document.querySelector('#stake-increase #tokenBAmount');
 
+    // Get the token values from the label text content
     const tokenAValue = tokenALabel.textContent;
     const tokenBValue = tokenBLabel.textContent;
+
+    console.log("Currently selected value TokenA:", tokenAValue);
+    console.log("Currently selected value TokenB:", tokenBValue);
+
     const tokenAAmount = tokenAInput ? tokenAInput.value : '0';
     const tokenBAmount = tokenBInput ? tokenBInput.value : '0';
 
-    const createInputs = document.querySelectorAll('#stake-increase input[type="number"]');
-    const amountInputA = createInputs[0];
-    const amountInputB = createInputs[1];
+    console.log("Token A Amount:", tokenAAmount);
+    console.log("Token B Amount:", tokenBAmount);
 
+    const tokenAinputAddress = tokenAddresses[tokenAValue];
+    const tokenBinputAddress = tokenAddresses[tokenBValue];
+
+    console.log("tokenA InputAddresstoken", tokenAinputAddress);
+    console.log("tokenB InputAddresstoken", tokenBinputAddress);
+
+    // Simple and reliable approach - select all number inputs in increase page
+    const createInputs = document.querySelectorAll('#stake-increase input[type="number"]');
+    const amountInputA = createInputs[0]; // First number input (Amount A)
+    const amountInputB = createInputs[1]; // Second number input (Amount B)
+
+    // Add null checks to prevent errors
     if (!amountInputA || !amountInputB) {
         console.error("Could not find amount input fields");
         return;
     }
 
+    console.log("Currently amountInputA value:", tokenAAmount);
+    console.log("Currently amountInputB value:", tokenBAmount);
+
     await throttledGetSqrtRtAndPriceRatio();
 
-    // Use the helper function to calculate optimal amounts
+    // Use the helper function to calculate optimal amounts (TokenB priority)
     const result = calculateOptimalAmountsWithTokenBPrioritySTAKESECTIONI(
         tokenAValue, tokenBValue,
         tokenAAmount, tokenBAmount,
@@ -13117,18 +13146,22 @@ async function getRatioStakeIncreasePositiontokenB() {
         const amountToDepositBN = ethers.BigNumber.from(amountToDeposit.toString());
         const amountToDepositBN2 = ethers.BigNumber.from(amountWith8Decimals0xBTC.toString());
 
-        isProgrammaticUpdatB = true;
-
-        const tokenAinputAddress = tokenAddresses[tokenAValue];
+        console.log("tokenAddress: ", tokenAddress);
+        console.log("Address_ZEROXBTC_TESTNETCONTRACT: ", Address_ZEROXBTC_TESTNETCONTRACT.toString());
+        console.log("amountToDepositBN: ", amountToDepositBN.toString());
+        console.log("amountToDepositBN2: ", amountToDepositBN2.toString());
+        console.log("Current_getsqrtPricex96: ", Current_getsqrtPricex96.toString());
+        console.log("HookAddress: ", HookAddress.toString());
 
         // Update input fields based on token configuration
-        if (tokenAinputAddress === Address_ZEROXBTC_TESTNETCONTRACT) {
-            amountInputA.value = ethers.utils.formatUnits(amountWith8Decimals0xBTC, 8);
-            //commented out because we dont update B in B.
-            //  amountInputB.value = ethers.utils.formatUnits(amountToDeposit, 18);
-        } else {
+        if (tokenBinputAddress === Address_ZEROXBTC_TESTNETCONTRACT) {
+            // TokenB is 0xBTC (8 decimals)
             amountInputA.value = ethers.utils.formatUnits(amountToDeposit, 18);
-            //  amountInputB.value = ethers.utils.formatUnits(amountWith8Decimals0xBTC, 8);
+            amountInputB.value = ethers.utils.formatUnits(amountWith8Decimals0xBTC, 8);
+        } else {
+            // TokenB is 18 decimals token
+            amountInputA.value = ethers.utils.formatUnits(amountToDeposit, 18);
+            amountInputB.value = ethers.utils.formatUnits(amountWith8Decimals0xBTC, 8);
         }
 
         ratiozToSave = 10000 * amountToDepositBN / amountToDepositBN2;
@@ -13143,31 +13176,26 @@ async function getRatioStakeIncreasePositiontokenB() {
             console.log("Position Stake Increase: ", position);
             if (!position) return;
 
-            // Determine which token we're working with
+            // Determine which token we're working with - looking at TokenB this time
             const label = amountInputB.closest('.form-group').querySelector('label');
-            let currentTokenSymbol = label.textConten;
+            let currentTokenSymbol = label.textContent;
             console.log("Label: ", label);
-            let maxAmount = 0;
 
             if (label && label.textContent.includes(position.tokenB)) {
                 currentTokenSymbol = position.tokenB;
                 console.log("Worked");
                 handleMaxButtonClickStakeIncrease(currentTokenSymbol, amountInputB);
-
             }
         }
 
+        updateTotalLiqIncreaseSTAKING();
 
     } catch (error) {
         console.error(`Error in create Position:`, error);
     }
 
-    // Update the UI to show total liquidity
-    updateTotalLiqIncreaseSTAKING();
-    isProgrammaticUpdateB = false;
+    isProgrammaticUpdate = false;
 }
-
-
 
 // Modified getRatioIncreasePositiontokenA function
 async function getRatioStakeIncreasePositiontokenA() {
@@ -13274,7 +13302,7 @@ async function getRatioStakeIncreasePositiontokenA() {
 
             // Determine which token we're working with
             const label = amountInputA.closest('.form-group').querySelector('label');
-            let currentTokenSymbol = label.textConten;
+            let currentTokenSymbol = label.textContent;
             console.log("Label: ", label);
             let maxAmount = 0;
 
@@ -13349,7 +13377,6 @@ async function getRatioIncreasePositiontokenB() {
     console.log("Currently amountInputB value:", tokenBAmount);
 
     await throttledGetSqrtRtAndPriceRatio();
-
     // Use the helper function to calculate optimal amounts
     const result = calculateOptimalAmountsWithTokenBPrioritySTAKESECTIONI(
         tokenAValue, tokenBValue,
@@ -13380,12 +13407,12 @@ async function getRatioIncreasePositiontokenB() {
         // Update input fields based on token configuration
         if (tokenAinputAddress === Address_ZEROXBTC_TESTNETCONTRACT) {
             //Commented out because we dont update A in A only B in A.
-            // amountInputA.value = ethers.utils.formatUnits(amountWith8Decimals0xBTC, 8);
-            amountInputA.value = ethers.utils.formatUnits(amountWith8Decimals0xBTC, 8);
+            amountInputB.value = ethers.utils.formatUnits(amountWith8Decimals0xBTC, 18);
+            amountInputA.value = ethers.utils.formatUnits(amountToDeposit, 8);
 
         } else {
-            //   amountInputA.value = ethers.utils.formatUnits(amountToDeposit, 18);
             amountInputA.value = ethers.utils.formatUnits(amountToDeposit, 18);
+             amountInputB.value = ethers.utils.formatUnits(amountWith8Decimals0xBTC, 8);
         }
 
         ratiozToSave = 10000 * amountToDepositBN / amountToDepositBN2;
@@ -13402,8 +13429,9 @@ async function getRatioIncreasePositiontokenB() {
 
             // Determine which token we're working with
             const label = amountInputB.closest('.form-group').querySelector('label');
-            let currentTokenSymbol = label.textConten;
+            let currentTokenSymbol = label.textContent;
             console.log("Label: ", label);
+            console.log("Label position.tokenB: ", position.tokenB);
             let maxAmount = 0;
 
             if (label && label.textContent.includes(position.tokenB)) {
@@ -13530,7 +13558,7 @@ async function getRatioIncreasePositiontokenA() {
 
             // Determine which token we're working with
             const label = amountInputA.closest('.form-group').querySelector('label');
-            let currentTokenSymbol = label.textConten;
+            let currentTokenSymbol = label.textContent;
             console.log("Label: ", label);
             let maxAmount = 0;
 
@@ -14639,7 +14667,7 @@ async function fetchTokenBalanceWithEthers(tokenAddress, decimals) {
         await connectWallet();
     }
 
-    console.log("Fetching token Address: ", tokenAddress);
+    //console.log("Fetching token Address: ", tokenAddress);
     if (!window.ethereum) {
         console.error("MetaMask not detected");
         return '0';
@@ -14657,7 +14685,7 @@ async function fetchTokenBalanceWithEthers(tokenAddress, decimals) {
         const abi = ["function balanceOf(address) view returns (uint256)"];
         const tokenContract = new ethers.Contract(tokenAddress, abi, provider);
         const balance = await tokenContract.balanceOf(walletAddress);
-        console.log("Token balance 4, ", tokenAddress, " = ", balance.toString());
+       // console.log("Token balance 4, ", tokenAddress, " = ", balance.toString());
         return formatBalanceExact(balance, decimals);
     } catch (error) {
         console.error(`Error fetching token balance for ${tokenAddress}:`, error);
@@ -16003,7 +16031,7 @@ function addMaxButtonToField(inputElement, tokenSymbol) {
         const selectedPositionId = positionSelect.value;
         const position = stakingPositionData[selectedPositionId];
 
-        const swapSection = document.getElementById('stakeincrease');
+        const swapSection = document.getElementById('stake-increase');
         if (!swapSection || !swapSection.contains(inputElement)) {
             console.log("Not in stake-increase section, returning early");
             return;
@@ -16072,7 +16100,7 @@ function addMaxButtonToField(inputElement, tokenSymbol) {
         }
         console.log("this!")
         // Get the currently selected token from the dropdown
-        const fromTokenSelect = document.getElementById('fromToken');
+        const fromTokenSelect = document.getElementById('fromToken22');
         const tokenSelected = fromTokenSelect.value; // This will be 'ETH', 'USDC', etc.
 
         // Get the wallet balance for the selected token
@@ -16335,8 +16363,9 @@ function setMaxAmount2(inputElement, tokenSymbol, amount) {
 
 // Helper function to get max amount for different token types
 function getMaxAmountForToken(position, tokenSymbol) {
+    console
     // Check wallet balances first (from your earlier implementation)
-    const walletBalance = walletBalances[tokenSymbol] || 0;
+    const walletBalance = walletBalances[tokenSymbol.trim()] || 0;
 
 
     // Default case (for ETH or other tokens)
@@ -17501,7 +17530,22 @@ async function initializeDApp() {
         updateLoadingStatus('Initializing interface...');
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        updateLoadingStatus('Ready!');
+        var x=0
+       while(!pricesLoaded){
+        x++;
+                if(x > 12){
+                    updateLoadingStatus('Loading price graphs... takes up to 30-60 seconds if main server is down');
+
+                }else{
+
+                    updateLoadingStatus('Loading price graphs...');
+                }
+                
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+
+        updateLoadingStatus('Absolutely Ready!');
         await new Promise(resolve => setTimeout(resolve, 500));
 
         hideLoadingScreen();
@@ -23949,7 +23993,7 @@ async function scanBlocks(fromBlock, toBlock, loopNumbers) {
                     xzzzzz12312312312 = xzzzzz12312312312 + 1;
                     updateLoadingStatusWidget('Loading All Positions for users<br>Loop #:' + xzzzzz12312312312 + " MaxLoop #: " + loopNumbers.toFixed(0));
 
-                    setLoadingProgress(Math.floor((xzzzzz12312312312) / (loopNumbers.toFixed(0)) * 100));
+            setLoadingProgress(Math.floor((xzzzzz12312312312) / (loopNumbers.toFixed(0)) * 100));
 
                     console.log(` Scanning sub-range: ${start} to ${end} (${end - start + 1} blocks)`);
 
@@ -24240,6 +24284,14 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(async () => {
         await mainRPCStarterForPositions();
     }, 500);
+
+    
+// Initialize the chart when the page loads
+initializeChart().catch(error => {
+    console.error('Failed to initialize chart:', error);
 });
+
+});
+
 //reload button javascript above
 
