@@ -5420,7 +5420,7 @@ body::before {
     }
 
     #whitepaper .bx-document-wrapper * {
-        color: white !important;
+        color: black !important;
     }
 
     #whitepaper .bx-header-container,
