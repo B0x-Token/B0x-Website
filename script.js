@@ -14848,7 +14848,225 @@ async function fetchBalancesETH() {
     }
 }
 
+async function getAllPoolFees() {
+    if (!walletConnected) {
+        await connectWallet();
+    }
 
+    const MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11"; // Multicall3 on Base
+    
+    const multicall3ABI = [
+        {
+            "type": "function",
+            "name": "aggregate3",
+            "inputs": [
+                {
+                    "name": "calls",
+                    "type": "tuple[]",
+                    "components": [
+                        {
+                            "name": "target",
+                            "type": "address"
+                        },
+                        {
+                            "name": "allowFailure",
+                            "type": "bool"
+                        },
+                        {
+                            "name": "callData",
+                            "type": "bytes"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "returnData",
+                    "type": "tuple[]",
+                    "components": [
+                        {
+                            "name": "success",
+                            "type": "bool"
+                        },
+                        {
+                            "name": "returnData",
+                            "type": "bytes"
+                        }
+                    ]
+                }
+            ],
+            "stateMutability": "view"
+        }
+    ];
+
+    const hookABI = [
+        {
+            "type": "function",
+            "name": "getCurrentPoolFee",
+            "inputs": [
+                {
+                    "name": "poolKey",
+                    "type": "tuple",
+                    "components": [
+                        {
+                            "name": "currency0",
+                            "type": "address"
+                        },
+                        {
+                            "name": "currency1",
+                            "type": "address"
+                        },
+                        {
+                            "name": "fee",
+                            "type": "uint24"
+                        },
+                        {
+                            "name": "tickSpacing",
+                            "type": "int24"
+                        },
+                        {
+                            "name": "hooks",
+                            "type": "address"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "currentFee",
+                    "type": "uint24"
+                }
+            ],
+            "stateMutability": "view"
+        }
+    ];
+
+    const multicallContract = new ethers.Contract(MULTICALL3_ADDRESS, multicall3ABI, provider);
+    const hookInterface = new ethers.utils.Interface(hookABI);
+
+    // Helper function to sort currencies
+    function sortCurrencies(token1, token2) {
+        if (token1.toLowerCase() < token2.toLowerCase()) {
+            return [token1, token2];
+        } else {
+            return [token2, token1];
+        }
+    }
+
+    // Prepare pool keys for all three pools
+    const [b0xEthCurrency0, b0xEthCurrency1] = sortCurrencies(tokenAddresses['ETH'], tokenAddresses['B0x']);
+    const poolKeyB0xETH = {
+        currency0: b0xEthCurrency0,
+        currency1: b0xEthCurrency1,
+        fee: 0x800000,
+        tickSpacing: 60,
+        hooks: hookAddress
+    };
+
+    const [oxbtcEthCurrency0, oxbtcEthCurrency1] = sortCurrencies(Address_ZEROXBTC_TESTNETCONTRACT, tokenAddresses['ETH']);
+    const poolKey0xBTCETH = {
+        currency0: oxbtcEthCurrency0,
+        currency1: oxbtcEthCurrency1,
+        fee: 0x800000,
+        tickSpacing: 60,
+        hooks: hookAddress
+    };
+
+    const [b0x0xbtcCurrency0, b0x0xbtcCurrency1] = sortCurrencies(Address_ZEROXBTC_TESTNETCONTRACT, tokenAddresses['B0x']);
+    const poolKeyB0x0xBTC = {
+        currency0: b0x0xbtcCurrency0,
+        currency1: b0x0xbtcCurrency1,
+        fee: 0x800000,
+        tickSpacing: 60,
+        hooks: hookAddress
+    };
+
+    // Encode call data for each pool
+    const callData1 = hookInterface.encodeFunctionData("getCurrentPoolFee", [poolKeyB0xETH]);
+    const callData2 = hookInterface.encodeFunctionData("getCurrentPoolFee", [poolKey0xBTCETH]);
+    const callData3 = hookInterface.encodeFunctionData("getCurrentPoolFee", [poolKeyB0x0xBTC]);
+
+    // Prepare multicall calls array
+    const calls = [
+        {
+            target: hookAddress,
+            allowFailure: true,
+            callData: callData1
+        },
+        {
+            target: hookAddress,
+            allowFailure: true,
+            callData: callData2
+        },
+        {
+            target: hookAddress,
+            allowFailure: true,
+            callData: callData3
+        }
+    ];
+
+    try {
+        const results = await multicallContract.aggregate3(calls);
+        
+        // Store the fees globally or return them
+        const poolFees = {
+            b0xEth: 0,
+            oxbtcEth: 0,
+            b0xOxbtc: 0
+        };
+
+        // Decode result 1 - B0x/ETH
+        if (results[0].success) {
+            const decoded = hookInterface.decodeFunctionResult("getCurrentPoolFee", results[0].returnData);
+            poolFees.b0xEth = decoded.currentFee;
+            console.log("B0x/ETH Fee:", poolFees.b0xEth / 10000, "%");
+        } else {
+            console.error("Failed to fetch B0x/ETH fee");
+        }
+
+        // Decode result 2 - 0xBTC/ETH
+        if (results[1].success) {
+            const decoded = hookInterface.decodeFunctionResult("getCurrentPoolFee", results[1].returnData);
+            poolFees.oxbtcEth = decoded.currentFee;
+            console.log("0xBTC/ETH Fee:", poolFees.oxbtcEth / 10000, "%");
+        } else {
+            console.error("Failed to fetch 0xBTC/ETH fee");
+        }
+
+        // Decode result 3 - B0x/0xBTC
+        if (results[2].success) {
+            const decoded = hookInterface.decodeFunctionResult("getCurrentPoolFee", results[2].returnData);
+            poolFees.b0xOxbtc = decoded.currentFee;
+            console.log("B0x/0xBTC Fee:", poolFees.b0xOxbtc / 10000, "%");
+        } else {
+            console.error("Failed to fetch B0x/0xBTC fee");
+        }
+
+        // Update UI with all fees
+        const infoCard = document.querySelector('#admin-functions .info-card2');
+        if (infoCard) {
+            infoCard.innerHTML = `
+                <h3>Current Pool Fees</h3>
+                <p>B0x/ETH: ${poolFees.b0xEth / 10000}%</p>
+                <p>0xBTC/ETH: ${poolFees.oxbtcEth / 10000}%</p>
+                <p>B0x/0xBTC: ${poolFees.b0xOxbtc / 10000}%</p>
+            `;
+        }
+
+        return poolFees;
+
+    } catch (error) {
+        console.error('Error fetching pool fees:', error);
+        const infoCard = document.querySelector('#admin-functions .info-card2');
+        if (infoCard) {
+            infoCard.innerHTML = `
+                <h3>Current Pool Fees</h3>
+                <p>Error loading fee data</p>
+            `;
+        }
+        return null;
+    }
+}
 
 async function getCurrentPoolFeeB0xETH() {
 
@@ -14941,6 +15159,8 @@ async function getCurrentPoolFeeB0xETH() {
                     <h3>Current Selected Position</h3>
                     <p>Current Fee: ${result / 10000} %</p>
                 `;
+
+                return result;
     } catch (error) {
         console.error('Error fetching current fee:', error);
         const infoCard = document.querySelector('.info-card2');
@@ -14948,6 +15168,8 @@ async function getCurrentPoolFeeB0xETH() {
                     <h3>Current Selected Position</h3>
                     <p>Error loading fee data</p>
                 `;
+
+                return 0;
     }
 }
 
@@ -15043,6 +15265,7 @@ async function getCurrentPoolFee0xBTCETH() {
                     <h3>Current Selected Position</h3>
                     <p>Current Fee: ${result / 10000} %</p>
                 `;
+                return result;
     } catch (error) {
         console.error('Error fetching current fee:', error);
         const infoCard = document.querySelector('.info-card2');
@@ -15050,6 +15273,7 @@ async function getCurrentPoolFee0xBTCETH() {
                     <h3>Current Selected Position</h3>
                     <p>Error loading fee data</p>
                 `;
+                return 0;
     }
 }
 
@@ -15147,6 +15371,8 @@ async function getCurrentPoolFee() {
                     <h3>Current Selected Position</h3>
                     <p>Current Fee: ${result / 10000} %</p>
                 `;
+
+                return result;
     } catch (error) {
         console.error('Error fetching current fee:', error);
         const infoCard = document.querySelector('.info-card2');
@@ -15154,6 +15380,8 @@ async function getCurrentPoolFee() {
                     <h3>Current Selected Position</h3>
                     <p>Error loading fee data</p>
                 `;
+
+                return 0;
     }
 }
 
@@ -17156,6 +17384,81 @@ function initializeTabFromURL() {
     // If no tab parameter, the default active tab will remain (swap)
 }
 
+/*
+
+                        onclick="getCurrentPoolFee()">getCurrentPoolFee</button>
+                    <button class="btn-primary" id="currentPoolFeeBtn"
+                        onclick="getCurrentPoolFee0xBTCETH()">getCurrentPoolFee0xBTCETH</button>
+                    <button class="btn-primary" id="currentPoolFeeBtn"
+                        onclick="getCurrentPoolFeeB0xETH()">getCurrentPoolFeeB0xETH</button>
+                    <div class="info-card2">
+
+   var poolsfee = await getAllPoolFees();
+
+
+                            // Store the fees globally or return them
+        const poolFees = {
+            b0xEth: 0,
+            oxbtcEth: 0,
+            b0xOxbtc: 0
+        };
+
+
+
+                    */
+
+        async function getAllFees(){
+    await sleep(300);
+    var poolsfee = await getAllPoolFees();
+    console.log("pools Fee: ", poolsfee);
+    
+    // B0x/ETH Pool
+    var feeValueSpanB0xETH = document.querySelector('.fee-valueB0xETH');
+    console.log("Found .fee-valueB0xETH:", feeValueSpanB0xETH);
+    if (feeValueSpanB0xETH) {
+        var listItem = feeValueSpanB0xETH.closest('li');
+        var curFeeB0xETH = poolsfee.b0xEth / 10000;
+        feeValueSpanB0xETH.textContent = curFeeB0xETH + '%';
+        if (listItem) {
+            listItem.dataset.feeStart = curFeeB0xETH + '%';
+        }
+        console.log("Set B0x/ETH fee to:", curFeeB0xETH + '%');
+    } else {
+        console.error("Could not find .fee-valueB0xETH element");
+    }
+
+    // 0xBTC/ETH Pool
+    var feeValueSpan0xBTCETH = document.querySelector('.fee-value0xBTCETH');
+    console.log("Found .fee-value0xBTCETH:", feeValueSpan0xBTCETH);
+    if (feeValueSpan0xBTCETH) {
+        var listItem = feeValueSpan0xBTCETH.closest('li');
+        var curFee0xBTCETH = poolsfee.oxbtcEth / 10000;
+        feeValueSpan0xBTCETH.textContent = curFee0xBTCETH + '%';
+        if (listItem) {
+            listItem.dataset.feeStart = curFee0xBTCETH + '%';
+        }
+        console.log("Set 0xBTC/ETH fee to:", curFee0xBTCETH + '%');
+    } else {
+        console.error("Could not find .fee-value0xBTCETH element");
+    }
+
+    // B0x/0xBTC Pool
+    var feeValueSpanB0x0xBTC = document.querySelector('.fee-valueB0x0xBTC');
+    console.log("Found .fee-valueB0x0xBTC:", feeValueSpanB0x0xBTC);
+    if (feeValueSpanB0x0xBTC) {
+        var listItem = feeValueSpanB0x0xBTC.closest('li');
+        var curFeeB0x0xBTC = poolsfee.b0xOxbtc / 10000;
+        feeValueSpanB0x0xBTC.textContent = curFeeB0x0xBTC + '%';
+        if (listItem) {
+            listItem.dataset.feeStart = curFeeB0x0xBTC + '%';
+        }
+        console.log("Set B0x/0xBTC fee to:", curFeeB0x0xBTC + '%');
+    } else {
+        console.error("Could not find .fee-valueB0x0xBTC element");
+    }
+    
+    await sleep(300);
+}
 
 
 // Alternative function if you prefer to use just the parameter name without 'tab='
@@ -17330,12 +17633,10 @@ async function switchTab(tabName) {
     }
     PreviousTabName = tabName;
     console.log("PREVIOUS TAB NAME: ", PreviousTabName);
-    if (tabName === 'stats') {
+    if (tabName === 'side-pools') {
         // Remove padding when switching to stats
-        document.querySelector('.content').style.padding = '0px';
+     await getAllFees();
     } else {
-        // Restore padding for other tabs
-        setPadding();
     }
 
 }
