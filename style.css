@@ -295,7 +295,6 @@
 
     body {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: #0a0a0a;
         background-image:
             radial-gradient(circle at 25% 25%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
             radial-gradient(circle at 75% 75%, rgba(255, 0, 128, 0.2) 0%, transparent 50%),
@@ -313,7 +312,6 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background: #0a0a0a;
     background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA0IDQnPjxkZWZzPjxwYXR0ZXJuIGlkPSdkaWFtb25kJyB3aWR0aD0nNCcgaGVpZ2h0PSc0JyBwYXR0ZXJuVW5pdHM9J3VzZXJTcGFjZU9uVXNlJz48cGF0aCBkPSdNIDIgMCBMIDQgMiBMIDIgNCBMIDAgMiBaJyBmaWxsPSdub25lJyBzdHJva2U9J3JnYmEoMTIwLDExOSwxOTgsMC4xNSknIHN0cm9rZS13aWR0aD0nMC4yJy8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0nNCcgaGVpZ2h0PSc0JyBmaWxsPSd1cmwoI2RpYW1vbmQpJy8+PC9zdmc+");
     background-size: 50px 50px;
     pointer-events: none;
