@@ -6857,6 +6857,7 @@ async function getSingleRouteOutput(route, amount, contractInterface, fromToken,
 }
 
 
+
 async function getSwapOfTwoTokens() {
     if (!walletConnected) await connectWallet();
     
@@ -6871,8 +6872,172 @@ async function getSwapOfTwoTokens() {
     const selectSlippage = document.getElementById('slippageToleranceSwap');
     const decimalValueSlippage = parseFloat(selectSlippage.value.replace('%', '')) / 100;
     
-    // Use the new multi-route optimization
-    await executeOptimizedMultiRouteSwap(fromToken, toToken, amount, decimalValueSlippage);
+    // Validate we have a recent estimate for these exact parameters
+    if (!window.lastEstimate || 
+        window.lastFromToken !== fromToken || 
+        window.lastToToken !== toToken ||
+        window.lastAmountIn?.toString() !== (fromToken === "0xBTC" ? 
+            ethers.utils.parseUnits(amount, 8) : 
+            ethers.utils.parseUnits(amount, 18)).toString()) {
+        
+        console.warn("No valid estimate found - getting fresh estimate");
+        await getEstimate();
+        
+        if (!window.lastEstimate) {
+            alert("Failed to get swap estimate");
+            return;
+        }
+    }
+    
+    // Execute using the cached estimate
+    await executeSwapFromEstimate(fromToken, toToken, decimalValueSlippage);
+}
+
+async function executeSwapFromEstimate(fromToken, toToken, decimalValueSlippage) {
+    const estimate = window.lastEstimate;
+    const amountToSwap = window.lastAmountIn;
+    
+    // Set up contracts
+    const swapperABI = [
+        {
+            "inputs": [
+                {"name": "tokenZeroxBTC", "type": "address"},
+                {"name": "tokenBZeroX", "type": "address"},
+                {"name": "tokenIn", "type": "address"},
+                {"name": "hookAddress", "type": "address"},
+                {"name": "amountIn", "type": "uint128"}
+            ],
+            "name": "getOutput",
+            "outputs": [{"name": "amountOut", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"name": "pool1TokenA", "type": "address"},
+                {"name": "pool1TokenB", "type": "address"},
+                {"name": "pool2TokenA", "type": "address"},
+                {"name": "pool2TokenB", "type": "address"},
+                {"name": "tokenIn", "type": "address"},
+                {"name": "tokenOut", "type": "address"},
+                {"name": "hook1Address", "type": "address"},
+                {"name": "hook2Address", "type": "address"},
+                {"name": "amountIn", "type": "uint128"}
+            ],
+            "name": "getOutputMultiHop",
+            "outputs": [{"name": "amountOut", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"name": "routes", "type": "tuple[]", "components": [
+                    {"name": "isSingleHop", "type": "bool"},
+                    {"name": "pool1TokenA", "type": "address"},
+                    {"name": "pool1TokenB", "type": "address"},
+                    {"name": "pool2TokenA", "type": "address"},
+                    {"name": "pool2TokenB", "type": "address"},
+                    {"name": "hookAddress", "type": "address"},
+                    {"name": "hook2Address", "type": "address"}
+                ]},
+                {"name": "amounts", "type": "uint256[]"},
+                {"name": "tokenIn", "type": "address"},
+                {"name": "tokenOut", "type": "address"},
+                {"name": "minTotalAmountOut", "type": "uint256"},
+                {"name": "recipient", "type": "address"}
+            ],
+            "name": "executeMultiRouteSwap",
+            "outputs": [{"name": "totalAmountOut", "type": "uint256"}],
+            "stateMutability": "payable",
+            "type": "function"
+        }
+    ];
+    const swapperContract = new ethers.Contract(contractAddress_Swapper, swapperABI, signer);
+    
+    let optimizationResult;
+    
+    if (estimate.type === 'single') {
+        optimizationResult = {
+            routes: [estimate.route],
+            splits: [100],
+            amounts: [amountToSwap],
+            totalOutput: estimate.output
+        };
+    } else if (estimate.type === 'multi') {
+        optimizationResult = {
+            routes: estimate.routes,
+            splits: estimate.splits,
+            amounts: estimate.amounts,
+            outputs: estimate.outputs,
+            totalOutput: estimate.totalOutput
+        };
+    }
+    
+    // Calculate minimum output with slippage
+    const minTotalOut = optimizationResult.totalOutput
+        .mul(Math.floor((1 - decimalValueSlippage) * 10000))
+        .div(10000);
+    
+    // Approve tokens if needed
+    const tokenInAddress = tokenAddresses[fromToken];
+    const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
+    
+    if (tokenInAddress !== ETH_ADDRESS) {
+        await approveIfNeeded(tokenInAddress, contractAddress_Swapper, amountToSwap);
+    }
+    
+    // Execute swap
+
+
+    const formattedRoutes = optimizationResult.routes.map(route => {
+            const pool1TokenA = route.pool1TokenA || route.tokenA;
+            const pool1TokenB = route.pool1TokenB || route.tokenB;
+            const pool2TokenA = route.pool2TokenA || route.tokenC || ethers.constants.AddressZero;
+            const pool2TokenB = route.pool2TokenB || route.tokenD || ethers.constants.AddressZero;
+            
+            // Detect if actually single-hop based on pool2 addresses
+            const isActuallySingleHop = pool2TokenA === ethers.constants.AddressZero && 
+                                        pool2TokenB === ethers.constants.AddressZero;
+            
+            return {
+                isSingleHop: isActuallySingleHop,  // Use detected value
+                pool1TokenA,
+                pool1TokenB,
+                pool2TokenA,
+                pool2TokenB,
+                hookAddress: route.hookAddress,
+                hook2Address: route.hookAddress2 || route.hook2Address || ethers.constants.AddressZero
+            };
+        });
+
+
+
+    console.log("TIS IS IT:  formattedRoutes       : ",);
+    console.log("TIS IS IT:    optimizationResult.amounts.map(amt => amt.toString())     : ",);
+    console.log("TIS IS IT:     tokenInAddress    : ",tokenInAddress);
+    console.log("TIS IS IT:      tokenAddresses[toToken]   : ",tokenAddresses[toToken]);
+    console.log("TIS IS IT:       minTotalOut  : ", minTotalOut);
+    console.log("TIS IS IT:       userAddress  : ", userAddress);
+    const tx = await swapperContract.executeMultiRouteSwap(
+        formattedRoutes,
+        optimizationResult.amounts.map(amt => amt.toString()),
+        tokenInAddress,
+        tokenAddresses[toToken],
+        minTotalOut,
+        userAddress,
+        {
+            value: tokenInAddress === ETH_ADDRESS ? amountToSwap : 0,
+            gasLimit: 1000000
+        }
+    );
+    
+    showInfoNotification();
+    await tx.wait();
+    showSuccessNotification('Swap Complete!', 'Transaction complete!', tx.hash);
+    
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    await throttledGetSqrtRtAndPriceRatio("SwapFunction");
+    fetchBalances();
 }
 
 
@@ -8046,6 +8211,7 @@ async function getEstimate() {
             console.log("No value returning");
             return;
         }
+        
         // Handle decimal precision for 0xBTC (8 decimals)
         let amountToSwap;
         if (fromToken === "0xBTC") {
@@ -8079,12 +8245,24 @@ async function getEstimate() {
         if (allRoutes.length === 1) {
             // Single route only - use simple estimate
             console.log("Single route available:", allRoutes[0].name);
-            bestEstimate = await getSingleRouteEstimate(
+            const estimate = await getSingleRouteEstimate(
                 allRoutes[0], 
                 amountToSwap, 
                 fromToken, 
                 toToken
             );
+
+            // Normalize to match multi-route structure
+            bestEstimate = {
+                type: 'single',
+                output: estimate.output,
+                totalOutput: estimate.output,
+                route: allRoutes[0],
+                routes: [allRoutes[0]],
+                amounts: [amountToSwap],
+                splits: [100]
+            };
+
             window.lastEstimateType = 'single';
             window.lastSingleRoute = allRoutes[0];
         } else {
@@ -8119,9 +8297,11 @@ async function getEstimate() {
                 amountToSwap, 
                 Math.min(allRoutes.length, 4)
             );
-            console.log("multiRouteResult: ",multiRouteResult);
-            console.log("multiRouteResult: bestSingleOutput: ",bestSingleOutput.toString());
-            console.log("multiRouteResult: multiRouteResult.totalOutput: ",multiRouteResult.totalOutput.toString());
+            
+            console.log("multiRouteResult: ", multiRouteResult);
+            console.log("multiRouteResult: bestSingleOutput: ", bestSingleOutput.toString());
+            console.log("multiRouteResult: multiRouteResult.totalOutput: ", multiRouteResult.totalOutput.toString());
+            
             if (multiRouteResult && multiRouteResult.totalOutput.gt(bestSingleOutput)) {
                 // Calculate improvement
                 const improvement = multiRouteResult.totalOutput.sub(bestSingleOutput)
@@ -8132,6 +8312,7 @@ async function getEstimate() {
                     bestEstimate = {
                         type: 'multi',
                         output: multiRouteResult.totalOutput,
+                        totalOutput: multiRouteResult.totalOutput,
                         routes: multiRouteResult.routes,
                         splits: multiRouteResult.splits,
                         amounts: multiRouteResult.amounts,
@@ -8145,7 +8326,11 @@ async function getEstimate() {
                     bestEstimate = {
                         type: 'single',
                         output: bestSingleOutput,
-                        route: bestSingleRoute
+                        totalOutput: bestSingleOutput,
+                        route: bestSingleRoute,
+                        routes: [bestSingleRoute],
+                        amounts: [amountToSwap],
+                        splits: [100]
                     };
                     window.lastEstimateType = 'single';
                     window.lastSingleRoute = bestSingleRoute;
@@ -8156,7 +8341,11 @@ async function getEstimate() {
                 bestEstimate = {
                     type: 'single',
                     output: bestSingleOutput,
-                    route: bestSingleRoute
+                    totalOutput: bestSingleOutput,
+                    route: bestSingleRoute,
+                    routes: [bestSingleRoute],
+                    amounts: [amountToSwap],
+                    splits: [100]
                 };
                 window.lastEstimateType = 'single';
                 window.lastSingleRoute = bestSingleRoute;
@@ -23228,19 +23417,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-
 var inFunctionDontRefresh = false;
 let count = 40;
 let interval = null;
 let checker = null;
 let isCountdownActive = false;
 
-// Function to get all countdown elements (refreshed each time)
 function getCountdownElements() {
     return document.querySelectorAll("[id='countdown'], .countdown, [data-countdown]");
 }
 
-// Initialize countdown display
 function updateCountdownDisplay() {
     const countdownElements = getCountdownElements();
     countdownElements.forEach(el => {
@@ -23249,32 +23435,31 @@ function updateCountdownDisplay() {
 }
 
 async function startCountdown() {
-    // Prevent multiple countdowns from running
     if (isCountdownActive) {
         console.log("Countdown already active, skipping start");
         return;
     }
     
-    // Clear any existing intervals
     if (interval) clearInterval(interval);
     if (checker) clearInterval(checker);
     interval = null;
     checker = null;
-    
     isCountdownActive = true;
     
-    // Set initial display
     updateCountdownDisplay();
     
     interval = setInterval(() => {
         count--;
         updateCountdownDisplay();
         console.log("Count:", count, "inFunctionDontRefresh:", inFunctionDontRefresh);
-
-        if (count < 0){
+        
+        if (count < 0) {
+            // Clear interval immediately to prevent multiple triggers
+            clearInterval(interval);
+            interval = null;
             
             if (!inFunctionDontRefresh) {
-                resetCountdown(); // false = not from checker
+                handleCountdownComplete();
             } else {
                 console.log("Paused - waiting for inFunctionDontRefresh to become false");
                 startChecker();
@@ -23284,74 +23469,66 @@ async function startCountdown() {
 }
 
 function startChecker() {
-    // Clear any existing checker
     if (checker) clearInterval(checker);
     
     checker = setInterval(() => {
         console.log("Checker running - inFunctionDontRefresh:", inFunctionDontRefresh);
-        
         if (!inFunctionDontRefresh) {
             console.log("Resuming - inFunctionDontRefresh is now false");
-            resetCountdown();
+            clearInterval(checker);
+            checker = null;
+            handleCountdownComplete();
         }
     }, 1000);
 }
 
-function resetCountdown() {
-    console.log("FUNTIME NOW 1111 - Resetting countdown");
+async function handleCountdownComplete() {
+    console.log("Countdown complete - running reload");
     
-    // Clear all intervals
-    if (interval) clearInterval(interval);
-    if (checker) clearInterval(checker);
-    interval = null;
-    checker = null;
+    // Reset countdown state
     isCountdownActive = false;
-    
     count = 40;
     updateCountdownDisplay();
     
+    // Run reload functions
+    await runReloadFunctions(false, false);
+    
+    // Start new countdown after reload completes
     startCountdown();
-    runReloadFunctions(false,false);
 }
 
 var isReloading = false;
 
-
-async function runReloadFunctions(fromChecker = false, fromReset=true) {
+async function runReloadFunctions(fromChecker = false, fromReset = true) {
     if (!walletConnected) {
         console.log("wallet not connected no reload for it");
         await getEstimate();
-        if(fromReset){
-        resetCountdown();
-        }
-        return;
+        return; // Don't restart countdown here
     }
-
+    
     if (isReloading) {
         console.log("Already reloading, skipping...");
-        // Don't reset here - let the currently running instance handle it
         return;
     }
     
     isReloading = true;
-
+    
     try {
         await fetchBalances();
-
+        
         if (PreviousTabName == "convert") {
             console.log("Tabname = convert do ETH");
             await switchToEthereum();
             await fetchBalancesETH();
             await switchToBase();
         }
-
+        
         await getRewardStats();
         await throttledGetSqrtRtAndPriceRatio("SwapFunction");
-
+        
         const now = new Date().toLocaleTimeString();
         console.log("Reload completed at:", now);
         
-        // Call GetRewardAPY if this came from the checker
         if (fromChecker) {
             await GetRewardAPY();
         }
@@ -23359,8 +23536,7 @@ async function runReloadFunctions(fromChecker = false, fromReset=true) {
         console.error('Error during reload:', error);
     } finally {
         isReloading = false;
-        // Always reset countdown after reload completes
-        resetCountdown();
+        // Don't call resetCountdown here - let handleCountdownComplete manage the cycle
     }
 }
 
