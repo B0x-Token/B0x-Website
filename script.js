@@ -1330,6 +1330,9 @@ async function connectWallet() {
                 console.log("contractAddresses MATCH ");
                 await restoreDefaultAddressesfromContract();
             }
+            await getRewardStats();
+                       await GetRewardAPY();
+
 
 
 
@@ -1428,6 +1431,31 @@ async function switchToEthereum() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var totalLiquidityInStakingContract = 0;
 var Rewardduration = 0;
 
@@ -1435,11 +1463,14 @@ var Rewardduration = 0;
 // Add this variable at the top of your file (outside the function)
 let lastRewardStatsCall = 0;
 const REWARD_STATS_COOLDOWN = 60000; // 60 seconds in milliseconds
+var first3 = 0;
+
+
 
 async function getRewardStats() {
-  // Check if 60 seconds have passed since last call
+    // Check if 60 seconds have passed since last call
     const now = Date.now();
-    if (now - lastRewardStatsCall < REWARD_STATS_COOLDOWN) {
+    if (now - lastRewardStatsCall < REWARD_STATS_COOLDOWN && first3 > 3) {
         console.log("getRewardStats called too soon, skipping...");
         return;
     }
@@ -1447,117 +1478,112 @@ async function getRewardStats() {
     // Update the last call timestamp
     lastRewardStatsCall = now;
     
-    // Your existing function code goes here
     console.log("Running getRewardStats...");
-    //Gets user rewardsOwed, gets symbol, decimals, names and addresses of all
 
+    // Multicall3 contract address (same on most EVM chains)
+    const MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11";
+    
+    const MULTICALL3_ABI = [{
+        "inputs": [{
+            "components": [
+                { "internalType": "address", "name": "target", "type": "address" },
+                { "internalType": "bool", "name": "allowFailure", "type": "bool" },
+                { "internalType": "bytes", "name": "callData", "type": "bytes" }
+            ],
+            "internalType": "struct Multicall3.Call3[]",
+            "name": "calls",
+            "type": "tuple[]"
+        }],
+        "name": "aggregate3",
+        "outputs": [{
+            "components": [
+                { "internalType": "bool", "name": "success", "type": "bool" },
+                { "internalType": "bytes", "name": "returnData", "type": "bytes" }
+            ],
+            "internalType": "struct Multicall3.Result[]",
+            "name": "returnData",
+            "type": "tuple[]"
+        }],
+        "stateMutability": "view",
+        "type": "function"
+    }];
 
     const getRewardStatsABI = [{
         "inputs": [],
         "name": "getRewardOwedStats",
         "outputs": [
-            {
-                "internalType": "address[]",
-                "name": "rewardTokenAddresses",
-                "type": "address[]"
-            },
-            {
-                "internalType": "uint256[]",
-                "name": "rewardsOwed",
-                "type": "uint256[]"
-            },
-            {
-                "internalType": "string[]",
-                "name": "tokenSymbols",
-                "type": "string[]"
-            },
-            {
-                "internalType": "string[]",
-                "name": "tokenNames",
-                "type": "string[]"
-            },
-            {
-                "internalType": "uint8[]",
-                "name": "tokenDecimals",
-                "type": "uint8[]"
-            },
-            {
-                "internalType": "uint256[]",
-                "name": "tokenRewardRates",
-                "type": "uint256[]"
-            },
-            {
-                "internalType": "uint256[]",
-                "name": "tokenPeriodEndsAt",
-                "type": "uint256[]"
-            }
+            { "internalType": "address[]", "name": "rewardTokenAddresses", "type": "address[]" },
+            { "internalType": "uint256[]", "name": "rewardsOwed", "type": "uint256[]" },
+            { "internalType": "string[]", "name": "tokenSymbols", "type": "string[]" },
+            { "internalType": "string[]", "name": "tokenNames", "type": "string[]" },
+            { "internalType": "uint8[]", "name": "tokenDecimals", "type": "uint8[]" },
+            { "internalType": "uint256[]", "name": "tokenRewardRates", "type": "uint256[]" },
+            { "internalType": "uint256[]", "name": "tokenPeriodEndsAt", "type": "uint256[]" }
         ],
         "stateMutability": "view",
         "type": "function"
     }, {
         "inputs": [],
         "name": "totalSupply",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
         "stateMutability": "view",
         "type": "function"
-    },
-    {
+    }, {
         "inputs": [],
         "name": "duration_of_rewards",
-        "outputs": [
-            {
-                "internalType": "uint64",
-                "name": "",
-                "type": "uint64"
-            }
-        ],
+        "outputs": [{ "internalType": "uint64", "name": "", "type": "uint64" }],
         "stateMutability": "view",
         "type": "function"
-    },
-    {
+    }, {
         "inputs": [],
         "name": "getContractTotals",
         "outputs": [
-            {
-                "internalType": "uint128",
-                "name": "liquidityInStaking",
-                "type": "uint128"
-            },
-            {
-                "internalType": "uint256",
-                "name": "total0xBTCStaked",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "totalB0xStaked",
-                "type": "uint256"
-            }
+            { "internalType": "uint128", "name": "liquidityInStaking", "type": "uint128" },
+            { "internalType": "uint256", "name": "total0xBTCStaked", "type": "uint256" },
+            { "internalType": "uint256", "name": "totalB0xStaked", "type": "uint256" }
         ],
         "stateMutability": "view",
         "type": "function"
-    }
+    }];
+
+    // Create interface for encoding
+    const iface = new ethers.utils.Interface(getRewardStatsABI);
+    
+    // Prepare multicall data
+    const calls = [
+        {
+            target: contractAddressLPRewardsStaking,
+            allowFailure: false,
+            callData: iface.encodeFunctionData("duration_of_rewards")
+        },
+        {
+            target: contractAddressLPRewardsStaking,
+            allowFailure: false,
+            callData: iface.encodeFunctionData("getRewardOwedStats")
+        },
+        {
+            target: contractAddressLPRewardsStaking,
+            allowFailure: false,
+            callData: iface.encodeFunctionData("totalSupply")
+        },
+        {
+            target: contractAddressLPRewardsStaking,
+            allowFailure: false,
+            callData: iface.encodeFunctionData("getContractTotals")
+        }
     ];
 
+    // Execute multicall
+    const multicallContract = new ethers.Contract(MULTICALL3_ADDRESS, MULTICALL3_ABI, signer);
+    const results = await multicallContract.aggregate3(calls);
 
+    // Decode results
+    const resultDuration = iface.decodeFunctionResult("duration_of_rewards", results[0].returnData)[0];
+    const result = iface.decodeFunctionResult("getRewardOwedStats", results[1].returnData);
+    const result2 = iface.decodeFunctionResult("totalSupply", results[2].returnData)[0];
+    const result3 = iface.decodeFunctionResult("getContractTotals", results[3].returnData);
 
-
-
-    var LPRewarsdStakingContract = new ethers.Contract(
-        contractAddressLPRewardsStaking, // your tokenSwapper contract address
-        getRewardStatsABI,
-        signer // Use signer since the function isn't view/pure
-    );
-    console.log("LPRewarsdStakingContract", LPRewarsdStakingContract);
-    const resultDuration = await LPRewarsdStakingContract.duration_of_rewards();
-    const result = await LPRewarsdStakingContract.getRewardOwedStats();
-
+    // Extract values from result (getRewardOwedStats)
     var rewardAddressesStaking = result[0];
     var rewardsOwed = result[1];
     var rewardtokenSymbols = result[2];
@@ -1566,124 +1592,90 @@ async function getRewardStats() {
     var rewardtokenRewardRate = result[5];
     var rewardtokenPeriodEndsAt = result[6];
 
-
     console.log("getRewardOwedStats STATS BELOWWWWWWWWWWWW getRewardOwedStats");
-
-
     console.log("Reward Address: ", rewardAddressesStaking);
-
     console.log("rewardsOwed: ", rewardsOwed.toString());
-
     console.log("rewardtokenSymbols: ", rewardtokenSymbols);
-
     console.log("rewardtokenNamess: ", rewardtokenNames);
-
     console.log("rewardtokenDecimals: ", rewardtokenDecimals.toString());
     console.log("rewardtokenRewardRate: ", rewardtokenRewardRate.toString());
-    
     console.log("rewardtokenPeriodEndsAt: ", rewardtokenPeriodEndsAt.toString());
 
-
-    /*
-                rewardsAmount.textContent = '15.67 STAKE';
-                rewardsUSD.textContent = '≈ $31.34 USD';
-        var mockRewardTokens = [
-            { address: "0x742d35Cc6634C0532925a3b8D1C07E8DEa95C7C4", symbol: "REWARD" },
-            { address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984", symbol: "UNI" },
-            { address: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9", symbol: "AAVE" }
-        ];
-    
-        var mockActivePeriods = [
-            { token: "REWARD", startTime: "2023-05-15", endTime: "2023-06-15", totalRewards: "10,000 REWARD" },
-            { token: "UNI", startTime: "2023-05-20", endTime: "2023-07-20", totalRewards: "5,000 UNI" }
-        ];
-    */
-
-    //resets the mocks to nothgin before population
+    // Reset mocks
     mockActivePeriods = [];
     mockRewardTokens = [];
     rewardsAmount.textContent = '';
     rewardsUSD.textContent = '';
-    currentSettingsAddresses.contractAddresses
 
-
-    // Clean the string first
+    // Clean and parse contract addresses
     let rawString = currentSettingsAddresses.contractAddresses;
     console.log("Original string:", rawString);
 
     try {
-        // Remove any extra quotes or escape characters
-        rawString = rawString.replace(/^"/, '').replace(/"$/, ''); // Remove surrounding quotes
-        rawString = rawString.replace(/\\"/g, '"'); // Fix escaped quotes
-
+        rawString = rawString.replace(/^"/, '').replace(/"$/, '');
+        rawString = rawString.replace(/\\"/g, '"');
         console.log("Cleaned string:", rawString);
-        var tokenAddresses1;
-
-        tokenAddresses1 = JSON.parse(rawString);
+        var tokenAddresses1 = JSON.parse(rawString);
         console.log("Parsed successfully:", tokenAddresses1);
     } catch (error) {
         console.error("Still can't parse:", error);
         tokenAddresses1 = rawString;
     }
 
-    Rewardduration = parseFloat(resultDuration.toString()); //300 seconds
+    Rewardduration = parseFloat(resultDuration.toString());
     console.log("Reward Duration is how many seconds = ", Rewardduration);
+
+    // Process reward tokens
     for (var x = 0; x < rewardAddressesStaking.length; x++) {
         console.log("X = ", x);
         const timestamp = rewardtokenPeriodEndsAt[x].toString();
-        const date = new Date(timestamp * 1000); // Convert to milliseconds
-        console.log(date.toLocaleDateString()); // "1/1/2025" (format varies by locale)
+        const date = new Date(timestamp * 1000);
+        console.log(date.toLocaleDateString());
         var rewardtokenPeriodEndsAtDate = date.toLocaleDateString();
 
-        // Subtract 45 days to get start date
         var startDate = new Date(date);
         startDate.setDate(startDate.getDate() - 45);
         var rewardtokenPeriodStartsAtDate = startDate.toLocaleDateString();
         console.log("Starts at Date: ", rewardtokenPeriodStartsAtDate, " end at Date: ", rewardtokenPeriodEndsAtDate);
 
         var rewardRate = rewardtokenRewardRate[x];
-        var fortyfivedays = toBigNumber(Rewardduration); // make duration 45*24*60*60 when in production
+        var fortyfivedays = toBigNumber(Rewardduration);
         var rewardsFor45Days = fortyfivedays.mul(rewardRate);
         console.log("Total Rewards for 45 days = ", rewardsFor45Days);
+        
         var rewardAddress = rewardAddressesStaking[x];
         const addressIndex = tokenAddresses1 ? tokenAddresses1.indexOf(rewardAddress) : -1;
 
         console.log("AddressOfReward = ", rewardAddress);
         var rewardSymbol = rewardtokenSymbols[x];
         console.log("Symbol of Reward = ", rewardSymbol);
-        var totRewardsString = parseFloat(rewardsFor45Days.toString()).toFixed(6) + " " + rewardSymbol;
+        
         var rewardsOwedNow = rewardsOwed[x];
-
-
         var tknDecimals = rewardtokenDecimals[x];
-        // Convert BigNumber to human-readable format first, then apply toFixed
+        
         var humanReadableAmount = ethers.utils.formatUnits(rewardsFor45Days, tknDecimals);
         var totRewardsString = parseFloat(humanReadableAmount).toFixed(6) + " " + rewardSymbol;
         console.log("Rewards for 45 days = ", totRewardsString);
 
         var humanReadableAmount2 = ethers.utils.formatUnits(rewardsOwedNow, tknDecimals);
         var totRewardsString2 = parseFloat(humanReadableAmount2).toFixed(6) + " " + rewardSymbol;
+        
         if (x == 0 && addressIndex != -1) {
             rewardsAmount.innerHTML = totRewardsString2;
-
         } else if (addressIndex != -1) {
             rewardsAmount.innerHTML = rewardsAmount.innerHTML + "<br>" + totRewardsString2;
         }
-        // If you still have access to the original timestamp value
+
         const timestampEND = parseFloat(rewardtokenPeriodEndsAt[x].toString());
-        const endDateTimestamp = timestampEND * 1000; // Convert to milliseconds
+        const endDateTimestamp = timestampEND * 1000;
 
         if (endDateTimestamp < Date.now()) {
             console.log("PERIOD ENDED FOR : ", rewardSymbol, " ", rewardAddress);
-
             mockRewardTokens.push({
                 address: rewardAddress,
                 symbol: rewardSymbol
             });
-
-
         }
-
 
         mockActivePeriods.push({
             token: rewardSymbol,
@@ -1691,30 +1683,23 @@ async function getRewardStats() {
             endTime: rewardtokenPeriodEndsAtDate,
             totalRewards: totRewardsString
         });
-
     }
 
-
-    const result2 = await LPRewarsdStakingContract.totalSupply();
-    totalLiquidityInStakingContract = result2;
-
-
-    const result3 = await LPRewarsdStakingContract.getContractTotals();
-    totalLiquidityInStakingContract = result3[0]
-    var total0xBTCinContract = result3[2];
-    var totalB0xinContract = result3[3];
+    // Process results from multicall
+    totalLiquidityInStakingContract = result3[0];
+    var total0xBTCinContract = result3[1];
+    var totalB0xinContract = result3[2];
 
     console.log("totalLiquidityInStakingContract called! result = ", totalLiquidityInStakingContract.toString());
     populateStakingManagementData();
 
     console.log("rewardAddressesStaking: ", rewardAddressesStaking);
     console.log("rewardtokenRewardRate: ", rewardtokenRewardRate);
+    
     await GetRewardAPY(rewardAddressesStaking, rewardtokenRewardRate, total0xBTCinContract);
     await calculateAndDisplayHashrate();
     updateWidget();
-
 }
-
 
 
 
@@ -14443,20 +14428,42 @@ async function getSqrtRtAndPriceRatio(nameOfFunction) {
         //get sqrtx96price for us
         , { "inputs": [{ "internalType": "address", "name": "token", "type": "address" }, { "internalType": "address", "name": "token2", "type": "address" }, { "internalType": "address", "name": "hookAddress", "type": "address" }], "name": "getsqrtPricex96", "outputs": [{ "internalType": "uint160", "name": "", "type": "uint160" }], "stateMutability": "view", "type": "function" }
 
-        , { "inputs": [{ "internalType": "address", "name": "token", "type": "address" }, { "internalType": "address", "name": "token2", "type": "address" }, { "internalType": "address", "name": "hookAddress", "type": "address" }], "name": "getPriceRatio", "outputs": [{ "internalType": "uint256", "name": "ratio", "type": "uint256" }, { "internalType": "address", "name": "token0z", "type": "address" }, { "internalType": "address", "name": "token1z", "type": "address" }, { "internalType": "uint8", "name": "token0decimals", "type": "uint8" }, { "internalType": "uint8", "name": "token1decimals", "type": "uint8" }], "stateMutability": "view", "type": "function" }
-    ];
+        , {
+  "inputs": [
+    { "internalType": "address", "name": "token", "type": "address" },
+    { "internalType": "address", "name": "token2", "type": "address" },
+    { "internalType": "address", "name": "hookAddress", "type": "address" }
+  ],
+  "name": "getPriceRatio",
+  "outputs": [
+    { "internalType": "uint256", "name": "ratio", "type": "uint256" },
+    { "internalType": "address", "name": "token0z", "type": "address" },
+    { "internalType": "address", "name": "token1z", "type": "address" },
+    { "internalType": "uint8", "name": "token0decimals", "type": "uint8" },
+    { "internalType": "uint8", "name": "token1decimals", "type": "uint8" }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+} ];
 
-
+console.log("Custom RPC4: ", customRPC);
+    const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
     tokenSwapperContract = new ethers.Contract(
         contractAddress_Swapper, // your tokenSwapper contract address
         tokenSwapperABI,
-        signer // Use signer since the function isn't view/pure
+        provider_zzzzz12 // Use signer since the function isn't view/pure
     );
 
     let oldratioz = ratioz;
     try {
+        console.log("4444441111  tokenAddresses['B0x'] ",tokenAddresses['B0x']);
+        console.log("4444441111   Address_ZEROXBTC_TESTNETCONTRACT",Address_ZEROXBTC_TESTNETCONTRACT);
+        console.log("4444441111  hookAddress ",hookAddress);
+        console.log("4444441111   ",);
+        console.log("4444441111   ",);
+        console.log("4444441111   ",);
         // Call the view function
-        const result = await tokenSwapperContract.callStatic.getPriceRatio(tokenAddress, Address_ZEROXBTC_TESTNETCONTRACT, HookAddress);
+        const result = await tokenSwapperContract.getPriceRatio(tokenAddresses['B0x'], Address_ZEROXBTC_TESTNETCONTRACT, hookAddress);
 
 
 
@@ -14482,8 +14489,14 @@ async function getSqrtRtAndPriceRatio(nameOfFunction) {
 
     try {
         let oldresult = Current_getsqrtPricex96;
+        console.log("444444222  tokenAddresses['B0x'] ",tokenAddresses['B0x']);
+        console.log("444444222   Address_ZEROXBTC_TESTNETCONTRACT",Address_ZEROXBTC_TESTNETCONTRACT);
+        console.log("444444222  hookAddress ",hookAddress);
+        console.log("444444222   ",);
+        console.log("444444222   ",);
+        console.log("444444222   ",);
         // Call the view function
-        const result = await tokenSwapperContract.getsqrtPricex96(tokenAddress, Address_ZEROXBTC_TESTNETCONTRACT, HookAddress);
+        const result = await tokenSwapperContract.getsqrtPricex96(tokenAddresses['B0x'], Address_ZEROXBTC_TESTNETCONTRACT, hookAddress);
 
 
 
@@ -23199,7 +23212,6 @@ async function startCountdown() {
 
             if (!inFunctionDontRefresh) {
                 runReloadFunctions();
-                resetCountdown();
             } else {
                 console.log("Starting checker interval - waiting for inFunctionDontRefresh to become false");
                 // Set up a checker to resume when inFunctionDontRefresh becomes false
@@ -23210,6 +23222,7 @@ async function startCountdown() {
                         clearInterval(checker);
                         runReloadFunctions();
                         resetCountdown();
+                        GetRewardAPY();
                     }
                 }, 1000);
             }
