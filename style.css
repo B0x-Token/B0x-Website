@@ -5372,6 +5372,7 @@ body::before {
     }
 
    .bx-section-block {
+       color: white !important;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
