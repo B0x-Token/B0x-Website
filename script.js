@@ -1317,12 +1317,16 @@ async function connectWallet() {
             });
 
             await getRewardStats();
+            await sleep(300);
             await getTokenIDsOwnedByMetamask();
+            await sleep(300);
             await checkAdminAccess();
 
 
+            await sleep(300);
             await loadPositionsIntoDappSelections();
 
+            await sleep(300);
             await throttledGetSqrtRtAndPriceRatio("ConnectWallet");
 
             const toggle = document.getElementById('#settings toggle1');
@@ -1330,9 +1334,13 @@ async function connectWallet() {
                 console.log("contractAddresses MATCH ");
                 await restoreDefaultAddressesfromContract();
             }
+            await sleep(300);
             await getRewardStats();
+            await sleep(300);
                        await GetRewardAPY();
 
+            await sleep(1300);
+            await checkAdminAccess();
 
 
 
@@ -14415,7 +14423,6 @@ let Current_getsqrtPricex96 = toBigNumber(0);
 let firstRun = false;
 let ratioz = toBigNumber(0);
 
-
 async function getSqrtRtAndPriceRatio(nameOfFunction) {
 
     if (!walletConnected) {
@@ -14423,123 +14430,162 @@ async function getSqrtRtAndPriceRatio(nameOfFunction) {
     }
 
     const tokenSwapperABI = [
-        // Your existing createPosition function
         { "inputs": [{ "name": "token", "type": "address" }, { "name": "token2", "type": "address" }, { "name": "amountIn", "type": "uint256" }, { "name": "amountIn2", "type": "uint256" }, { "name": "currentx96", "type": "uint256" }, { "name": "slippage", "type": "uint256" }, { "name": "hookAddress", "type": "address" }, { "name": "toSendNFTto", "type": "address" }], "name": "createPositionWith2Tokens", "outputs": [{ "name": "", "type": "bool" }], "stateMutability": "payable", "type": "function" },
-        //get sqrtx96price for us
-        , { "inputs": [{ "internalType": "address", "name": "token", "type": "address" }, { "internalType": "address", "name": "token2", "type": "address" }, { "internalType": "address", "name": "hookAddress", "type": "address" }], "name": "getsqrtPricex96", "outputs": [{ "internalType": "uint160", "name": "", "type": "uint160" }], "stateMutability": "view", "type": "function" }
+        { "inputs": [{ "internalType": "address", "name": "token", "type": "address" }, { "internalType": "address", "name": "token2", "type": "address" }, { "internalType": "address", "name": "hookAddress", "type": "address" }], "name": "getsqrtPricex96", "outputs": [{ "internalType": "uint160", "name": "", "type": "uint160" }], "stateMutability": "view", "type": "function" },
+        {
+            "inputs": [
+                { "internalType": "address", "name": "token", "type": "address" },
+                { "internalType": "address", "name": "token2", "type": "address" },
+                { "internalType": "address", "name": "hookAddress", "type": "address" }
+            ],
+            "name": "getPriceRatio",
+            "outputs": [
+                { "internalType": "uint256", "name": "ratio", "type": "uint256" },
+                { "internalType": "address", "name": "token0z", "type": "address" },
+                { "internalType": "address", "name": "token1z", "type": "address" },
+                { "internalType": "uint8", "name": "token0decimals", "type": "uint8" },
+                { "internalType": "uint8", "name": "token1decimals", "type": "uint8" }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ];
 
-        , {
-  "inputs": [
-    { "internalType": "address", "name": "token", "type": "address" },
-    { "internalType": "address", "name": "token2", "type": "address" },
-    { "internalType": "address", "name": "hookAddress", "type": "address" }
-  ],
-  "name": "getPriceRatio",
-  "outputs": [
-    { "internalType": "uint256", "name": "ratio", "type": "uint256" },
-    { "internalType": "address", "name": "token0z", "type": "address" },
-    { "internalType": "address", "name": "token1z", "type": "address" },
-    { "internalType": "uint8", "name": "token0decimals", "type": "uint8" },
-    { "internalType": "uint8", "name": "token1decimals", "type": "uint8" }
-  ],
-  "stateMutability": "view",
-  "type": "function"
-} ];
+    // MultiCall3 ABI (only aggregate3 function needed)
+    const multicall3ABI = [
+        {
+            "inputs": [
+                {
+                    "components": [
+                        { "internalType": "address", "name": "target", "type": "address" },
+                        { "internalType": "bool", "name": "allowFailure", "type": "bool" },
+                        { "internalType": "bytes", "name": "callData", "type": "bytes" }
+                    ],
+                    "internalType": "struct Multicall3.Call3[]",
+                    "name": "calls",
+                    "type": "tuple[]"
+                }
+            ],
+            "name": "aggregate3",
+            "outputs": [
+                {
+                    "components": [
+                        { "internalType": "bool", "name": "success", "type": "bool" },
+                        { "internalType": "bytes", "name": "returnData", "type": "bytes" }
+                    ],
+                    "internalType": "struct Multicall3.Result[]",
+                    "name": "returnData",
+                    "type": "tuple[]"
+                }
+            ],
+            "stateMutability": "payable",
+            "type": "function"
+        }
+    ];
 
-console.log("Custom RPC4: ", customRPC);
+    // MultiCall3 is deployed at the same address on most chains
+    const MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11";
+
+    console.log("Custom RPC4: ", customRPC);
     const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
-    tokenSwapperContract = new ethers.Contract(
-        contractAddress_Swapper, // your tokenSwapper contract address
-        tokenSwapperABI,
-        provider_zzzzz12 // Use signer since the function isn't view/pure
+    
+    // Create interface for encoding/decoding
+    const tokenSwapperInterface = new ethers.utils.Interface(tokenSwapperABI);
+    
+    // Create MultiCall3 contract instance
+    const multicall3Contract = new ethers.Contract(
+        MULTICALL3_ADDRESS,
+        multicall3ABI,
+        provider_zzzzz12
     );
 
     let oldratioz = ratioz;
-    try {
-        console.log("4444441111  tokenAddresses['B0x'] ",tokenAddresses['B0x']);
-        console.log("4444441111   Address_ZEROXBTC_TESTNETCONTRACT",Address_ZEROXBTC_TESTNETCONTRACT);
-        console.log("4444441111  hookAddress ",hookAddress);
-        console.log("4444441111   ",);
-        console.log("4444441111   ",);
-        console.log("4444441111   ",);
-        // Call the view function
-        const result = await tokenSwapperContract.getPriceRatio(tokenAddresses['B0x'], Address_ZEROXBTC_TESTNETCONTRACT, hookAddress);
-
-
-
-
-        // First debug what we're getting back
-        console.log("Raw result type:", typeof result);
-        console.log("Raw result structure:", Object.keys(result).join(", "));
-        ratioz = result[0];
-
-
-
-        console.log(`Found valid Ratio x10**18: ${ratioz.toString()}`);
-        // Format to display as a readable number
-        readableAmountOut = ethers.utils.formatEther(ratioz);
-        ratioAsWei = ethers.utils.parseEther(readableAmountOut);
-        console.log(`Found valid Ratio x10**18: ${readableAmountOut} mutliplier`);
-    } catch (error) {
-        console.error(`Error finding valid getPriceRatio for swap:`, error);
-    }
-
-
     let oldsqrtPricex96 = Current_getsqrtPricex96;
 
     try {
-        let oldresult = Current_getsqrtPricex96;
-        console.log("444444222  tokenAddresses['B0x'] ",tokenAddresses['B0x']);
-        console.log("444444222   Address_ZEROXBTC_TESTNETCONTRACT",Address_ZEROXBTC_TESTNETCONTRACT);
-        console.log("444444222  hookAddress ",hookAddress);
-        console.log("444444222   ",);
-        console.log("444444222   ",);
-        console.log("444444222   ",);
-        // Call the view function
-        const result = await tokenSwapperContract.getsqrtPricex96(tokenAddresses['B0x'], Address_ZEROXBTC_TESTNETCONTRACT, hookAddress);
+        console.log("4444441111 tokenAddresses['B0x']", tokenAddresses['B0x']);
+        console.log("4444441111 Address_ZEROXBTC_TESTNETCONTRACT", Address_ZEROXBTC_TESTNETCONTRACT);
+        console.log("4444441111 hookAddress", hookAddress);
 
+        // Encode the function calls
+        const getPriceRatioCallData = tokenSwapperInterface.encodeFunctionData(
+            "getPriceRatio",
+            [tokenAddresses['B0x'], Address_ZEROXBTC_TESTNETCONTRACT, hookAddress]
+        );
 
+        const getSqrtPriceCallData = tokenSwapperInterface.encodeFunctionData(
+            "getsqrtPricex96",
+            [tokenAddresses['B0x'], Address_ZEROXBTC_TESTNETCONTRACT, hookAddress]
+        );
 
-        // First debug what we're getting back
-        console.log("Raw result type:", typeof result);
-        console.log("Raw result structure:", Object.keys(result).join(", "));
-
-        if (typeof result === 'bigint' || typeof result === 'number') {
-            // If it's already a primitive value
-            Current_getsqrtPricex96 = result;
-        } else if (result._isBigNumber || result instanceof ethers.BigNumber) {
-            // For ethers v5 BigNumber
-            Current_getsqrtPricex96 = result;
-        } else if (typeof result === 'object' && result !== null) {
-            // For objects, try to extract the value
-            // With ethers v6, we might get the value directly
-            if (typeof result.toString === 'function' && result.toString().match(/^[0-9]+$/)) {
-                Current_getsqrtPricex96 = result;
-            } else {
-                // Attempt to extract value based on common patterns
-                Current_getsqrtPricex96 = result[0] || result.amountOut || result._hex || result.value || result;
+        // Prepare MultiCall3 calls array
+        const calls = [
+            {
+                target: contractAddress_Swapper,
+                allowFailure: false, // Set to true if you want to continue even if this call fails
+                callData: getPriceRatioCallData
+            },
+            {
+                target: contractAddress_Swapper,
+                allowFailure: false,
+                callData: getSqrtPriceCallData
             }
+        ];
+
+        // Execute batched call
+        const results = await multicall3Contract.callStatic.aggregate3(calls);
+
+        console.log("MultiCall3 results:", results);
+
+        // Decode first result (getPriceRatio)
+        if (results[0].success) {
+            const decodedPriceRatio = tokenSwapperInterface.decodeFunctionResult(
+                "getPriceRatio",
+                results[0].returnData
+            );
+            
+            console.log("Raw getPriceRatio result:", decodedPriceRatio);
+            ratioz = decodedPriceRatio[0];
+            console.log(`Found valid Ratio x10**18: ${ratioz.toString()}`);
+            
+            // Format to display as a readable number
+            readableAmountOut = ethers.utils.formatEther(ratioz);
+            ratioAsWei = ethers.utils.parseEther(readableAmountOut);
+            console.log(`Found valid Ratio x10**18: ${readableAmountOut} multiplier`);
+        } else {
+            console.error("getPriceRatio call failed");
         }
 
-        console.log(`Found valid Current_getsqrtPricex96 x10**18: ${Current_getsqrtPricex96.toString()}`);
-        // Format to display as a readable number
+        // Decode second result (getsqrtPricex96)
+        if (results[1].success) {
+            const decodedSqrtPrice = tokenSwapperInterface.decodeFunctionResult(
+                "getsqrtPricex96",
+                results[1].returnData
+            );
+            
+            console.log("Raw getsqrtPricex96 result:", decodedSqrtPrice);
+            Current_getsqrtPricex96 = decodedSqrtPrice[0];
+            console.log(`Found valid Current_getsqrtPricex96: ${Current_getsqrtPricex96.toString()}`);
+        } else {
+            console.error("getsqrtPricex96 call failed");
+        }
+
     } catch (error) {
-        console.error(`Error finding valid Current_getsqrtPricex96 for swap:`, error);
+        console.error(`Error in MultiCall3 aggregate3:`, error);
     }
 
-
+    // Check for changes and trigger updates
     if (!oldsqrtPricex96.eq(Current_getsqrtPricex96)) {
-        console.log("Calling oldsqrtPricex96 != Current_getsqrtPricex96  changed");
+        console.log("Calling oldsqrtPricex96 != Current_getsqrtPricex96 changed");
     }
     if (!oldratioz.eq(ratioz)) {
-        console.log("Calling oldratioz != ratioz  changed");
-        console.log("Calling oldratioz: ", oldratioz, " &&&&  ratioz: ", ratioz);
+        console.log("Calling oldratioz != ratioz changed");
+        console.log("Calling oldratioz:", oldratioz, " &&&&  ratioz:", ratioz);
     }
     if ((!oldsqrtPricex96.eq(Current_getsqrtPricex96) || !oldratioz.eq(ratioz)) && firstRun) {
         console.log("Value changed calling getEstimate, getMaxCreate and getRatio");
-        console.log("Value changed and called from: ", nameOfFunction);
+        console.log("Value changed and called from:", nameOfFunction);
         if (nameOfFunction != "SwapFunction") {
-
             await getEstimate();
         }
         await getRatioCreatePositiontokenA();
@@ -14549,7 +14595,6 @@ console.log("Custom RPC4: ", customRPC);
     oldsqrtPricex96 = Current_getsqrtPricex96;
     oldratioz = ratioz;
     firstRun = true;
-
 }
 
 
@@ -23187,58 +23232,139 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-
-
-
 var inFunctionDontRefresh = false;
-
 let count = 40;
-let interval;
+let interval = null;
+let checker = null;
+let isCountdownActive = false;
 
-let countdownElements = document.querySelectorAll("[id='countdown'], .countdown, [data-countdown]");
+// Function to get all countdown elements (refreshed each time)
+function getCountdownElements() {
+    return document.querySelectorAll("[id='countdown'], .countdown, [data-countdown]");
+}
+
+// Initialize countdown display
+function updateCountdownDisplay() {
+    const countdownElements = getCountdownElements();
+    countdownElements.forEach(el => {
+        el.textContent = count;
+    });
+}
 
 async function startCountdown() {
+    // Prevent multiple countdowns from running
+    if (isCountdownActive) {
+        console.log("Countdown already active, skipping start");
+        return;
+    }
+    
+    // Clear any existing intervals
+    if (interval) clearInterval(interval);
+    if (checker) clearInterval(checker);
+    interval = null;
+    checker = null;
+    
+    isCountdownActive = true;
+    
+    // Set initial display
+    updateCountdownDisplay();
+    
     interval = setInterval(() => {
         count--;
-        // Update all countdown elements
-        countdownElements.forEach(el => {
-            el.textContent = count;
-        });
-        console.log("inFunctionDontRefresh: ", inFunctionDontRefresh);
+        updateCountdownDisplay();
+        console.log("Count:", count, "inFunctionDontRefresh:", inFunctionDontRefresh);
 
-        if (count < 0) {
-            console.log("inFunctionDontRefresh: ", inFunctionDontRefresh);
-            clearInterval(interval); // Always stop the interval at -1
-
+        if (count < 0){
+            
             if (!inFunctionDontRefresh) {
-                runReloadFunctions();
+                resetCountdown(); // false = not from checker
             } else {
-                console.log("Starting checker interval - waiting for inFunctionDontRefresh to become false");
-                // Set up a checker to resume when inFunctionDontRefresh becomes false
-                const checker = setInterval(() => {
-                    console.log("Checker running - inFunctionDontRefresh:", inFunctionDontRefresh); // Add this line
-                    if (!inFunctionDontRefresh) {
-                        console.log("inFunctionDontRefresh is now false - restarting countdown");
-                        clearInterval(checker);
-                        runReloadFunctions();
-                        resetCountdown();
-                        GetRewardAPY();
-                    }
-                }, 1000);
+                console.log("Paused - waiting for inFunctionDontRefresh to become false");
+                startChecker();
             }
         }
     }, 1000);
 }
 
+function startChecker() {
+    // Clear any existing checker
+    if (checker) clearInterval(checker);
+    
+    checker = setInterval(() => {
+        console.log("Checker running - inFunctionDontRefresh:", inFunctionDontRefresh);
+        
+        if (!inFunctionDontRefresh) {
+            console.log("Resuming - inFunctionDontRefresh is now false");
+            resetCountdown();
+        }
+    }, 1000);
+}
+
 function resetCountdown() {
-    clearInterval(interval);
-    count = 50;
-    // Reset all countdown elements
-    countdownElements.forEach(el => {
-        el.textContent = count;
-    });
+    console.log("FUNTIME NOW 1111 - Resetting countdown");
+    
+    // Clear all intervals
+    if (interval) clearInterval(interval);
+    if (checker) clearInterval(checker);
+    interval = null;
+    checker = null;
+    isCountdownActive = false;
+    
+    count = 40;
+    updateCountdownDisplay();
+    
     startCountdown();
-    runReloadFunctions();
+    runReloadFunctions(false,false);
+}
+
+var isReloading = false;
+
+
+async function runReloadFunctions(fromChecker = false, fromReset=true) {
+    if (!walletConnected) {
+        console.log("wallet not connected no reload for it");
+        await getEstimate();
+        if(fromReset){
+        resetCountdown();
+        }
+        return;
+    }
+
+    if (isReloading) {
+        console.log("Already reloading, skipping...");
+        // Don't reset here - let the currently running instance handle it
+        return;
+    }
+    
+    isReloading = true;
+
+    try {
+        await fetchBalances();
+
+        if (PreviousTabName == "convert") {
+            console.log("Tabname = convert do ETH");
+            await switchToEthereum();
+            await fetchBalancesETH();
+            await switchToBase();
+        }
+
+        await getRewardStats();
+        await throttledGetSqrtRtAndPriceRatio("SwapFunction");
+
+        const now = new Date().toLocaleTimeString();
+        console.log("Reload completed at:", now);
+        
+        // Call GetRewardAPY if this came from the checker
+        if (fromChecker) {
+            await GetRewardAPY();
+        }
+    } catch (error) {
+        console.error('Error during reload:', error);
+    } finally {
+        isReloading = false;
+        // Always reset countdown after reload completes
+        resetCountdown();
+    }
 }
 
 startCountdown();
