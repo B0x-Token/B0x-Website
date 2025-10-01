@@ -1073,7 +1073,7 @@
 
                     <div class="form-group">
                         <label>Estimated Output</label>
-                        <input type="text" class="input-class" value="0.0" readonly
+                        <input type="text" id="estOutput" class="input-class" value="0.0" readonly
                             style="background: #f8f9fa; padding-left: 10px;">
                     </div>
 
@@ -2292,6 +2292,8 @@
                         onclick="getCurrentPoolFee()">getCurrentPoolFee</button>
                     <button class="btn-primary" id="currentPoolFeeBtn"
                         onclick="getCurrentPoolFee0xBTCETH()">getCurrentPoolFee0xBTCETH</button>
+                    <button class="btn-primary" id="currentPoolFeeBtn"
+                        onclick="getCurrentPoolFeeB0xETH()">getCurrentPoolFeeB0xETH</button>
                     <div class="info-card2">
                         <h3>Current Pool Fee<h3>
                                 <p>Not loaded yet...</p>
@@ -2311,8 +2313,9 @@
                         </div>
                     </div>
 
-                    <button class="btn-primary" onclick="updateAdminFeeForPool()">Update Admin PooL Fee B0x 0xBTC Pool</button>
-                    <button class="btn-primary" onclick="updateAdminFeeForPool0xBTCETH()">Update Admin PooL Fee 0xBTC ETH Pool</button>
+                    <button class="btn-primary" onclick="updateAdminFeeForPool()">Update Admin PooL Fee B0x 0xBTC Pool</button><br></br>
+                    <button class="btn-primary" onclick="updateAdminFeeForPool0xBTCETH()">Update Admin PooL Fee 0xBTC ETH Pool</button><br></br>
+                    <button class="btn-primary" onclick="updateAdminFeeForPoolB0xETH()">Update Admin PooL Fee B0x ETH Pool</button>
                     <br></br><br></br><br></br>
                     <h1>Staking Admin Functions</h1>
 

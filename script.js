@@ -99,7 +99,7 @@ const UnsiwapV4PoolCreatorAddress = "0x398395C860EcaaF9B58FEBd0b91118c129DbcBe7"
 const USDCToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const positionManager_address = "0x7c5f5a4bbd8fd63184577525326123b519429bdc";
 const contractAddress_PositionFinderPro = '0xb46CAfc364868105FfE7dFF8ea0c2d25c5b80eCa'; // Replace with actual contract address
-const contractAddress_Swapper = '0xeb6fD0882Ff46E27beD39aEA37CAd159Ba3cA1Dd'; // Replace with actual contract address
+const contractAddress_Swapper = '0x75592460034f1fBB54cd32a0FA0AeD9aB426DE21'; // Replace with actual contract address 0xeD5BE21bcc9479a29ED0E2f356829801396a6668
 const contractAddressLPRewardsStaking = '0x2C0B7f3542e06b81334A10B3ece8De98884449c8';
 const hookAddress = '0xA54CbcF7449421E5842C483CC30d992ced301000';
 const ProofOfWorkAddresss = '0xE377d143a472EB0b255264f22af858075b6b9529';
@@ -852,6 +852,7 @@ var ratioB0xTo0xBTC = 0;
 var usdCostB0x = 0;
 var oxbtcPriceUSD = 0;
 let wethPriceUSD = 0;
+var firstRewardsAPYRun =0;
 async function GetRewardAPY(_tokenAddresses, _rewardRate, zeroXBTC_In_Staking) {
     var total_rewardRate_WETH = 0;
     var total_rewardRate_0xBTC = 0;
@@ -912,7 +913,7 @@ async function GetRewardAPY(_tokenAddresses, _rewardRate, zeroXBTC_In_Staking) {
             "type": "function"
         }
     ];
-console.log("Custom RPC1: ", customRPC);
+console.log("Custom RPC2: ", customRPC);
     const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
     tokenSwapperContract = new ethers.Contract(
         contractAddress_Swapper, // your tokenSwapper contract address
@@ -1042,6 +1043,7 @@ console.log("Custom RPC1: ", customRPC);
     //get exchange rate of weth to 0xBTC.
     //multiply exchangerate * total_rewardRate_WETH* howmanysecondsinyear
 
+    firstRewardsAPYRun = firstRewardsAPYRun + 1;
 }
 
 
@@ -1700,7 +1702,6 @@ async function getRewardStats() {
     updateWidget();
 
 }
-
 
 
 
@@ -6599,9 +6600,283 @@ function debugIncreaseALLChildren() {
 
 
 
+async function executeOptimizedMultiRouteSwap(fromToken, toToken, amountStr, decimalValueSlippage) {
+    console.log(`Swap request: ${fromToken} → ${toToken} Amount: ${amountStr}`);
+    
+    // Parse amount
+    let amountToSwap = ethers.utils.parseUnits(amountStr, 18);
+    if (fromToken === "0xBTC") {
+        amountToSwap = ethers.utils.parseUnits(amountStr, 8);
+    }
+    
+    // 1. Find all available routes
+    const routes = await findAllRoutes(fromToken, toToken);
+    console.log(`${routes.length} routes available - optimizing...`);
+    
+    if (routes.length === 0) {
+        alert("No routes found!");
+        return;
+    }
+    
+    // 2. Set up contracts
+    const multicallABI = [
+        {
+            "inputs": [{"components": [{"name": "target", "type": "address"}, {"name": "allowFailure", "type": "bool"}, {"name": "callData", "type": "bytes"}], "name": "calls", "type": "tuple[]"}],
+            "name": "aggregate3",
+            "outputs": [{"components": [{"name": "success", "type": "bool"}, {"name": "returnData", "type": "bytes"}], "type": "tuple[]"}],
+            "stateMutability": "payable",
+            "type": "function"
+        }
+    ];
+    
+    const swapperABI = [
+        {
+            "inputs": [
+                {"name": "tokenZeroxBTC", "type": "address"},
+                {"name": "tokenBZeroX", "type": "address"},
+                {"name": "tokenIn", "type": "address"},
+                {"name": "hookAddress", "type": "address"},
+                {"name": "amountIn", "type": "uint128"}
+            ],
+            "name": "getOutput",
+            "outputs": [{"name": "amountOut", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"name": "pool1TokenA", "type": "address"},
+                {"name": "pool1TokenB", "type": "address"},
+                {"name": "pool2TokenA", "type": "address"},
+                {"name": "pool2TokenB", "type": "address"},
+                {"name": "tokenIn", "type": "address"},
+                {"name": "tokenOut", "type": "address"},
+                {"name": "hook1Address", "type": "address"},
+                {"name": "hook2Address", "type": "address"},
+                {"name": "amountIn", "type": "uint128"}
+            ],
+            "name": "getOutputMultiHop",
+            "outputs": [{"name": "amountOut", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"name": "routes", "type": "tuple[]", "components": [
+                    {"name": "isSingleHop", "type": "bool"},
+                    {"name": "pool1TokenA", "type": "address"},
+                    {"name": "pool1TokenB", "type": "address"},
+                    {"name": "pool2TokenA", "type": "address"},
+                    {"name": "pool2TokenB", "type": "address"},
+                    {"name": "hookAddress", "type": "address"},
+                    {"name": "hook2Address", "type": "address"}
+                ]},
+                {"name": "amounts", "type": "uint256[]"},
+                {"name": "tokenIn", "type": "address"},
+                {"name": "tokenOut", "type": "address"},
+                {"name": "minTotalAmountOut", "type": "uint256"},
+                {"name": "recipient", "type": "address"}
+            ],
+            "name": "executeMultiRouteSwap",
+            "outputs": [{"name": "totalAmountOut", "type": "uint256"}],
+            "stateMutability": "payable",
+            "type": "function"
+        }
+    ];
+    
+    var MULTICALL_ADDRESSz = "0xcA11bde05977b3631167028862bE2a173976CA11";
+    const multicallContract = new ethers.Contract(MULTICALL_ADDRESSz, multicallABI, provider);
+    const contractInterface = new ethers.utils.Interface(swapperABI);
+    const swapperContract = new ethers.Contract(contractAddress_Swapper, swapperABI, signer);
+    
+    // 3. Optimize routes
+    let optimizationResult;
+    
+    if (routes.length === 1) {
+        // Single route - no optimization needed
+        optimizationResult = {
+            routes: routes,
+            splits: [100],
+            amounts: [amountToSwap],
+            totalOutput: await getSingleRouteOutput(routes[0], amountToSwap, contractInterface, fromToken, toToken)
+        };
+    } else if (routes.length === 2) {
+        // Use ternary search optimization
+        console.log("ROUTES TEST: ",routes);
+        optimizationResult = await optimizeTwoRoutes(
+            routes,
+            amountToSwap,
+            contractInterface,
+            multicallContract,
+            fromToken,
+            toToken
+        );
+    } else {
+        // Use batch optimization for 3+ routes
+        optimizationResult = await optimizeMultiRoutesBatch(
+            routes,
+            amountToSwap,
+            contractInterface,
+            multicallContract,
+            fromToken,
+            toToken,
+            500,  // 5% step size
+            100   // batch size
+        );
+    }
+    
+    if (!optimizationResult) {
+        alert("Optimization failed!");
+        return;
+    }
+    
+    console.log("22222Optimization result:", optimizationResult);
+
+// Verify amounts sum correctly
+const totalAmounts = optimizationResult.amounts.reduce(
+    (sum, amt) => sum.add(amt), 
+    ethers.BigNumber.from(0)
+);
+
+console.log("22222amountToSwap:", amountToSwap.toString());
+console.log("2222Sum of amounts:", totalAmounts.toString());
+console.log("2222Amounts match?", totalAmounts.eq(amountToSwap));
+
+if (!totalAmounts.eq(amountToSwap)) {
+    console.error("2222❌ AMOUNTS DON'T MATCH!");
+    console.error("2222Difference:", amountToSwap.sub(totalAmounts).toString());
+}
+
+
+    console.log("Optimization result:", optimizationResult);
+    
+    // 4. Calculate minimum output with slippage
+    const minTotalOut = optimizationResult.totalOutput
+        .mul(Math.floor((1 - decimalValueSlippage) * 10000))
+        .div(10000);
+
+document.getElementById("estOutput").value = minTotalOut;
+    
+    // 5. Format for display
+    let readableAmountIn = ethers.utils.formatEther(amountToSwap);
+    let readableAmountOut = ethers.utils.formatEther(optimizationResult.totalOutput);
+    
+    if (fromToken === "0xBTC") readableAmountIn = ethers.utils.formatUnits(amountToSwap, 8);
+    if (toToken === "0xBTC") readableAmountOut = ethers.utils.formatUnits(optimizationResult.totalOutput, 8);
+    
+    const routeInfo = optimizationResult.splits.map((split, i) => 
+        `Route ${i + 1}: ${split.toFixed(2)}%`
+    ).join(", ");
+    
+    alert(`Multi-route swap: ${readableAmountIn} ${fromToken} → ${readableAmountOut} ${toToken}\n${routeInfo}`);
+    
+    // 6. Approve tokens if needed
+    const tokenInAddress = tokenAddresses[fromToken];
+    const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
+    
+    if (tokenInAddress !== ETH_ADDRESS) {
+        await approveIfNeeded(tokenInAddress, contractAddress_Swapper, amountToSwap);
+    }
+    
+    // 7. Execute swap
+    try {
+        // Format routes for Solidity struct
+        const formattedRoutes = optimizationResult.routes.map(route => ({
+            isSingleHop: route.isSingleHop,
+            pool1TokenA: route.pool1TokenA || route.isSingleHop ? route.pool1TokenA : route.pool1TokenA,
+            pool1TokenB: route.pool1TokenB || route.isSingleHop ? route.pool1TokenB : route.pool1TokenB,
+            pool2TokenA: route.pool2TokenA || ethers.constants.AddressZero,
+            pool2TokenB: route.pool2TokenB || ethers.constants.AddressZero,
+            hookAddress: route.hookAddress || route.hook1Address,
+            hook2Address: route.hook2Address ?? ethers.constants.AddressZero
+
+        }));
+
+
+        console.log("12121212FormmatedRoutes: ", formattedRoutes);
+        console.log("12121212optimizationResult.amounts: ", optimizationResult.amounts);
+        console.log("12121212tokenInAddress: ", tokenInAddress);
+        console.log("12121212tokenAddresses[toToken]: ", tokenAddresses[toToken]);
+        console.log("12121212minTotalOut: : ", minTotalOut.toString());
+        console.log("12121212userAddress: ", userAddress);
+        console.log("12121212Value amountToSwap: ", amountToSwap.toString());
+        const tx = await swapperContract.executeMultiRouteSwap(
+            formattedRoutes,
+            optimizationResult.amounts.map(amt => amt.toString()), // Convert BigNumbers to strings
+            tokenInAddress,
+            tokenAddresses[toToken],
+            minTotalOut,
+            userAddress,
+            {
+                value: tokenInAddress === ETH_ADDRESS ? amountToSwap : 0,
+            gasLimit: 1000000  // Manual gas limit bypasses estimation
+        
+            }
+        );
+        
+        showInfoNotification();
+        console.log("Multi-route swap transaction sent:", tx.hash);
+        await tx.wait();
+        console.log("Transaction confirmed!");
+        showSuccessNotification('Multi-Route Swap Complete!', 'Transaction complete!', tx.hash);
+        
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        await throttledGetSqrtRtAndPriceRatio("SwapFunction");
+        fetchBalances();
+        
+    } catch (error) {
+        console.error("Multi-route swap error:", error);
+        alert("Swap failed: " + error.message);
+    }
+}
+// Helper to get single route output
+async function getSingleRouteOutput(route, amount, contractInterface, fromToken, toToken) {
+    const tokenSwapperContract = new ethers.Contract(contractAddress_Swapper, contractInterface, provider);
+    
+    if (route.isSingleHop) {
+        return await tokenSwapperContract.callStatic.getOutput(
+            route.pool1TokenA,
+            route.pool1TokenB,
+            tokenAddresses[fromToken],
+            route.hookAddress,
+            amount
+        );
+    } else {
+        return await tokenSwapperContract.callStatic.getOutputMultiHop(
+            route.pool1TokenA,
+            route.pool1TokenB,
+            route.pool2TokenA,
+            route.pool2TokenB,
+            tokenAddresses[fromToken],
+            tokenAddresses[toToken],
+            route.hook1Address,
+            route.hook2Address,
+            amount
+        );
+    }
+}
 
 
 async function getSwapOfTwoTokens() {
+    if (!walletConnected) await connectWallet();
+    
+    const fromSelect = document.querySelector('#swap .form-group:nth-child(4) select');
+    const amountInput = document.querySelector('#swap .form-group:nth-child(5) input');
+    const toSelect = document.querySelector('#swap .form-group:nth-child(7) select');
+    
+    const fromToken = fromSelect.value.trim();
+    const toToken = toSelect.value.trim();
+    const amount = amountInput.value;
+    
+    const selectSlippage = document.getElementById('slippageToleranceSwap');
+    const decimalValueSlippage = parseFloat(selectSlippage.value.replace('%', '')) / 100;
+    
+    // Use the new multi-route optimization
+    await executeOptimizedMultiRouteSwap(fromToken, toToken, amount, decimalValueSlippage);
+}
+
+
+async function getSwapOfTwoTokensOLD() {
 
     // Run the debug function
     if (!walletConnected) {
@@ -6798,7 +7073,23 @@ async function getSwapOfTwoTokens() {
 
 
         const amountToSwapBN = ethers.BigNumber.from(amountToSwap.toString());
-        const minAmountOutBN = ethers.BigNumber.from(MinamountOut.toString());
+        //const minAmountOutBN = ethers.BigNumber.from(MinamountOut.toString());
+
+        // Replace this problematic code:
+if (typeof amountOut === 'bigint') {
+    MinamountOut = amountOut * ((1 - decimalValueSlippage) * 1000n) / 10000n;
+} else {
+    MinamountOut = amountOut * ((1 - decimalValueSlippage) * 1000) / 10000;
+}
+
+// With this:
+const amountOutBN = ethers.BigNumber.from(amountOut.toString());
+const slippageBasisPoints = Math.floor((1 - decimalValueSlippage) * 10000); // e.g., 0.5% = 9950
+MinamountOut = amountOutBN.mul(slippageBasisPoints).div(10000);
+
+
+
+const minAmountOutBN = MinamountOut; // Already a BigNumber
 
         await approveIfNeeded(Address_ZEROXBTC_TESTNETCONTRACT, contractAddress_Swapper, amountToSwapBN);
         console.log("amountToSwapBN: ", amountToSwapBN);
@@ -7591,11 +7882,1215 @@ async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000, maxDelay =
     throw lastError;
 }
 
+//ROUTING HERE BELOW//
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ============================================
+// CONFIGURATION AND CONSTANTS
+// ============================================
+
+
+
+// ABIs
+const SPLIT_ROUTE_ABI = [
+    {
+        "inputs": [
+            {"name": "pool1TokenA", "type": "address"},
+            {"name": "pool1TokenB", "type": "address"},
+            {"name": "pool2TokenA", "type": "address"},
+            {"name": "pool2TokenB", "type": "address"},
+            {"name": "tokenIn", "type": "address"},
+            {"name": "tokenOut", "type": "address"},
+            {"name": "hook1Address", "type": "address"},
+            {"name": "hook2Address", "type": "address"},
+            {"name": "amountIn", "type": "uint128"}
+        ],
+        "name": "getOutputMultiHop",
+        "outputs": [{"name": "amountOut", "type": "uint256"}],
+        "type": "function",
+        "stateMutability": "nonpayable"
+    },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "tokenZeroxBTC",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "tokenBZeroX",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "tokenIn",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "hookAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint128",
+        "name": "amountIn",
+        "type": "uint128"
+      }
+    ],
+    "name": "getOutput",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "amountOut",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+
+
+];
+
+const MULTICALL_ABI2 = [
+    {
+        "inputs": [{"components": [{"name": "target", "type": "address"}, {"name": "allowFailure", "type": "bool"}, {"name": "callData", "type": "bytes"}], "name": "calls", "type": "tuple[]"}],
+        "name": "aggregate3",
+        "outputs": [{"components": [{"name": "success", "type": "bool"}, {"name": "returnData", "type": "bytes"}], "type": "tuple[]"}],
+        "stateMutability": "payable",
+        "type": "function"
+    }
+];
+
+
+// ============================================
+// MAIN GET ESTIMATE FUNCTION
+// ============================================
+
 async function getEstimate() {
     if (!walletConnected) {
         console.log("Wallet not connected");
+        //return;
+    }
+    
+    disableButtonWithSpinner('executeSwapBtn', 'Getting estimate...');
+    
+    try {
+        const fromSelect = document.querySelector('#swap .form-group:nth-child(4) select');
+        const toSelect = document.querySelector('#swap .form-group:nth-child(7) select');
+        const amountInput = document.querySelector('#swap .form-group:nth-child(5) input');
+
+        const fromToken = fromSelect.value.trim();
+        const toToken = toSelect.value.trim();
+        let inputAmount = amountInput.value;
+        
+        console.log("Swap request:", fromToken, "→", toToken, "Amount:", inputAmount);
+
+        if(inputAmount<=0){
+            console.log("No value returning");
+            return;
+        }
+        // Handle decimal precision for 0xBTC (8 decimals)
+        let amountToSwap;
+        if (fromToken === "0xBTC") {
+            const decimalPlaces = (inputAmount.split('.')[1] || '').length;
+            if (decimalPlaces > 8) {
+                const parts = inputAmount.split('.');
+                inputAmount = parts[0] + '.' + parts[1].substring(0, 8);
+                amountInput.value = inputAmount;
+                console.log(`Truncated 0xBTC to 8 decimals: ${inputAmount}`);
+            }
+            amountToSwap = ethers.utils.parseUnits(inputAmount, 8);
+        } else {
+            amountToSwap = ethers.utils.parseUnits(inputAmount, 18);
+        }
+        
+        if (amountToSwap.eq(0)) {
+            console.log("Amount is zero");
+            enableButton('executeSwapBtn', 'Execute Swap');
+            return;
+        }
+
+        // Get all possible routes for this pair
+        const allRoutes = getAllPossibleRoutes(fromToken, toToken);
+        
+        let bestEstimate;
+        
+        if (!allRoutes || allRoutes.length === 0) {
+            throw new Error(`No routes available for ${fromToken} → ${toToken}`);
+        }
+        
+        if (allRoutes.length === 1) {
+            // Single route only - use simple estimate
+            console.log("Single route available:", allRoutes[0].name);
+            bestEstimate = await getSingleRouteEstimate(
+                allRoutes[0], 
+                amountToSwap, 
+                fromToken, 
+                toToken
+            );
+            window.lastEstimateType = 'single';
+            window.lastSingleRoute = allRoutes[0];
+        } else {
+            // Multiple routes - optimize split
+            console.log(`${allRoutes.length} routes available - optimizing...`);
+            
+            // Get single best route estimate for comparison
+            const singleRouteEstimates = await Promise.all(
+                allRoutes.map(route => 
+                    getSingleRouteEstimate(route, amountToSwap, fromToken, toToken)
+                        .catch(err => {
+                            console.error(`Route ${route.name} failed:`, err);
+                            return null;
+                        })
+                )
+            );
+            
+            // Find best single route
+            let bestSingleRoute = null;
+            let bestSingleOutput = ethers.BigNumber.from(0);
+            for (let i = 0; i < allRoutes.length; i++) {
+                if (singleRouteEstimates[i] && singleRouteEstimates[i].output.gt(bestSingleOutput)) {
+                    bestSingleOutput = singleRouteEstimates[i].output;
+                    bestSingleRoute = allRoutes[i];
+                }
+            }
+            
+            // Try multi-route optimization
+            const multiRouteResult = await calculateOptimalMultiRouteSplit(
+                fromToken, 
+                toToken, 
+                amountToSwap, 
+                Math.min(allRoutes.length, 4)
+            );
+            console.log("multiRouteResult: ",multiRouteResult);
+            console.log("multiRouteResult: bestSingleOutput: ",bestSingleOutput.toString());
+            console.log("multiRouteResult: multiRouteResult.totalOutput: ",multiRouteResult.totalOutput.toString());
+            if (multiRouteResult && multiRouteResult.totalOutput.gt(bestSingleOutput)) {
+                // Calculate improvement
+                const improvement = multiRouteResult.totalOutput.sub(bestSingleOutput)
+                    .mul(10000).div(bestSingleOutput).toNumber() / 100;
+                
+                if (improvement >= 0.1) { // Use multi-route if >0.1% better
+                    console.log(`Multi-route is ${improvement.toFixed(2)}% better`);
+                    bestEstimate = {
+                        type: 'multi',
+                        output: multiRouteResult.totalOutput,
+                        routes: multiRouteResult.routes,
+                        splits: multiRouteResult.splits,
+                        amounts: multiRouteResult.amounts,
+                        outputs: multiRouteResult.outputs,
+                        improvement: improvement
+                    };
+                    window.lastEstimateType = 'multi';
+                    window.lastMultiRouteResult = multiRouteResult;
+                } else {
+                    console.log(`Single route is better (improvement only ${improvement.toFixed(2)}%)`);
+                    bestEstimate = {
+                        type: 'single',
+                        output: bestSingleOutput,
+                        route: bestSingleRoute
+                    };
+                    window.lastEstimateType = 'single';
+                    window.lastSingleRoute = bestSingleRoute;
+                }
+            } else {
+                // Use single route if multi-route failed or is worse
+                console.log("Using single route (multi-route failed or worse)");
+                bestEstimate = {
+                    type: 'single',
+                    output: bestSingleOutput,
+                    route: bestSingleRoute
+                };
+                window.lastEstimateType = 'single';
+                window.lastSingleRoute = bestSingleRoute;
+            }
+        }
+        
+        // Store for execution
+        window.lastEstimate = bestEstimate;
+        window.lastFromToken = fromToken;
+        window.lastToToken = toToken;
+        window.lastAmountIn = amountToSwap;
+        
+        // Update display
+        await updateEstimateDisplay(fromToken, toToken, bestEstimate, amountToSwap);
+        
+    } catch (error) {
+        console.error("Estimate failed:", error);
+        showErrorDisplay(error.message);
+    } finally {
+        enableButton('executeSwapBtn', 'Execute Swap');
+        updateWidget();
+    }
+}
+
+// ============================================
+// ROUTE DISCOVERY
+// ============================================
+function findAllRoutes(fromToken, toToken) {
+    fromToken = fromToken.trim();
+    toToken = toToken.trim();
+    
+    console.log(`Finding routes from ${fromToken} to ${toToken}`);
+    
+    const routes = [];
+    
+    // Helper to get address
+    const getAddress = (token) => {
+        if (token === "ETH") return "0x0000000000000000000000000000000000000000";
+        return tokenAddresses[token];
+    };
+    
+    // Single-hop routes
+    const singleHopRoutes = [
+        { from: "ETH", to: "0xBTC" },
+        { from: "0xBTC", to: "ETH" },
+        { from: "0xBTC", to: "B0x" },
+        { from: "B0x", to: "0xBTC" },
+        { from: "ETH", to: "B0x" },
+        { from: "B0x", to: "ETH" }
+    ];
+    
+    for (const route of singleHopRoutes) {
+        if (route.from === fromToken && route.to === toToken) {
+            const addr1 = getAddress(route.from);
+            const addr2 = getAddress(route.to);
+            
+            routes.push({
+                name: `${route.from} → ${route.to} (Direct)`,
+                type: 'single',
+                isSingleHop: true,
+                // For single-hop
+                tokenA: addr1,
+                tokenB: addr2,
+                // For executeMultiRouteSwap structure
+                pool1TokenA: addr1,
+                pool1TokenB: addr2,
+                pool2TokenA: "0x0000000000000000000000000000000000000000",
+                pool2TokenB: "0x0000000000000000000000000000000000000000",
+                hookAddress: hookAddress,
+                hook2Address: hookAddress
+            });
+        }
+    }
+    
+    // Multi-hop routes
+    const multiHopRoutes = [
+        { 
+            from: "ETH", 
+            to: "B0x", 
+            via: "0xBTC",
+            pool1: ["ETH", "0xBTC"],
+            pool2: ["0xBTC", "B0x"]
+        },
+        { 
+            from: "B0x", 
+            to: "ETH", 
+            via: "0xBTC",
+            pool1: ["B0x", "0xBTC"],
+            pool2: ["0xBTC", "ETH"]
+        }
+    ];
+    
+    for (const route of multiHopRoutes) {
+        if (route.from === fromToken && route.to === toToken) {
+            routes.push({
+                name: `${route.from} → ${route.via} → ${route.to}`,
+                type: 'multi',
+                isSingleHop: false,
+                // For multi-hop getOutputMultiHop
+                tokenA: getAddress(route.pool1[0]),
+                tokenB: getAddress(route.pool1[1]),
+                tokenC: getAddress(route.pool2[0]),
+                tokenD: getAddress(route.pool2[1]),
+                // For executeMultiRouteSwap structure
+                pool1TokenA: getAddress(route.pool1[0]),
+                pool1TokenB: getAddress(route.pool1[1]),
+                pool2TokenA: getAddress(route.pool2[0]),
+                pool2TokenB: getAddress(route.pool2[1]),
+                hookAddress: hookAddress,
+                hook2Address: hookAddress
+            });
+        }
+    }
+    
+    console.log(`Found ${routes.length} routes:`, routes.map(r => r.name));
+    return routes;
+}
+
+
+function getAllPossibleRoutes(fromToken, toToken) {
+    const routes = [];
+    const oxbtc = tokenAddresses["0xBTC"];
+    const box = tokenAddresses["B0x"];
+    const eth = tokenAddresses["ETH"];
+    console.log("hookAddress: ",hookAddress);
+    // Direct routes (always check these first)
+    if (fromToken === "0xBTC" && toToken === "B0x" || 
+        fromToken === "B0x" && toToken === "0xBTC") {
+        routes.push({
+            name: `${fromToken} → ${toToken} (direct)`,
+            isSingleHop: true,
+            tokenA: fromToken === "0xBTC" ? oxbtc : box,
+            tokenB: fromToken === "0xBTC" ? box : oxbtc,
+            tokenC: ethers.constants.AddressZero,
+            tokenD: ethers.constants.AddressZero,
+            hookAddress: hookAddress,
+            hookAddress2: hookAddress
+        });
+    }
+    
+    if (fromToken === "B0x" && toToken === "ETH" || 
+        fromToken === "ETH" && toToken === "B0x") {
+        routes.push({
+            name: `${fromToken} → ${toToken} (direct)`,
+            isSingleHop: true,
+            tokenA: fromToken === "B0x" ? box : eth,
+            tokenB: fromToken === "B0x" ? eth : box,
+            tokenC: ethers.constants.AddressZero,
+            tokenD: ethers.constants.AddressZero,
+            hookAddress: hookAddress,
+            hookAddress2: hookAddress
+        });
+    }
+    
+    if (fromToken === "0xBTC" && toToken === "ETH" || 
+        fromToken === "ETH" && toToken === "0xBTC") {
+        routes.push({
+            name: `${fromToken} → ${toToken} (direct)`,
+            isSingleHop: true,
+            tokenA: fromToken === "0xBTC" ? oxbtc : eth,
+            tokenB: fromToken === "0xBTC" ? eth : oxbtc,
+            tokenC: ethers.constants.AddressZero,
+            tokenD: ethers.constants.AddressZero,
+            hookAddress: hookAddress,
+            hookAddress2: hookAddress
+        });
+    }
+    
+    // Multi-hop routes (2 hops through intermediate token)
+    // 0xBTC → ETH via B0x
+    if (fromToken === "0xBTC" && toToken === "ETH") {
+        routes.push({
+            name: "0xBTC → B0x → ETH",
+            isSingleHop: false,
+            tokenA: oxbtc,  // Pool 1: 0xBTC/B0x
+            tokenB: box,
+            tokenC: box,    // Pool 2: B0x/ETH
+            tokenD: eth,
+            hookAddress: hookAddress,
+            hookAddress2: hookAddress
+        });
+    }
+    
+    // ETH → 0xBTC via B0x
+    if (fromToken === "ETH" && toToken === "0xBTC") {
+        routes.push({
+            name: "ETH → B0x → 0xBTC",
+            isSingleHop: false,
+            tokenA: eth,    // Pool 1: ETH/B0x
+            tokenB: box,
+            tokenC: box,    // Pool 2: B0x/0xBTC
+            tokenD: oxbtc,
+            hookAddress: hookAddress,
+            hookAddress2: hookAddress
+        });
+    }
+    
+    // B0x → ETH via 0xBTC
+    if (fromToken === "B0x" && toToken === "ETH") {
+        routes.push({
+            name: "B0x → 0xBTC → ETH",
+            isSingleHop: false,
+            tokenA: box,    // Pool 1: B0x/0xBTC
+            tokenB: oxbtc,
+            tokenC: oxbtc,  // Pool 2: 0xBTC/ETH
+            tokenD: eth,
+            hookAddress: hookAddress,
+            hookAddress2: hookAddress
+        });
+    }
+    
+    // ETH → B0x via 0xBTC
+    if (fromToken === "ETH" && toToken === "B0x") {
+        routes.push({
+            name: "ETH → 0xBTC → B0x",
+            isSingleHop: false,
+            tokenA: eth,    // Pool 1: ETH/0xBTC
+            tokenB: oxbtc,
+            tokenC: oxbtc,  // Pool 2: 0xBTC/B0x
+            tokenD: box,
+            hookAddress: hookAddress,
+            hookAddress2: hookAddress
+        });
+    }
+    
+    // 0xBTC → B0x via ETH
+    if (fromToken === "0xBTC" && toToken === "B0x") {
+        routes.push({
+            name: "0xBTC → ETH → B0x",
+            isSingleHop: false,
+            tokenA: oxbtc,  // Pool 1: 0xBTC/ETH
+            tokenB: eth,
+            tokenC: eth,    // Pool 2: ETH/B0x
+            tokenD: box,
+            hookAddress: hookAddress,
+            hookAddress2: hookAddress
+        });
+    }
+    
+    // B0x → 0xBTC via ETH
+    if (fromToken === "B0x" && toToken === "0xBTC") {
+        routes.push({
+            name: "B0x → ETH → 0xBTC",
+            isSingleHop: false,
+            tokenA: box,    // Pool 1: B0x/ETH
+            tokenB: eth,
+            tokenC: eth,    // Pool 2: ETH/0xBTC
+            tokenD: oxbtc,
+            hookAddress: hookAddress,
+            hookAddress2: hookAddress
+        });
+    }
+    
+    return routes;
+}
+
+// ============================================
+// SINGLE ROUTE ESTIMATE
+// ============================================
+
+async function getSingleRouteEstimate(route, amountIn, fromToken, toToken) {
+console.log("Custom RPC1: ", customRPC);
+    const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
+    const provider_temp = walletConnected ? provider : provider_zzzzz12;
+    const contractInterface = new ethers.utils.Interface(SPLIT_ROUTE_ABI);
+    
+    const fromAddress = tokenAddresses[fromToken];
+    const toAddress = tokenAddresses[toToken];
+    
+    const callData = buildRouteCall(route, amountIn, contractInterface, fromAddress, toAddress);
+    
+    try {
+        const result = await provider_temp.call({
+            to: contractAddress_Swapper,
+            data: callData
+        });
+        
+        const decoded = contractInterface.decodeFunctionResult(
+            route.isSingleHop ? "getOutput" : "getOutputMultiHop",
+            result
+        );
+        
+        return {
+            route: route,
+            output: decoded[0]
+        };
+    } catch (error) {
+        console.error(`Failed to estimate route ${route.name}:`, error);
+        console.error(`Failed to estimate route ${route.name}: ${route}`);
+        throw error;
+    }
+}
+
+// ============================================
+// MULTI-ROUTE OPTIMIZATION
+// ============================================
+
+async function calculateOptimalMultiRouteSplit(fromToken, toToken, totalAmountIn, maxRoutes = 4) {
+
+console.log("Custom RPC2: ", customRPC);
+    const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
+    const provider_temp = walletConnected ? provider : provider_zzzzz12;
+    const contractInterface = new ethers.utils.Interface(SPLIT_ROUTE_ABI);
+    const multicallContract = new ethers.Contract(MULTICALL_ADDRESS, MULTICALL_ABI2, provider_temp);
+
+    const allRoutes = getAllPossibleRoutes(fromToken, toToken);
+    
+    if (!allRoutes || allRoutes.length < 2) {
+        console.log("Not enough routes for split routing");
+        return null;
+    }
+    
+    const routes = allRoutes.slice(0, Math.min(maxRoutes, allRoutes.length));
+    console.log(`Optimizing across ${routes.length} routes`);
+    
+    if (routes.length === 2) {
+        return await optimizeTwoRoutes(routes, totalAmountIn, contractInterface, multicallContract, fromToken, toToken);
+    } else {
+        return await optimizeMultiRoutesBatch(routes, totalAmountIn, contractInterface, multicallContract, fromToken, toToken);
+    }
+}
+    // Execute in batches of 16
+    const batchSizeRoutestwo = 50;
+async function optimizeTwoRoutes(routes, totalAmountIn, contractInterface, multicallContract, fromToken, toToken) {
+    const tokenInAddress = tokenAddresses[fromToken];
+    const tokenOutAddress = tokenAddresses[toToken];
+    
+    let left = 0;
+    let right = 10000;
+    let bestSplit = 5000;
+    let bestOutput = ethers.BigNumber.from(0);
+    let bestResult = null;
+    
+    // Collect all test splits upfront
+    const allTestSplits = [];
+    
+    while (right - left > 50) {
+        const mid1 = Math.floor(left + (right - left) / 3);
+        const mid2 = Math.floor(right - (right - left) / 3);
+        
+        allTestSplits.push({
+            splits: [mid1, Math.floor((mid1 + mid2) / 2), mid2],
+            left,
+            right
+        });
+        
+        // Temporary advance to estimate next iteration
+        const tempBestSplit = Math.floor((mid1 + mid2) / 2);
+        if (tempBestSplit === mid1) {
+            right = Math.floor((mid1 + mid2) / 2);
+        } else if (tempBestSplit === mid2) {
+            left = Math.floor((mid1 + mid2) / 2);
+        } else {
+            left = mid1;
+            right = mid2;
+        }
+    }
+    
+    // Reset for actual execution
+    left = 0;
+    right = 10000;
+    
+    // Build all calls at once
+    const allCalls = [];
+    const callMetadata = [];
+    
+    for (const iteration of allTestSplits) {
+        for (const split of iteration.splits) {
+            const amount1 = totalAmountIn.mul(split).div(10000);
+            const amount2 = totalAmountIn.sub(amount1);
+            
+            const startIdx = allCalls.length;
+            
+            allCalls.push({
+                target: contractAddress_Swapper,
+                allowFailure: false,
+                callData: buildRouteCall(routes[0], amount1, contractInterface, tokenInAddress, tokenOutAddress)
+            });
+            
+            allCalls.push({
+                target: contractAddress_Swapper,
+                allowFailure: false,
+                callData: buildRouteCall(routes[1], amount2, contractInterface, tokenInAddress, tokenOutAddress)
+            });
+            
+            callMetadata.push({
+                split,
+                resultIndices: [startIdx, startIdx + 1]
+            });
+        }
+    }
+    
+    // Execute in batches of 16
+    const batchSize = batchSizeRoutestwo;
+    const allResults = [];
+    
+    for (let i = 0; i < allCalls.length; i += batchSize) {
+        const batch = allCalls.slice(i, Math.min(i + batchSize, allCalls.length));
+        try {
+            const results = await multicallContract.callStatic.aggregate3(batch);
+            allResults.push(...results);
+            sleep(1000);
+        } catch (error) {
+            console.error(`Batch ${i / batchSize} error:`, error);
+            sleep(4000);
+            continue;
+        }
+    }
+    
+    // Process results iteration by iteration
+    let metadataIdx = 0;
+    for (const iteration of allTestSplits) {
+        for (const split of iteration.splits) {
+            const metadata = callMetadata[metadataIdx++];
+            
+            const output1 = contractInterface.decodeFunctionResult(
+                routes[0].isSingleHop ? "getOutput" : "getOutputMultiHop",
+                allResults[metadata.resultIndices[0]].returnData
+            )[0];
+            
+            const output2 = contractInterface.decodeFunctionResult(
+                routes[1].isSingleHop ? "getOutput" : "getOutputMultiHop",
+                allResults[metadata.resultIndices[1]].returnData
+            )[0];
+            
+            const totalOutput = output1.add(output2);
+            
+           // console.log("Total output1: ", output1.toString());
+            //console.log("Total output2: ", output2.toString());
+            //console.log("Total output: ", totalOutput.toString());
+            
+            if (totalOutput.gt(bestOutput)) {
+                bestOutput = totalOutput;
+                bestSplit = split;
+                bestResult = {
+                    split1: split,
+                    split2: 10000 - split,
+                    amount1: totalAmountIn.mul(split).div(10000),
+                    amount2: totalAmountIn.sub(totalAmountIn.mul(split).div(10000)),
+                    output1: output1,
+                    output2: output2,
+                    totalOutput: totalOutput
+                };
+            }
+        }
+        
+        // Adjust search range for next iteration
+        if (bestSplit === iteration.splits[0]) {
+            right = iteration.splits[1];
+        } else if (bestSplit === iteration.splits[2]) {
+            left = iteration.splits[1];
+        } else {
+            left = Math.floor(left + (right - left) / 3);
+            right = Math.floor(right - (right - left) / 3);
+        }
+    }
+    
+    if (!bestResult) return null;
+    
+    console.log("DONE WITH optimizeTwoRoutes");
+    return {
+        routes: routes,
+        splits: [bestResult.split1 / 100, bestResult.split2 / 100],
+        amounts: [bestResult.amount1, bestResult.amount2],
+        outputs: [bestResult.output1, bestResult.output2],
+        totalOutput: bestResult.totalOutput
+    };
+}
+
+
+async function safeAggregate3(multicallContract, calls, maxBatchSize = 100) {
+    const results = [];
+
+    for (let i = 0; i < calls.length; i += maxBatchSize) {
+        const batch = calls.slice(i, i + maxBatchSize);
+        try {
+            const batchResults = await multicallContract.aggregate3(batch);
+            results.push(...batchResults);
+        } catch (err) {
+            console.error(`Batch ${i / maxBatchSize} failed:`, err);
+            throw err;
+        }
     }
 
+    return results;
+}
+
+async function optimizeMultiRoutes(routes, totalAmountIn, contractInterface, multicallContract, fromToken, toToken) {
+    const numRoutes = routes.length;
+    const tokenInAddress = tokenAddresses[fromToken];
+    const tokenOutAddress = tokenAddresses[toToken];
+    
+    // Initialize equal splits
+    let splits = new Array(numRoutes).fill(Math.floor(10000 / numRoutes));
+    splits[splits.length - 1] = 10000 - splits.slice(0, -1).reduce((a, b) => a + b, 0);
+    
+    let bestSplits = [...splits];
+    let bestOutput = ethers.BigNumber.from(0);
+    let bestOutputs = [];
+    
+    const learningRate = 50; // 0.5% adjustments
+    const iterations = 20;
+    
+    for (let iter = 0; iter < iterations; iter++) {
+        const testSplits = [splits];
+        
+        // Generate neighbors
+        for (let i = 0; i < numRoutes - 1; i++) {
+            if (splits[i] >= learningRate && splits[numRoutes - 1] < 9950) {
+                const neighbor = [...splits];
+                neighbor[i] -= learningRate;
+                neighbor[numRoutes - 1] += learningRate;
+                testSplits.push(neighbor);
+            }
+            
+            if (splits[i] < 9950 && splits[numRoutes - 1] >= learningRate) {
+                const neighbor = [...splits];
+                neighbor[i] += learningRate;
+                neighbor[numRoutes - 1] -= learningRate;
+                testSplits.push(neighbor);
+            }
+        }
+        
+        const calls = [];
+        for (const testSplit of testSplits) {
+            for (let i = 0; i < numRoutes; i++) {
+                const amount = totalAmountIn.mul(testSplit[i]).div(10000);
+                calls.push({
+                    target: contractAddress_Swapper,
+                    allowFailure: false,
+                    callData: buildRouteCall(routes[i], amount, contractInterface, tokenInAddress, tokenOutAddress)
+                });
+            }
+        }
+        
+        try {
+            const results = await multicallContract.aggregate3(calls);
+            
+            for (let splitIdx = 0; splitIdx < testSplits.length; splitIdx++) {
+                let totalOutput = ethers.BigNumber.from(0);
+                const outputs = [];
+                
+                for (let routeIdx = 0; routeIdx < numRoutes; routeIdx++) {
+                    const resultIdx = splitIdx * numRoutes + routeIdx;
+                    const output = contractInterface.decodeFunctionResult(
+                        routes[routeIdx].isSingleHop ? "getOutput" : "getOutputMultiHop",
+                        results[resultIdx].returnData
+                    )[0];
+                    outputs.push(output);
+                    totalOutput = totalOutput.add(output);
+                }
+                
+                if (totalOutput.gt(bestOutput)) {
+                    bestOutput = totalOutput;
+                    bestSplits = [...testSplits[splitIdx]];
+                    bestOutputs = outputs;
+                }
+            }
+            
+            splits = [...bestSplits];
+            
+            // Reduce learning rate over time
+            if (iter % 5 === 4 && learningRate > 10) {
+                learningRate = Math.floor(learningRate / 2);
+            }
+            
+        } catch (error) {
+            console.error(`Iteration ${iter} failed:`, error);
+            break;
+        }
+    }
+    
+    const routeAmounts = bestSplits.map(split => totalAmountIn.mul(split).div(10000));
+    
+    return {
+        routes: routes,
+        splits: bestSplits.map(s => s / 100),
+        amounts: routeAmounts,
+        outputs: bestOutputs,
+        totalOutput: bestOutput
+    };
+}
+
+
+async function optimizeMultiRoutesBatch(
+    routes,
+    totalAmountIn,
+    contractInterface,
+    multicallContract,
+    fromToken,
+    toToken,
+    stepSize = 500,      // granularity (500 = 5%)
+    maxBatchSize = 100   // max calls per aggregate3 batch
+) {
+    const numRoutes = routes.length;
+    const tokenInAddress = tokenAddresses[fromToken];
+    const tokenOutAddress = tokenAddresses[toToken];
+
+    // Generate all splits (simple case: one route gets the "remainder")
+    const splitSets = [];
+    function generateSplits(current, remaining, depth) {
+        if (depth === numRoutes - 1) {
+            splitSets.push([...current, remaining]);
+            return;
+        }
+        for (let i = 0; i <= remaining; i += stepSize) {
+            generateSplits([...current, i], remaining - i, depth + 1);
+        }
+    }
+    generateSplits([], 10000, 0);
+
+    console.log(`Generated ${splitSets.length} candidate splits`);
+
+    // Build calls for all splits
+    const calls = [];
+    for (const split of splitSets) {
+        for (let i = 0; i < numRoutes; i++) {
+            const amount = totalAmountIn.mul(split[i]).div(10000);
+            calls.push({
+                target: contractAddress_Swapper,
+                allowFailure: false,
+                callData: buildRouteCall(routes[i], amount, contractInterface, tokenInAddress, tokenOutAddress)
+            });
+        }
+    }
+
+    // Helper: run aggregate3 in safe batches
+    async function safeAggregate3(calls, maxBatchSize) {
+        const results = [];
+        for (let i = 0; i < calls.length; i += maxBatchSize) {
+            const batch = calls.slice(i, i + maxBatchSize);
+            const batchResults = await multicallContract.aggregate3(batch);
+            results.push(...batchResults);
+        }
+        return results;
+    }
+
+    // Run all calls
+    const results = await safeAggregate3(calls, maxBatchSize);
+
+    // Decode and find best
+    let bestOutput = ethers.BigNumber.from(0);
+    let bestSplits = null;
+    let bestOutputs = [];
+
+    for (let splitIdx = 0; splitIdx < splitSets.length; splitIdx++) {
+        let totalOutput = ethers.BigNumber.from(0);
+        const outputs = [];
+        for (let routeIdx = 0; routeIdx < numRoutes; routeIdx++) {
+            const resultIdx = splitIdx * numRoutes + routeIdx;
+            const output = contractInterface.decodeFunctionResult(
+                routes[routeIdx].isSingleHop ? "getOutput" : "getOutputMultiHop",
+                results[resultIdx].returnData
+            )[0];
+            outputs.push(output);
+            totalOutput = totalOutput.add(output);
+        }
+
+        if (totalOutput.gt(bestOutput)) {
+            bestOutput = totalOutput;
+            bestSplits = splitSets[splitIdx];
+            bestOutputs = outputs;
+        }
+    }
+
+    if (!bestSplits) return null;
+
+    const routeAmounts = bestSplits.map(s => totalAmountIn.mul(s).div(10000));
+
+    return {
+        routes,
+        splits: bestSplits.map(s => s / 100),
+        amounts: routeAmounts,
+        outputs: bestOutputs,
+        totalOutput: bestOutput
+    };
+}
+
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+function buildRouteCall(route, amount, contractInterface, tokenInAddress, tokenOutAddress) {
+    if (route.isSingleHop) {
+      //  console.log("route.tokenA",route.tokenA );
+     //   console.log("route.tokenB",route.tokenB );
+      //  console.log("tokenInAddress",tokenInAddress );
+     //   console.log("amount",amount);
+      //  console.log("route.hookAddress", route.hookAddress );
+        return contractInterface.encodeFunctionData("getOutput", [
+            route.tokenA,
+            route.tokenB,
+            tokenInAddress,
+            route.hookAddress,
+            amount
+        ]);
+    } else {
+     //   console.log("route.tokenA",route.tokenA );
+     //   console.log("route.tokenB",route.tokenB );
+      //  console.log("route.tokenC",route.tokenC );
+      ///  console.log("route.tokenBD",route.tokenD );
+      //  console.log("tokenInAddress",tokenInAddress );
+      //  console.log("tokenOutAddress",tokenOutAddress );
+        console.log("route.hookAddress", route.hookAddress );
+     console.log("route.hookAddress2", route.hookAddress2 );
+     console.log("route.hookAddress2", route.hook2Address );
+       // console.log("amount",amount);
+        return contractInterface.encodeFunctionData("getOutputMultiHop", [
+            route.tokenA,
+            route.tokenB,
+            route.tokenC,
+            route.tokenD,
+            tokenInAddress,
+            tokenOutAddress,
+            route.hookAddress ?? route.hook1Address,
+            route.hookAddress2 ?? route.hook2Address, // This will work!
+            amount
+        ]);
+    }
+}
+
+// ============================================
+// DISPLAY FUNCTIONS
+// ============================================
+
+async function updateEstimateDisplay(fromToken, toToken, estimate, amountIn) {
+    if(!walletConnected){
+       await GetRewardAPY();
+    }
+    
+    // Trim both tokens
+    fromToken = fromToken.trim();
+    toToken = toToken.trim();
+    
+    const estimateDisplay = document.getElementById('estimateDisplay');
+    if (!estimateDisplay) return;
+    
+    const formattedInput = fromToken === "0xBTC" ? 
+        ethers.utils.formatUnits(amountIn, 8) : 
+        ethers.utils.formatEther(amountIn);
+    
+    const formattedOutput = toToken === "0xBTC" ? 
+        ethers.utils.formatUnits(estimate.output, 8) : 
+        ethers.utils.formatEther(estimate.output);
+    
+// Assign the value to the input
+document.getElementById("estOutput").value = formattedOutput;
+    const estOutputField = document.getElementById("estOutput");
+    if (estOutputField) {
+        estOutputField.value = formattedOutput;
+        console.log("Updated estOutput field to:", formattedOutput);
+    } else {
+        console.error("estOutput field not found");
+    }
+    // Build the main display HTML
+    let mainDisplayHtml = '';
+    
+    if (estimate.type === 'multi') {
+        // Multi-route display
+        let routesHtml = '';
+        estimate.routes.forEach((route, i) => {
+            const routeAmount = fromToken === "0xBTC" ? 
+                ethers.utils.formatUnits(estimate.amounts[i], 8) : 
+                ethers.utils.formatEther(estimate.amounts[i]);
+            const routeOutput = toToken === "0xBTC" ? 
+                ethers.utils.formatUnits(estimate.outputs[i], 8) : 
+                ethers.utils.formatEther(estimate.outputs[i]);
+            
+            routesHtml += `
+                <div style="margin: 8px 0; padding: 8px; border-radius: 4px;">
+                    <strong>${route.name}</strong>
+                    <div style="font-size: 0.9em;">
+                        Split: ${estimate.splits[i].toFixed(1)}% (${routeAmount} ${fromToken})
+                        → ${routeOutput} ${toToken}
+                    </div>
+                </div>
+            `;
+        });
+        
+        mainDisplayHtml = `
+            <div style="border: 2px solid #28a745; padding: 15px; border-radius: 8px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                    <h4 style="margin: 0; color: #28a745;">Multi-Route Optimized</h4>
+                    <span style="background: #28a745; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85em;">
+                        +${estimate.improvement.toFixed(2)}% Better
+                    </span>
+                </div>
+                
+                <div style="font-size: 1.1em; margin: 10px 0;">
+                    <strong>You send:</strong> ${formattedInput} ${fromToken}
+                    <br><strong>You receive:</strong> ${formattedOutput} ${toToken}
+                </div>
+                
+                <details style="margin-top: 10px;">
+                    <summary style="cursor: pointer; color: #007bff;">Route Details</summary>
+                    ${routesHtml}
+                </details>
+            </div>
+        `;
+    } else {
+        // Single route display
+        mainDisplayHtml = `
+            <div style="border: 1px solid #007bff; padding: 15px; border-radius: 8px;">
+                <h4 style="margin: 0 0 10px 0; color: #007bff;">Swap Estimate</h4>
+                
+                <div style="font-size: 1.1em;">
+                    <strong>Route:</strong> ${estimate.route.name}
+                    <br><strong>You send:</strong> ${formattedInput} ${fromToken}
+                    <br><strong>You receive:</strong> ${formattedOutput} ${toToken}
+                </div>
+            </div>
+        `;
+    }
+    
+    estimateDisplay.innerHTML = mainDisplayHtml;
+    
+    // Bridge comparison logic for ETH -> 0xBTC -> B0x swaps
+    const isETHtoB0xVia0xBTC = (fromToken === "ETH" && toToken === "B0x");
+    
+    if (isETHtoB0xVia0xBTC && oxbtcPriceUSD && oxbtcPriceUSD > 0) {
+        try {
+            const ethPrice = wethPriceUSD || 3000;
+            
+            const OXBTC_ADDRESS = tokenAddresses["0xBTC"];
+            const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
+            
+            const intermediate0xBTCAmount = await retryWithBackoff(() =>
+                getSingleHopEstimate(ETH_ADDRESS, OXBTC_ADDRESS, amountIn)
+            );
+            const oxbtcReceived = parseFloat(ethers.utils.formatUnits(intermediate0xBTCAmount, 8));
+            
+            console.log("ETH input:", amountIn.toString());
+            console.log("Intermediate 0xBTC amount:", oxbtcReceived);
+            console.log("Final B0x output:", formattedOutput);
+            
+            const ethSpent = parseFloat(formattedInput);
+            const totalETHSpentUSD = ethSpent * ethPrice;
+            const swapPrice = totalETHSpentUSD / oxbtcReceived;
+            const mainnetPrice = oxbtcPriceUSD;
+            
+            console.log("Mainnet 0xBTC Price:", mainnetPrice);
+            console.log("Swap Effective Price:", swapPrice);
+            
+            const BRIDGE_BASE_FEE_USD = 0;
+            const BRIDGE_GAS_COST_USD = 3;
+            const totalBridgeCost = BRIDGE_BASE_FEE_USD + BRIDGE_GAS_COST_USD;
+            
+            const swapCost = totalETHSpentUSD;
+            const bridgeCost = (oxbtcReceived * mainnetPrice) + totalBridgeCost;
+            const potentialSavings = swapCost - bridgeCost;
+            
+            const priceDifference = ((swapPrice - mainnetPrice) / mainnetPrice * 100).toFixed(2);
+            
+            if (swapPrice > 0) {
+                let comparisonHTML = `
+                    <div class="price-comparison" style="margin-top: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                        <h4 style="margin-top: 0;">Price Comparison</h4>
+                        <p><strong>Your Swap Price:</strong> $${swapPrice.toFixed(4)} per 0xBTC</p>
+                        <p><strong>Mainnet Price:</strong> $${mainnetPrice.toFixed(4)} per 0xBTC</p>
+                        <p><strong>Difference:</strong> <span style="color: ${priceDifference > 0 ? '#dc3545' : '#28a745'};">${priceDifference > 0 ? '+' : ''}${priceDifference}%</span></p>
+                `;
+                
+                if (swapPrice > mainnetPrice * 1.05) {
+                    comparisonHTML += `
+                        <div style="margin-top: 10px; padding: 10px; border-radius: 5px; border-left: 4px solid #ffc107;">
+                            <strong style="color: white;">Consider Bridging Instead!</strong>
+                            <p style="margin: 5px 0; color: white;">You're paying <strong>${priceDifference}%</strong> more than mainnet price.</p>
+                            <p style="margin: 5px 0; color: white;"><strong>Cost Breakdown:</strong></p>
+                            <ul style="margin: 5px 0; padding-left: 20px; color: white;">
+                                <li>Swap cost: $${swapCost.toFixed(2)}</li>
+                                <li>Bridge cost: $${bridgeCost.toFixed(2)} (includes ~$${totalBridgeCost} in fees)</li>
+                            </ul>
+                            <p style="margin: 5px 0; color: white;"><strong>Potential savings: ~$${potentialSavings.toFixed(2)}</strong></p>
+                            <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                                <a href="https://swap.defillama.com/?chain=ethereum&from=0x0000000000000000000000000000000000000000&tab=swap&to=0xb6ed7644c69416d67b522e20bc294a9a9b405b31" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   style="display: inline-block; padding: 8px 16px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                                    Swap 0xBTC on Mainnet
+                                </a>
+                                <a href="https://superbridge.app/?fromChainId=1&toChainId=8453&tokenAddress=0xb6ed7644c69416d67b522e20bc294a9a9b405b31" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   style="display: inline-block; padding: 8px 16px; background-color: #0052FF; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                                    Bridge 0xBTC to Base
+                                </a>
+                            </div><br>Then simply swap your newly Bridged 0xBitcoin to B0x to get the savings!
+                        </div>
+                    `;
+                } else if (swapPrice < mainnetPrice * 0.95) {
+                    comparisonHTML += `
+                        <div style="margin-top: 10px; padding: 10px; border-radius: 5px; border-left: 4px solid #17a2b8;">
+                            <strong style="color: white;">Great Deal!</strong>
+                            <p style="margin: 5px 0; color: white;">You're getting a <strong>${Math.abs(parseFloat(priceDifference))}%</strong> discount compared to mainnet!</p>
+                        </div>
+                    `;
+                } else {
+                    comparisonHTML += `
+                        <div style="margin-top: 10px; padding: 10px; border-radius: 5px; border-left: 4px solid #28a745;">
+                            <strong style="color: white;">Fair Price!</strong>
+                            <p style="margin: 5px 0; color: white;">This swap offers a competitive rate. The price difference is minimal.</p>
+                        </div>
+                    `;
+                }
+                
+                comparisonHTML += `</div>`;
+                estimateDisplay.innerHTML += comparisonHTML;
+            }
+        } catch (error) {
+            console.error("Error comparing with mainnet price:", error);
+        }
+    }
+}
+
+function showErrorDisplay(message) {
+    const estimateDisplay = document.getElementById('estimateDisplay');
+    if (estimateDisplay) {
+        estimateDisplay.innerHTML = `
+            <div style="color: #dc3545; padding: 10px; border: 1px solid #dc3545; border-radius: 5px;">
+                <strong>⚠️ Error</strong>
+                <p>${message}</p>
+            </div>
+        `;
+    }
+}
+
+
+
+async function getEstimateOLD() {
+    if (!walletConnected) {
+        console.log("Wallet not connected");
+    }
+    disableButtonWithSpinner('executeSwapBtn', 'Getting new estimate');
     const fromSelect = document.querySelector('#swap .form-group:nth-child(4) select');
     const toSelect = document.querySelector('#swap .form-group:nth-child(7) select');
 
@@ -7682,44 +9177,8 @@ async function getEstimate() {
             `;
         }
     }
-
+    enableButton('executeSwapBtn', 'Execute Swap');
     updateWidget();
-}
-
-async function updateEstimateDisplay(fromToken, toToken, amountOut, amountToSwap) {
-    console.log(`Estimate result: ${amountOut.toString()}`);
-    
-    // Format readable amounts for logging
-    let readableAmountOut, readableAmountIn;
-    
-    if (fromToken === "0xBTC") {
-        readableAmountIn = ethers.utils.formatUnits(amountToSwap, 8);
-    } else {
-        readableAmountIn = ethers.utils.formatEther(amountToSwap);
-    }
-
-    if (toToken === "0xBTC") {
-        readableAmountOut = ethers.utils.formatUnits(amountOut, 8);
-    } else {
-        readableAmountOut = ethers.utils.formatEther(amountOut);
-    }
-
-    console.log(`Readable estimate: ${readableAmountIn} ${fromToken} → ${readableAmountOut} ${toToken}`);
-
-    // Update the estimated output display
-    const estimatedOutputInput = document.querySelector('#swap .form-group:nth-child(8) input');
-    
-    if (estimatedOutputInput) {
-        // Format based on output token
-        if (toToken === "0xBTC") {
-            estimatedOutputInput.value = ethers.utils.formatUnits(amountOut, 8);
-        } else {
-            estimatedOutputInput.value = ethers.utils.formatEther(amountOut);
-        }
-    }
-
-    // Store the amount for later use in swap
-    window.lastEstimatedAmount = amountOut;
 }
 
 // Calculate effective price per 0xBTC from swap
@@ -8012,7 +9471,7 @@ async function getSingleHopEstimate(tokenInputAddress, tokenOutputAddress, amoun
         }
     ];
 
-console.log("Custom RPC1: ", customRPC);
+console.log("Custom RPC3: ", customRPC);
     const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
 
     const tokenSwapperContract = new ethers.Contract(
@@ -8054,7 +9513,7 @@ async function getMultiHopEstimate(fromToken, toToken, tokenInputAddress, tokenO
         }
     ];
 
-console.log("Custom RPC1: ", customRPC);
+console.log("Custom RPC4: ", customRPC);
     const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
 
     const tokenSwapperContract = new ethers.Contract(
@@ -8070,8 +9529,8 @@ console.log("Custom RPC1: ", customRPC);
 
     // Determine pool configuration based on swap direction
     let pool1TokenA, pool1TokenB, pool2TokenA, pool2TokenB;
-    let hook1Address = HookAddress;
-    let hook2Address = HookAddress;
+    let hook1Address = hookAddress;
+    let hook2Address = hookAddress;
 
     if (fromToken === "B0x" && toToken === "ETH") {
         // B0x -> 0xBTC -> ETH
@@ -8143,43 +9602,6 @@ function extractAmountFromResult(result) {
     }
     return result;
 }
-
-function updateEstimateDisplay(fromToken, toToken, amountOut, amountToSwap) {
-    console.log(`Estimate result: ${amountOut.toString()}`);
-
-    // Format readable amounts for logging
-    let readableAmountOut, readableAmountIn;
-
-    if (fromToken === "0xBTC") {
-        readableAmountIn = ethers.utils.formatUnits(amountToSwap, 8);
-    } else {
-        readableAmountIn = ethers.utils.formatEther(amountToSwap);
-    }
-
-    if (toToken === "0xBTC") {
-        readableAmountOut = ethers.utils.formatUnits(amountOut, 8);
-    } else {
-        readableAmountOut = ethers.utils.formatEther(amountOut);
-    }
-
-    console.log(`Readable estimate: ${readableAmountIn} ${fromToken} → ${readableAmountOut} ${toToken}`);
-
-    // Update the estimated output display
-    const estimatedOutputInput = document.querySelector('#swap .form-group:nth-child(8) input');
-
-    if (estimatedOutputInput) {
-        // Format based on output token
-        if (toToken === "0xBTC") {
-            estimatedOutputInput.value = ethers.utils.formatUnits(amountOut, 8);
-        } else {
-            estimatedOutputInput.value = ethers.utils.formatEther(amountOut);
-        }
-    }
-
-    // Store the amount for later use in swap
-    window.lastEstimatedAmount = amountOut;
-}
-
 
 
 
@@ -8286,6 +9708,7 @@ async function executeSwap() {
         disableButtonWithSpinner('executeSwapBtn');
         await getSwapOfTwoTokens();
 
+// Assign the value to the input
         enableButton('executeSwapBtn', 'Execute Swap');
         //alert('Swap completed successfully!');
 
@@ -13399,9 +14822,8 @@ async function fetchBalancesETH() {
 
 
 
-async function getCurrentPoolFee() {
+async function getCurrentPoolFeeB0xETH() {
 
-    alert("UPDATING MAIN STAKING POOL FEE");
     if (!walletConnected) {
         await connectWallet();
     }
@@ -13456,7 +14878,7 @@ async function getCurrentPoolFee() {
         signer // Use signer since the function isn't view/pure
     );
 
-    var tokencheck = Address_ZEROXBTC_TESTNETCONTRACT;
+    var tokencheck = tokenAddresses['ETH'];
     var tokencheck2 = tokenAddresses['B0x'];
     console.log("tokenCheck: ", tokencheck);
     console.log("tokencheck2: ", tokencheck2);
@@ -13721,7 +15143,7 @@ async function getCurrentPoolFee() {
 
 
 async function updateAdminFeeForPool() {
-
+alert("UPDATING MAIN POOL FEE");
     if (!walletConnected) {
         await connectWallet();
     }
@@ -13888,6 +15310,109 @@ async function updateAdminFeeForPool0xBTCETH() {
 
 
     var tokencheck = Address_ZEROXBTC_TESTNETCONTRACT;
+    var tokencheck2 = tokenAddresses['ETH'];
+    console.log("tokenCheck: ", tokencheck);
+    console.log("tokencheck2: ", tokencheck2);
+    // Simple string comparison (addresses as hex strings)
+    let currency0, currency1;
+
+    if (tokencheck.toLowerCase() < tokencheck2.toLowerCase()) {
+        currency0 = tokencheck;
+        currency1 = tokencheck2;
+    } else {
+        currency0 = tokencheck2;
+        currency1 = tokencheck;
+    }
+
+    console.log("currency0: ", currency0);
+    console.log("currency1: ", currency1);
+    // Define the PoolKey_Hook struct
+    const poolKey = {
+        currency0: currency0,
+        currency1: currency1,
+        fee: 0x800000,        // uint24
+        tickSpacing: 60,   // int24
+        hooks: hookAddress
+    };
+
+
+
+    const tx = await HookContract.forceUpdateLPFee(poolKey, feeValue);
+
+
+    console.log("forceUpdateLPFee transaction sent:", tx.hash);
+    console.log("Waiting for transaction confirmation...");
+
+    // Wait for the transaction to be mined
+    const receipt = await tx.wait();
+    console.log("Confirmed forceUpdateLPFee Token")
+}
+
+
+async function updateAdminFeeForPoolB0xETH() {
+
+    if (!walletConnected) {
+        await connectWallet();
+    }
+
+
+    var feeValue = document.getElementById('UpdateAdminFee').value;
+    feeValue = Math.floor(feeValue * 10000)
+    var hookABI = [{
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "currency0",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "currency1",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint24",
+                        "name": "fee",
+                        "type": "uint24"
+                    },
+                    {
+                        "internalType": "int24",
+                        "name": "tickSpacing",
+                        "type": "int24"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "hooks",
+                        "type": "address"
+                    }
+                ],
+                "internalType": "struct PoolKey_Hook",
+                "name": "key",
+                "type": "tuple"
+            },
+            {
+                "internalType": "uint24",
+                "name": "newFee",
+                "type": "uint24"
+            }
+        ],
+        "name": "forceUpdateLPFee",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }];
+
+
+    var HookContract = new ethers.Contract(
+        HookAddress, // your tokenSwapper contract address
+        hookABI,
+        signer // Use signer since the function isn't view/pure
+    );
+
+
+    var tokencheck = tokenAddresses['B0x'];
     var tokencheck2 = tokenAddresses['ETH'];
     console.log("tokenCheck: ", tokencheck);
     console.log("tokencheck2: ", tokencheck2);
@@ -14188,6 +15713,8 @@ function formatHashrate(hashrate) {
  * @returns {number} Calculated hashrate
  */
 function calculateHashrate(timePerEpoch, miningDifficulty) {
+    console.log("f2f2f2f2calculateHashrate inputs - timePerEpoch:", timePerEpoch, "miningDifficulty:", miningDifficulty);
+ 
     // Constants
     const POWER_OF_22 = Math.pow(2, 22); // 2^22 = 4,194,304
     const DIVISOR = 524_288; // Given divisor
@@ -14215,155 +15742,139 @@ function calculateHashrate(timePerEpoch, miningDifficulty) {
  * @param {number} miningDifficulty - Raw mining difficulty
  */
 var formattedHashrate = 0;
+var prevTimeInFunc = Date.now();
+var prevHashrate = 0;
+
+
+
+
 async function calculateAndDisplayHashrate() {
+    const currentTime = Date.now();
+    const timeDiff = currentTime - prevTimeInFunc;
+    console.log("prevHashrate: ",prevHashrate);
+    // 120 seconds = 120000 milliseconds
+    if(timeDiff < 120000 && prevHashrate != 0){
+        console.log("repetive call not called")
+        return;
+    }
+    if(prevHashrate ==0){
+        console.log("Previous hashrate = 0");
+    }
+    console.log("Running calculateAndDisplayHashrate");
+    
+
+    // Update the timestamp after execution
+    prevTimeInFunc = Date.now();
+
     var timePerEpoch = 0;
+
+    
     try {
-
-
-        let amountOut = 0;
-        const hashrateABI = [{
+        await sleep(500);
+        console.log("Custom RPC: ", customRPC);
+        
+        const provider = new ethers.providers.JsonRpcProvider(customRPC);
+        
+        // Define the two function signatures
+        const inflationMinedInterface = new ethers.utils.Interface([{
             "inputs": [],
             "name": "inflationMined",
             "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "YearlyInflation",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "EpochsPerYear",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "RewardsAtTime",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "TimePerEpoch",
-                    "type": "uint256"
-                }
+                {"internalType": "uint256", "name": "YearlyInflation", "type": "uint256"},
+                {"internalType": "uint256", "name": "EpochsPerYear", "type": "uint256"},
+                {"internalType": "uint256", "name": "RewardsAtTime", "type": "uint256"},
+                {"internalType": "uint256", "name": "TimePerEpoch", "type": "uint256"}
             ],
             "stateMutability": "view",
             "type": "function"
-        }];
-
-console.log("Custom RPC1: ", customRPC);
-    const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
-
-        hashrateMiningContract = new ethers.Contract(
-            ProofOfWorkAddresss, // your tokenSwapper contract address
-            hashrateABI,
-            provider_zzzzz12 
-        );
-
-
-        /*
-        console.log("EERRROR HERE");
-        console.log("EERRROR Address_ZEROXBTC_TESTNETCONTRACT: ",Address_ZEROXBTC_TESTNETCONTRACT);
-        console.log("EERRROR tokenAddress: ",tokenAddress);
-        console.log("EERRROR tokenInputAddress: ",tokenInputAddress);
-        console.log("EERRROR HookAddress: ",HookAddress);
-        console.log("EERRROR amountToSwap: ",amountToSwap);
-        console.log("EERRROR amountToSwap: ",amountToSwap);
-        console.log("EERRROR contractAddress_Swapper: ",contractAddress_Swapper);
-        */
-
-        var tokenInputAddress = tokenAddress;
-        amountToSwap = BigInt(10 ** 18);
-        // Call the view function
-        var result = 0;
-
-        try {
-
-            result = await hashrateMiningContract.inflationMined();
-
-
-        } catch (error) {
-            console.error('Error calling inflationMined on hashrateMiningContract in calculateAndDisplayHashrate:', error);
-        }
-        timePerEpoch = result[3];
-        console.log("TImePerEpoch: ", timePerEpoch);
-
-
-    } catch (error) {
-        console.error("Error calculating hashrate:", error.message);
-        return null;
-    }
-
-    console.log("Done finding timePerEpoch: ", timePerEpoch);
-
-
-
-    var miningDifficulty = 0;
-
-    try {
-
-
-        const hashrateABI = [{
+        }]);
+        
+        const getMiningDifficultyInterface = new ethers.utils.Interface([{
             "inputs": [],
             "name": "getMiningDifficulty",
-            "outputs": [
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function"
+        }]);
+
+        // Multicall3 ABI (just the aggregate3 function)
+        const multicall3ABI = [{
+            "inputs": [
                 {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
+                    "components": [
+                        {"internalType": "address", "name": "target", "type": "address"},
+                        {"internalType": "bool", "name": "allowFailure", "type": "bool"},
+                        {"internalType": "bytes", "name": "callData", "type": "bytes"}
+                    ],
+                    "internalType": "struct Multicall3.Call3[]",
+                    "name": "calls",
+                    "type": "tuple[]"
                 }
             ],
-            "stateMutability": "view",
+            "name": "aggregate3",
+            "outputs": [
+                {
+                    "components": [
+                        {"internalType": "bool", "name": "success", "type": "bool"},
+                        {"internalType": "bytes", "name": "returnData", "type": "bytes"}
+                    ],
+                    "internalType": "struct Multicall3.Result[]",
+                    "name": "returnData",
+                    "type": "tuple[]"
+                }
+            ],
+    "stateMutability": "view",  // Changed from "payable" to "view"
             "type": "function"
         }];
 
-console.log("Custom RPC1: ", customRPC);
-await sleep(500);
-    const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
-
-        hashrateMiningContract = new ethers.Contract(
-            ProofOfWorkAddresss, // your tokenSwapper contract address
-            hashrateABI,
-            provider_zzzzz12 // Use signer since the function isn't view/pure
+        // Multicall3 contract address (same on most chains)
+        const multicall3Address = "0xcA11bde05977b3631167028862bE2a173976CA11";
+        
+        const multicall3Contract = new ethers.Contract(
+            multicall3Address,
+            multicall3ABI,
+            provider
         );
 
+        // Encode the call data for both functions
+        const inflationMinedCallData = inflationMinedInterface.encodeFunctionData("inflationMined");
+        const getMiningDifficultyCallData = getMiningDifficultyInterface.encodeFunctionData("getMiningDifficulty");
 
-        /*
-        console.log("EERRROR HERE");
-        console.log("EERRROR Address_ZEROXBTC_TESTNETCONTRACT: ",Address_ZEROXBTC_TESTNETCONTRACT);
-        console.log("EERRROR tokenAddress: ",tokenAddress);
-        console.log("EERRROR tokenInputAddress: ",tokenInputAddress);
-        console.log("EERRROR HookAddress: ",HookAddress);
-        console.log("EERRROR amountToSwap: ",amountToSwap);
-        console.log("EERRROR amountToSwap: ",amountToSwap);
-        console.log("EERRROR contractAddress_Swapper: ",contractAddress_Swapper);
-        */
+        // Prepare the calls array
+        const calls = [
+            {
+                target: ProofOfWorkAddresss,
+                allowFailure: false,
+                callData: inflationMinedCallData
+            },
+            {
+                target: ProofOfWorkAddresss,
+                allowFailure: false,
+                callData: getMiningDifficultyCallData
+            }
+        ];
 
-        // Call the view function
-        var result = 0;
+        // Execute multicall
+        const results = await multicall3Contract.aggregate3(calls);
 
-        try {
+        // Decode results
+        const inflationMinedResult = inflationMinedInterface.decodeFunctionResult(
+            "inflationMined",
+            results[0].returnData
+        );
+        const miningDifficultyResult = getMiningDifficultyInterface.decodeFunctionResult(
+            "getMiningDifficulty",
+            results[1].returnData
+        );
 
-            result = await hashrateMiningContract.getMiningDifficulty();
+        var timePerEpoch = inflationMinedResult[3];
+        var miningDifficulty = miningDifficultyResult[0];
 
-
-        } catch (error) {
-            console.error('Error calling getMiningDifficulty in calculateAndDispalyHashrate:', error);
-        }
-        miningDifficulty = result;
+        console.log("TimePerEpoch: ", timePerEpoch);
         console.log("getMiningDifficulty: ", miningDifficulty);
+        console.log("miningDifficulty = ", miningDifficulty);
 
-
-    } catch (error) {
-        console.error("Error calculating hashrate:", error.message);
-        return null;
-    }
-
-
-
-    console.log("miningDifficulty = miningDifficulty = ", miningDifficulty);
-
-
-    try {
+        // Calculate and display hashrate
         const hashrate = calculateHashrate(timePerEpoch, miningDifficulty);
 
         console.log("=== Hashrate Calculation ===");
@@ -14372,15 +15883,16 @@ await sleep(500);
         console.log(`Adjusted Difficulty: ${miningDifficulty / 524_288}`);
         console.log(`Calculated Hashrate: ${hashrate.toLocaleString()} H/s`);
 
-        // Convert to appropriate unit and format
         formattedHashrate = formatHashrate(hashrate);
 
         console.log("\n=== Formatted Hashrate ===");
         console.log(formattedHashrate);
-
+        prevHashrate = hashrate;
         return hashrate;
+
     } catch (error) {
         console.error("Error calculating hashrate:", error.message);
+        await sleep(3500);
         return null;
     }
 }
@@ -14388,8 +15900,26 @@ await sleep(500);
 
 
 
+var prevTimeInFunc2 = Date.now();
+    
+var firstthree =0
+
 // Mock data update function (replace with actual API calls)
 async function updateWidget() {
+    const currentTime = Date.now();
+    const timeDiff = currentTime - prevTimeInFunc2;
+    // 120 seconds = 120000 milliseconds
+    if(timeDiff < 60000 && firstthree>1 &&  firstRewardsAPYRun>2){
+        console.log("repetive call not called updateWidget")
+        return;
+    }else{
+        console.log("updateWidget run happened");
+    }
+    if(firstRewardsAPYRun<=2 ){
+        console.log("First run because of RewardsAPYRun <=2");
+    }
+    firstthree = firstthree+1;
+    prevTimeInFunc2 =Date.now();
     // Set loading state
     document.getElementById('usd-price').textContent = 'Loading...';
     document.getElementById('btc-price').textContent = 'Loading...';
@@ -14407,11 +15937,8 @@ async function updateWidget() {
         document.getElementById('btc-price').textContent = ratioB0xTo0xBTC.toFixed(6);
 
         // Mock hashrate calculation
-        const timePerEpoch = 300; // Replace with contract call
-        const miningDifficulty = 1000000; // Replace with contract call
-        const hashrate = calculateHashrate(timePerEpoch, miningDifficulty);
-        document.getElementById('hashrate').textContent = formattedHashrate
-    }, 3000);
+        document.getElementById('hashrate').textContent = formattedHashrate;
+    }, 1000);
 
 
 }
@@ -15411,6 +16938,8 @@ async function getMax() {
 
 }
 
+
+
 function swapTokens() {
     const formGroups = document.querySelectorAll('#swap .form-group');
     let fromSelect, toSelect, fromIcon, toIcon;
@@ -15434,6 +16963,18 @@ function swapTokens() {
         fromSelect.value = toValue;
         toSelect.value = fromValue;
 
+        // Swap the input amounts
+        const fromTokenInput = document.getElementById('fromToken');
+        const toTokenInput = document.getElementById('toToken');
+        
+        if (fromTokenInput && toTokenInput) {
+            const fromTokenValue = fromTokenInput.value;
+            const toTokenValue = toTokenInput.value;
+            
+            fromTokenInput.value = toTokenValue;
+            toTokenInput.value = fromTokenValue;
+        }
+
         // Update icons based on new values using the token mapping
         const tokenIcons = {
             'ETH': 'E',
@@ -15454,8 +16995,6 @@ function swapTokens() {
     }
     getEstimate();
 }
-
-
 
 const createSection = document.getElementById('create');
 
@@ -17446,7 +18985,9 @@ function convertHashRateToReadable2(hashratez) {
 
 
 async function getHashrate(diffz, avgRewardTimez) {
-    var hashrate = (2 ** 22 * diffz) / avgRewardTimez;
+    console.log("f2f2f2f2getHashrate inputs - diffz:", diffz, "avgRewardTimez:", avgRewardTimez);
+   
+    var hashrate = (2 ** 22 * (diffz)) / avgRewardTimez;
     console.log("hashrate: ", hashrate);
 
     return hashrate;
@@ -19284,9 +20825,12 @@ async function GetContractStatsWithMultiCall() {
         timeBeforeEra = timeBeforenewEra.avgTime;
         timeBeforeEraUnits = timeBeforenewEra.units;
         var timestampLastDiffStart = await getTimestampFromBlock(lastDiffStartBlock.toString(), provids);
-
+await sleep(500);
+    await GetRewardAPY();
+    await calculateAndDisplayHashrate();
+    updateWidget();
         // Update the HTML elements with the retrieved values
-        document.querySelector('.stat-value-price').innerHTML = `${price} <span class="unit">$</span>`;
+        document.querySelector('.stat-value-price').innerHTML = `${usdCostB0x} <span class="unit">$</span>`;
         document.querySelector('.stat-value-currentEra').innerHTML = `${rewardEra.toString()} <span class="detail">/ 55 (next era: ${timeBeforeEra} ${timeBeforeEraUnits} @ ${avgReardTime1} ${avgReardTimeUnits} per block)</span>`;
         document.querySelector('.stat-value-epochCount').textContent = epochCount.toString();
         document.querySelector('.stat-value-difficulty').innerHTML = `${difficulty} <span class="detail">(next: ${nextDiff})</span>`;
@@ -19455,7 +20999,10 @@ async function GetContractStats() {
 
 
     // Update the HTML elements with the retrieved values
-    document.querySelector('.stat-value-price').innerHTML = `${price} <span class="unit">$</span>`;
+    await GetRewardAPY();
+    await calculateAndDisplayHashrate();
+    updateWidget();
+    document.querySelector('.stat-value-price').innerHTML = `${usdCostB0x} <span class="unit">$</span>`;
     document.querySelector('.stat-value-currentEra').innerHTML = `${Era} <span class="detail">/ 55 (next era: ${timeBeforeEra} ${timeBeforeEraUnits} @ ${avgReardTime1} ${avgReardTimeUnits} per block)</span>`;
     document.querySelector('.stat-value-epochCount').textContent = EpochCount;
     document.querySelector('.stat-value-difficulty').innerHTML = `${diff} <span class="detail">(next: ${nextDiff})</span>`;
@@ -19621,27 +21168,27 @@ function calculateMining() {
     var MaxBoxPossibleInADay = calculateTheoreticalRewards(avgBlockTime, newRewardPerBlock);
     console.log("MaxBoxPossibleInADay: ", MaxBoxPossibleInADay);
 
-
+    var newnewRewardPerBlock = newRewardPerBlock;
     if ((avgBlockTime + EpochPerSeconds) >= 600) {
         // Slow blocks: ≥10 minutes = fixed 25 tokens
         //rewardPerBlock = 25;
 
     } else {
         // Fast blocks: reward inversely proportional to speed
-        newRewardPerBlock = rewardPerBlock * (600 / (avgBlockTime + EpochPerSeconds));
-        if (newRewardPerBlock < rewardPerBlock / 4) {
-            newRewardPerBlock = rewardPerBlock / 4;
+        newnewRewardPerBlock = newRewardPerBlock * (600 / (avgBlockTime + EpochPerSeconds));
+        if (newnewRewardPerBlock < newRewardPerBlock / 4) {
+            newnewRewardPerBlock = newRewardPerBlock / 4;
         }
 
     }
     // Should always use actual blocks per day based on your hashrate
-    var tokensPerDayMax = blocksPerDay * newRewardPerBlock;
+    var tokensPerDayMax = blocksPerDay * newnewRewardPerBlock;
 
     if (tokensPerDayMax > MaxBoxPossibleInADay) {
         tokensPerDayMax = MaxBoxPossibleInADay;
     }
     console.log("Blocks Per Day: ", blocksPerDay);
-    console.log("Blocks Per Day newRewardPerBlock : ", newRewardPerBlock);
+    console.log("Blocks Per Day newnewRewardPerBlock : ", newnewRewardPerBlock);
     console.log("Blocks Per Day tokensPerDayMax: ", tokensPerDayMax);
     maxTokensEl.textContent = tokensPerDayMax.toFixed(2);
 
@@ -21324,12 +22871,13 @@ async function startCountdown() {
 
 function resetCountdown() {
     clearInterval(interval);
-    count = 40;
+    count = 50;
     // Reset all countdown elements
     countdownElements.forEach(el => {
         el.textContent = count;
     });
     startCountdown();
+    runReloadFunctions();
 }
 
 startCountdown();
@@ -21340,6 +22888,7 @@ var isReloading = false;
 async function runReloadFunctions() {
     if (!walletConnected) {
         console.log("wallet not connected no reload for it");
+           await getEstimate();
         return;
     }
 
@@ -21350,9 +22899,16 @@ async function runReloadFunctions() {
     try {
         // Execute all functions in the order you specified
         await fetchBalances();
+
+        if(PreviousTabName == "convert"){
+            console.log("Tabname = convert do ETH")
+
         await switchToEthereum();
         await fetchBalancesETH();
         await switchToBase();
+        }
+
+
         await getRewardStats();
         await throttledGetSqrtRtAndPriceRatio("SwapFunction");
 
@@ -22391,7 +23947,9 @@ async function scanBlocks(fromBlock, toBlock, loopNumbers) {
 
     for (const { start, end } of blockRanges) {
                     xzzzzz12312312312 = xzzzzz12312312312 + 1;
-updateLoadingStatusWidget('Loading All Positions for users<br>Loop #:' + xzzzzz12312312312 + " MaxLoop #: " + loopNumbers.toFixed(0));
+                    updateLoadingStatusWidget('Loading All Positions for users<br>Loop #:' + xzzzzz12312312312 + " MaxLoop #: " + loopNumbers.toFixed(0));
+
+                    setLoadingProgress(Math.floor((xzzzzz12312312312) / (loopNumbers.toFixed(0)) * 100));
 
                     console.log(` Scanning sub-range: ${start} to ${end} (${end - start + 1} blocks)`);
 
@@ -22562,7 +24120,7 @@ async function runContinuous(blocksPerScan = 1000, sleepSeconds = 10) {
             var numOfLoops = Math.ceil((latestBlock - currentBlockzzzz) / 499);
 
             updateLoadingStatusWidget('Loading All Positions for users<br>Loop #:' + xzzzzz12312312312 + " MaxLoop #: " + numOfLoops.toFixed(0));
-            setLoadingProgress(Math.floor((xzzzzz12312312312 + 1) / (numOfLoops) * 100));
+            setLoadingProgress(Math.floor((xzzzzz12312312312) / (numOfLoops.toFixed(0)) * 100));
             if (currentBlockzzzz <= latestBlock) {
                 const remainingBlocks = latestBlock - currentBlockzzzz + 1;
                 console.log(`\n${remainingBlocks} blocks behind latest (${currentBlockzzzz} → ${latestBlock})`);
