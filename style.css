@@ -5419,7 +5419,7 @@ body::before {
         color: inherit !important;
     }
     #whitepaper .bx-document-wrapper * {
-        color: black !important;
+        color: black;
     }
 
     #whitepaper .bx-header-container,
