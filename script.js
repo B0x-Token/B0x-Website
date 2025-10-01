@@ -23423,6 +23423,28 @@ let interval = null;
 let checker = null;
 let isCountdownActive = false;
 
+function resetCountdown() {
+    console.log("Manual countdown reset triggered");
+    
+    // Clear any existing intervals
+    if (interval) {
+        clearInterval(interval);
+        interval = null;
+    }
+    if (checker) {
+        clearInterval(checker);
+        checker = null;
+    }
+    
+    // Reset the countdown state
+    isCountdownActive = false;
+    count = 40;
+    updateCountdownDisplay();
+    
+    // Trigger the countdown complete handler
+    // This will reload data and start a new countdown
+    handleCountdownComplete();
+}
 function getCountdownElements() {
     return document.querySelectorAll("[id='countdown'], .countdown, [data-countdown]");
 }
