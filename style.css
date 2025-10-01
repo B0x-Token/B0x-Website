@@ -5418,7 +5418,9 @@ body::before {
     #whitepaper * {
         color: inherit !important;
     }
-
+.bx-tech-specs {
+    color: #000000 !important;
+}
     #whitepaper .bx-document-wrapper * {
         color: black !important;
     }
