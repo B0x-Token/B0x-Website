@@ -5435,7 +5435,7 @@ body::before {
 
     #whitepaper .bx-feature-card,
     #whitepaper .bx-feature-card * {
-        color: #2c3e50 !important;
+        color: white !important;
     }
 
     .bx-highlight-box {
