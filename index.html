@@ -143,6 +143,9 @@
                 <button class="nav-tab" onclick="switchTab('whitepaper')" data-tab="whitepaper">Whitepaper</button>
                 <button class="nav-tab" onclick="switchTab('socials')" data-tab="socials">Social Media</button>
                 <button class="nav-tab" onclick="switchTab('miner')" data-tab="miner">Miner Setup</button>
+
+                <button class="nav-tab" onclick="switchTab('side-pools')" data-tab="side-pools">Side Liquidty Pools</button>
+
             </div>
             <center>
                 <div class="wallet-section">
@@ -2088,6 +2091,175 @@
 
 
                 </div>
+
+
+                <div id="side-pools" class="page">
+    <div id="b0x-miner-container">
+        <div id="b0x-main-content">
+            <header id="b0x-header">
+                <h1 id="b0x-title">💧 B0x Liquidity Pools</h1>
+                <p id="b0x-subtitle">Provide liquidity and earn fees with our Uniswap v4 Dynamic Fee Pools</p>
+            </header>
+
+            <div class="b0x-section">
+                <h2 class="b0x-section-title">🎯 What Are Dynamic Fee Pools?</h2>
+                <p>We've created innovative Uniswap v4 pools with a <strong>Dynamic Fee Hook</strong> that automatically adjusts trading fees to optimize returns for our Liquidity Providers. This means you get the best possible rates based on market conditions!</p>
+                
+                <div class="b0x-important-note">
+                    💡 <strong>Key Benefit:</strong> Our dynamic fee system adapts to market volatility, ensuring competitive fees that maximize your earnings as a liquidity provider.
+                </div>
+            </div>
+
+            <div class="b0x-section">
+                <h2 class="b0x-section-title">🏊 Available Pools</h2>
+                <p>Choose the pool that best fits your liquidity strategy. All pools use full range for maximum fee capture:</p>
+
+                <div class="b0x-platform-instructions">
+                    <div class="b0x-platform-card">
+                        <div class="b0x-platform-title">
+                            <div class="b0x-platform-icon">1</div>
+                            B0x / ETH Pool
+                        </div>
+                        <p>Provide liquidity across the entire price range for maximum fee capture.</p>
+                        <ul>
+                            <li><strong>Fee:</strong> Dynamic (starts at 2%)</li>
+                            <li><strong>Tick Spacing:</strong> 60</li>
+                            <li><strong>Range:</strong> Full Range or Dynamic</li>
+                            <li><strong>Staking:</strong> Not Eligible ❌</li>
+                        </ul>
+                        <div class="b0x-important-note" style="margin-bottom: 15px;">
+                            ⚠️ <strong>Note:</strong> Positions in this pool do not qualify for staking rewards.
+                        </div>
+                        <a href="https://app.uniswap.org/positions/create/v4?currencyA=0x30456a1da01117ab06044665854bccd29640585d&currencyB=NATIVE&chain=base&hook=0xA54CbcF7449421E5842C483CC30d992ced301000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22isDynamic%22:true,%22feeAmount%22:20000,%22tickSpacing%22:60}&step=1" 
+                           target="_blank" class="b0x-download-btn">
+                            Add Liquidity to B0x/ETH
+                        </a>
+                    </div>
+
+                    <div class="b0x-platform-card">
+                        <div class="b0x-platform-title">
+                            <div class="b0x-platform-icon">2</div>
+                            0xBTC / ETH Pool
+                        </div>
+                        <p>Full range liquidity position for optimized capital efficiency and fee earnings.</p>
+                        <ul>
+                            <li><strong>Fee:</strong> Dynamic (starts at 2%)</li>
+                            <li><strong>Tick Spacing:</strong> 60</li>
+                            <li><strong>Range:</strong> Full Range or Dynamic</li>
+                            <li><strong>Staking:</strong> Not Eligible ❌</li>
+                        </ul>
+                        <div class="b0x-important-note" style="margin-bottom: 15px;">
+                            ⚠️ <strong>Note:</strong> Positions in this pool do not qualify for staking rewards.
+                        </div>
+                        <a href="https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=NATIVE&chain=base&hook=0xA54CbcF7449421E5842C483CC30d992ced301000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:20000,%22tickSpacing%22:60,%22isDynamic%22:true}&step=1" 
+                           target="_blank" class="b0x-download-btn">
+                            Add Liquidity to 0xBTC/ETH
+                        </a>
+                    </div>
+
+                    <div class="b0x-platform-card">
+                        <div class="b0x-platform-title">
+                            <div class="b0x-platform-icon">3</div>
+                            B0x / 0xBTC Pool
+                        </div>
+                        <p>Full range positions between B0x and 0xBTC tokens.</p>
+                        <ul>
+                            <li><strong>Fee:</strong> Dynamic (starts at 10%)</li>
+                            <li><strong>Tick Spacing:</strong> 60</li>
+                            <li><strong>Range:</strong> Full Range or Dynamic</li>
+                            <li><strong>Staking:</strong> Eligible ✅</li>
+                        </ul>
+                        <div class="b0x-important-note" style="margin-bottom: 15px;">
+                            ⚠️ <strong>Note:</strong> Positions in this pool do not qualify to be staked for staking rewards unless they are Full Range and made in our dAPP.
+                        </div>
+                        <a href="https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=0x30456a1da01117ab06044665854bccd29640585d&chain=base&hook=0xA54CbcF7449421E5842C483CC30d992ced301000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22isDynamic%22:true,%22feeAmount%22:100000,%22tickSpacing%22:60}&step=1" 
+                           target="_blank" class="b0x-download-btn">
+                            Add Liquidity to B0x/0xBTC
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="b0x-section">
+                <h2 class="b0x-section-title">📋 How to Provide Liquidity</h2>
+
+                <div class="b0x-step">
+                    <span class="b0x-step-number">1</span>
+                    <strong>Connect Your Wallet:</strong> Click on any pool link above. You'll be directed to Uniswap v4 where you can connect your wallet (MetaMask, WalletConnect, etc.).
+                </div>
+
+                <div class="b0x-step">
+                    <span class="b0x-step-number">2</span>
+                    <strong>Ensure You're on Base Network:</strong> Make sure your wallet is connected to the Base network (Chain ID: 8453).
+                </div>
+
+                <div class="b0x-step">
+                    <span class="b0x-step-number">3</span>
+                    <strong>Approve Tokens:</strong> You'll need to approve both tokens in the pair before providing liquidity. This is a one-time transaction per token.
+                </div>
+
+                <div class="b0x-step">
+                    <span class="b0x-step-number">4</span>
+                    <strong>Set Your Amounts:</strong> Enter the amount of liquidity you want to provide. The interface will automatically calculate the ratio needed for both tokens.
+                </div>
+
+                <div class="b0x-step">
+                    <span class="b0x-step-number">5</span>
+                    <strong>Review & Confirm:</strong> Double-check the details including price range, fees, and amounts, then confirm the transaction in your wallet.
+                </div>
+            </div>
+
+            <div class="b0x-section">
+                <h2 class="b0x-section-title">💎 Benefits of Our Dynamic Fee Pools</h2>
+
+                <div class="b0x-download-links">
+                    <div class="b0x-download-card">
+                        <h3>📈 Optimized Returns</h3>
+                        <p>Our dynamic fee hook automatically adjusts fees based on market conditions to maximize your earnings.</p>
+                    </div>
+
+                    <div class="b0x-download-card">
+                        <h3>🔒 Uniswap v4 Security</h3>
+                        <p>Built on Uniswap's battle-tested v4 infrastructure with advanced hook capabilities.</p>
+                    </div>
+
+                    <div class="b0x-download-card">
+                        <h3>🎁 Staking Rewards</h3>
+                        <p>Eligible full range positions in B0x/ETH and 0xBTC/ETH pools can be staked for additional rewards!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="b0x-section">
+                <h2 class="b0x-section-title">⚠️ Important Considerations</h2>
+
+                <div class="b0x-important-note">
+                    <strong>Impermanent Loss:</strong> Providing liquidity involves risk. If token prices diverge significantly, you may experience impermanent loss. Full range positions have higher exposure to this risk.
+                </div>
+
+                <div class="b0x-important-note">
+                    <strong>Gas Fees:</strong> All transactions require Base ETH for gas fees. Make sure you have enough ETH in your wallet for approvals and liquidity deposits.
+                </div>
+
+                <div class="b0x-important-note">
+                    <strong>Full Range Benefits:</strong> Full range positions earn fees on all trades regardless of price movement, but require balancing both tokens in the pair.
+                </div>
+            </div>
+
+            <div class="b0x-final-section">
+                <h2>🎉 Ready to Earn?</h2>
+                <p style="font-size: 1.2em; margin-bottom: 0;">Choose your pool and start earning fees today!</p>
+                <p>Our dynamic fee system works 24/7 to optimize your returns as a liquidity provider.</p>
+<button class="mining-stats-button" onclick="switchTab('stats'); switchTab2('stats-staking-rich-list');">View Staked Pool Statistics</button>
+<a href="https://app.uniswap.org/positions" target="_blank" class="mining-stats-button" style="display: inline-block; text-align: center; text-decoration: none;">View Your Not Staked Pool Positions</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
                 <div id="miner" class="page">
 
                     <div id="b0x-miner-container">
