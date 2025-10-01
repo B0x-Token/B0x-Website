@@ -23509,7 +23509,7 @@ async function handleCountdownComplete() {
     
     // Reset countdown state
     isCountdownActive = false;
-    count = 40;
+    count = 50;
     updateCountdownDisplay();
     
     // Run reload functions
