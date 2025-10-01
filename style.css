@@ -5536,17 +5536,18 @@ body::before {
 
     .bx-spec-label {
         font-weight: 600;
-        color: #ecf0f1;
+        color: white !important;
     }
 
     .bx-spec-value {
-        color: #3498db;
+        color: white !important;
         font-weight: 500;
     }
 
     .bx-mining-info {
         background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
-        color: white;
+        
+        color: white !important;
         padding: 2rem;
         border-radius: 12px;
         margin: 2rem 0;
