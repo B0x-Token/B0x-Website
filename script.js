@@ -17116,6 +17116,7 @@ function initializeTabFromURL() {
             'stats-home',
             'stats-staking-rich-list',
             'whitepaper',
+            'side-pools',
             'stats-rich-list',
             'rich-list',
             'miner'
@@ -17185,6 +17186,7 @@ function initializeTabFromDirectParam() {
         'stats-mining-calc',
         'stats-home',
         'stats-staking-rich-list',
+            'side-pools',
         'whitepaper',
         'stats-rich-list',
         'rich-list',
@@ -21801,12 +21803,13 @@ async function loadData2() {
 
         console.log('Fetching staking data from primary source...');
         const response = await fetch(primaryUrl);
-
+        console.log("RESPONSE URL: ",primaryUrl);
         if (!response.ok) {
             throw new Error(`Primary source failed with status: ${response.status}`);
         }
 
         stakingData = await response.json();
+        console.log("RESPONSE: ", stakingData);
         console.log('✅ Primary source successful for staking data');
 
         // Update stats
@@ -21838,7 +21841,7 @@ async function loadData2() {
 
             stakingData = await backupResponse.json();
             console.log('✅ Backup source successful for staking data');
-
+            console.log("THIS THIS: ",stakingData);
             // Update stats
             updateStats55();
 
