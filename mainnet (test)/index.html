@@ -1,0 +1,2524 @@
+<head>
+      
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+
+    <!-- Favicon -->
+    <link rel="icon" href="https://raw.githubusercontent.com/B0x-Token/B0x-Website/refs/heads/main/images/favicon.ico"
+        type="image/x-icon">
+
+
+    <!-- Description for search engines -->
+    <meta name="description"
+        content="B0x Token DeFi dAPP that has swaps, create b0x Uniswap V4 positions, Stake your B0x Univ4 positions to beat IL and collect rewards right along side the miners of B0x Tokens! 100% Decentralized">
+
+    <!-- Open Graph / Social Preview -->
+    <meta property="og:title" content="B0x Token DeFi dAPP">
+    <meta property="og:description"
+        content="B0x Token DeFi dAPP that has Swaps, Create B0x Uniswap V4 positions, Stake your b Univ4 positions to beat IL and collect rewards right along side the miners of B0x Tokens! 100% Decentralized">
+    <meta property="og:image" content="https://b0x-token.github.io/B0x-Website/images/b0x_logo_square.png">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://b0x-token.github.io/B0x-Website/">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="B0x Token DeFi dAPP">
+    <meta name="twitter:description"
+        content="B0x Token DeFi dAPP that has Swaps, Create B0x Uniswap V4 positions, Stake your B0x Univ4 positions to beat IL and collect rewards right along side the miners of B0x Tokens! 100% Decentralized">
+    <meta name="twitter:image" content="https://b0x-token.github.io/B0x-Website/images/b0x_logo_square.png">
+
+
+    <meta charset="UTF-8">
+    <title>B0x Token DEFI dAPP Operations</title>
+    
+    <link rel="stylesheet" href="style.css">
+
+    <script src="ethers.umd.min.js"></script>
+    <script src="chart.min.js"></script>
+
+    </head>
+<body>
+ <!-- Notification Container -->
+    <div class="notification-container bottom-right" id="notificationContainer"></div>
+
+
+    <!-- B0x Stats Widget -->
+    <div class="b0x-widget" id="b0x-widget" style="display: none;">
+        <div class="stat-item">
+            <div class="stat-icon icon-dollar"></div>
+            <div>
+                <div class="stat-valueWidget" id="usd-price">$0.00</div>
+                <div class="stat-label">USD</div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="stat-item">
+            <div class="stat-icon icon-0xbtc"></div>
+            <div>
+                <div class="stat-valueWidget" id="btc-price">0.000000</div>
+                <div class="stat-label">0xBTC</div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="stat-item">
+            <div class="stat-icon icon-hash"></div>
+            <div>
+                <div class="stat-valueWidget" id="hashrate">0 H/s</div>
+                <div class="stat-label">Hash</div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Loading Widget -->
+    <div id="loading-widget" class="loading-widget">
+        <div class="loading-widget-header">
+            <div class="loading-widget-spinner"></div>
+            <div class="loading-widget-title">Loading</div>
+            <button class="loading-widget-close" onclick="hideLoadingWidget()">✕</button>
+        </div>
+        <div class="loading-widget-message" id="loading-widget-message">
+            Initializing...
+        </div>
+        <div class="loading-widget-progress">
+            <div class="loading-widget-progress-bar" id="loading-progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="loader"></div>
+            <div class="loading-title">
+                <span class="boxNameInline">B[]x</span><br>
+                <span class="boxNameInline">B ZERO X</span>
+            </div>
+            <div class="loading-status" id="loading-status">Loading contracts...</div>
+        </div>
+    </div>
+
+
+
+
+    <!-- Main Content (hidden initially) -->
+    <div id="main-content">
+        <div class="container">
+            <div class="header">
+                <!-- Chart positioned behind text -->
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+
+                <!-- Text content positioned over chart -->
+                <div class="header-content">
+                    <div class="megapunch-only">B[]x DeFi</div>
+                    <p>Swap, Stake, and Manage Your Liquidity Positions</p>
+                </div>
+            </div>
+
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('swap')" data-tab="swap">Swap</button>
+                <button class="nav-tab" onclick="switchTab('create')" data-tab="create">Create Position</button>
+                <button class="nav-tab" onclick="switchTab('increase')" data-tab="increase">Increase Liquidity</button>
+                <button class="nav-tab" onclick="switchTab('decrease')" data-tab="decrease">Decrease Liquidity</button>
+                <button class="nav-tab" onclick="switchTab('staking-main-page')"
+                    data-tab="staking-main-page">Staking</button>
+                <button class="nav-tab" onclick="switchTab('stake-increase')" data-tab="stake-increase">Stake
+                    Increase</button>
+                <button class="nav-tab" onclick="switchTab('stake-decrease')" data-tab="stake-decrease">Stake
+                    Decrease</button>
+                <button class="nav-tab" onclick="switchTab('convert')" data-tab="convert">Convert 0xBTC <-> B0x</button>
+                <button class="nav-tab" onclick="switchTab('stats')" data-tab="stats">Live Statistics</button>
+                <button class="nav-tab" onclick="switchTab('staking-management')" data-tab="staking-management">Stake
+                    Management</button>
+               <!--<button class="nav-tab" onclick="switchTab('testnet-faucet')" data-tab="testnet-faucet">Testnet Token
+                    Faucet</button>-->
+                <button class="nav-tab" onclick="switchTab('settings')" data-tab="settings">Settings</button>
+                <button class="nav-tab" onclick="switchTab('contract-info')" data-tab="contract-info">Contract
+                    Info</button>
+                <button class="nav-tab" onclick="switchTab('whitepaper')" data-tab="whitepaper">Whitepaper</button>
+                <button class="nav-tab" onclick="switchTab('socials')" data-tab="socials">Social Media</button>
+                <button class="nav-tab" onclick="switchTab('miner')" data-tab="miner">Miner Setup</button>
+
+                <button class="nav-tab" onclick="switchTab('side-pools')" data-tab="side-pools">Side Liquidty Pools</button>
+
+            </div>
+            <center>
+                <div class="wallet-section">
+                    <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+                    <div id="walletInfo" style="display: none;">
+                        <span id="walletAddress" style="display: none;"></span>
+                        <button id="disconnectBtn" onclick="disconnectWallet()"
+                            style="display: none;">Disconnect</button>
+                    </div>
+            </center>
+            <div class="content">
+                <!-- Settings Page -->
+                <div id="testnet-faucet" class="page">
+                    <div class="info-card">
+                        <h3>Testnet Faucet</h3>
+                        <p>Collect 10 0xBTC and 10 B0x for testing!</p>
+                    </div>
+
+                    <button class="btn-primary" onclick="getFaucetTokens()">Get 10 0xBTC + 10 B0x for Testnet Two
+                        Transactions</button>
+
+
+                </div>
+
+
+                <!-- Stats Page -->
+                <div id="stats" class="page">
+                    <br>
+                    <div class="info-card">
+                        <h3>Contract Live Statistics</h3>
+                        <p>View the Contracts Latest Live Statistics! Mining Calculator and Graphs!</p>
+                    </div>
+
+                    <!-- Sub-navigation for Stats -->
+                    <nav class="nav-tabs2">
+                        <button class="nav-tab2" data-tab="stats-home" onclick="switchTab2('stats-home')">Stats
+                            Home</button>
+                        <button class="nav-tab2" data-tab="stats-mining-calc"
+                            onclick="switchTab2('stats-mining-calc')">Mining calculator</button>
+                        <button class="nav-tab2" data-tab="stats-graphs"
+                            onclick="switchTab2('stats-graphs')">Graphs</button>
+                        <button class="nav-tab2" data-tab="stats-rich-list" onclick="switchTab2('stats-rich-list')">B0x
+                            Rich List</button>
+                        <button class="nav-tab2" data-tab="stats-staking-rich-list"
+                            onclick="switchTab2('stats-staking-rich-list')">Staking Rich List</button>
+                    </nav>
+
+
+                    <div id="stats-rich-list" class="stats-page">
+
+                        <div class="header-rich">
+                            <h1>B0x Rich List Dashboard</h1>
+                            <p>Top holders across Base and Ethereum networks</p>
+                        </div>
+
+                        <div class="stats-rich">
+                            <div class="stat-card-rich">
+                                <div class="stat-value-rich" id="totalHolders">-</div>
+                                <div class="stat-label-rich">Total Holders</div>
+                            </div>
+                            <div class="stat-card-rich">
+                                <div class="stat-value-rich" id="totalBaseB0x">-</div>
+                                <div class="stat-label-rich">Total Base B0x</div>
+                            </div>
+                            <div class="stat-card-rich">
+                                <div class="stat-value-rich" id="totalETHB0x">-</div>
+                                <div class="stat-label-rich">Total ETH B0x</div>
+                            </div>
+                            <div class="stat-card-rich">
+                                <div class="stat-value-rich" id="lastUpdated">-</div>
+                                <div class="stat-label-rich">Last Updated</div>
+                            </div>
+                        </div>
+
+                        <div class="table-container-rich">
+                            <div class="controls-rich">
+                                <input type="text" class="search-rich" id="searchBox"
+                                    placeholder="Search by address...">
+                                <div class="sort-buttons">
+                                    <button class="sort-btn active" id="sortB0x">Sort by B0x</button>
+                                    <button class="sort-btn" id="sort0xBTC">Sort by 0xBTC</button>
+                                </div>
+                                <select class="page-size-rich" id="pageSize2">
+                                    <option value="10">10 per page</option>
+                                    <option value="25" selected>25 per page</option>
+                                    <option value="50">50 per page</option>
+                                    <option value="100">100 per page</option>
+                                </select>
+                                <button class="refresh-rich" onclick="loadData()">Refresh Data</button>
+                            </div>
+
+                            <div id="tableContent">
+                                <div class="loading-rich">Loading rich list data...</div>
+                            </div>
+
+                            <div class="pagination-rich" id="pagination" style="display: none;"></div>
+                        </div>
+
+                    </div>
+
+                    <!-- Stats Home Sub-Page -->
+                    <div id="stats-home" class="stats-page">
+                        <div class="stats-grid">
+                            <div class="stat-row">
+                                <span class="stat-label2">Price of 1 B ZERO X in USD</span>
+                                <span class="stat-value2 stat-value-price">NaN <span class="unit">$</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Current Reward Era</span>
+                                <span class="stat-value2 stat-value-currentEra">0 <span class="detail">/ 39 (next era:
+                                        ~8.1 days @ 3.6 seconds a mint)</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Epoch Count</span>
+                                <span class="stat-value2 stat-value-epochCount">4030</span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Mining Difficulty</span>
+                                <span class="stat-value2 stat-value-difficulty">0.250 <span class="detail">(next:
+                                        ~1.000)</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Estimated Hashrate</span>
+                                <span class="stat-value2 stat-value-hashrate">292.47 <span
+                                        class="detail eestHashRateUnit">Kh/s</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Current Average Reward Time</span>
+                                <span class="stat-value2 stat-value-averageRewardTime">0.060 <span
+                                        class="detail avgRewardUnit">minutes</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Current Average Reward</span>
+                                <span class="stat-value2 stat-value-rewardPerSolve">25 <span
+                                        class="detail rewardPerSolveUnit">B0x per solve</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Rewards Until Readjustment</span>
+                                <span class="stat-value2 stat-value-blocksToGo">2 <span
+                                        class="detail blocksToGoUnit">(~7.2 seconds)</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Time Until Emergency Adjustment Activated if all rewards not
+                                    solved</span>
+                                <span class="stat-value2 stat-value-emergency">13.9 <span
+                                        class="detail emergencyUnit">days</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Last Difficulty Start Block</span>
+                                <span class="stat-value2 stat-value-lastDiffBlock">30230154 <span
+                                        class="detail lastDiffBlockDetail">(08-26-2025 12:16:36)</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Last Difficulty Time</span>
+                                <span class="stat-value2 stat-value-lastDiffTime">1756228596 <span
+                                        class="detail lastDiffBlockDetail2">(08-26-2025 12:16:36)</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Target Time</span>
+                                <span class="stat-value2">10 <span class="unit">minutes</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Mined Supply Remaining in Era</span>
+                                <span class="stat-value2 stat-value-remainingSupply">4,888,693 <span class="unit">B0x
+                                        <span class="detail">(~195548 blocks)</span></span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Tokens distributed via Mining</span>
+                                <span class="stat-value2 stat-value-distMining">10,861,306 <span
+                                        class="unit">B0x</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Max Mined Supply for Current Era</span>
+                                <span class="stat-value2 stat-value-MAxSupply">15,750,000 <span
+                                        class="unit">B0x</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Token Holders</span>
+                                <span class="stat-value2 stat-value-tokenHolders">128 <span
+                                        class="unit">holders</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Token Transfers</span>
+                                <span class="stat-value2 stat-value-tokenTransfers">10,720 <span
+                                        class="unit">transfers</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Total Mints Transactions</span>
+                                <span class="stat-value2 SuccessfulMintTransactions">10,720 <span
+                                        class="unit">txs</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Total Contract Operations</span>
+                                <span class="stat-value2 stat-value-contractOps">10,481 <span
+                                        class="unit">txs</span></span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Last Base Block Number</span>
+                                <span class="stat-value2 stat-value-lastBaseBlock">30233764</span>
+                            </div>
+
+                            <div class="stat-row">
+                                <span class="stat-label2">Total Supply</span>
+                                <span class="stat-value2 stat-value-AbsoluteMaxSupply">31,165,100 <span
+                                        class="unit">B0x</span></span>
+                            </div>
+                        </div>
+
+                        <button class="btn-secondary" onclick="GetContractStats()">GetContractStats</button>
+                        <button class="btn-secondary"
+                            onclick="updateAllMinerInfoFirst()">updateAllMinerInfoFirst</button>
+
+                        <!-- Miner Statistics Sections -->
+                        <div id="row-miners2">
+                            <div class="section">
+                                <h4>Block distribution since last adjustment</h4>
+                                <div class="chart-containerf">
+                                    <div class="pie-chart-wrapper">
+                                        <div id="blockdistributionpiechart2"></div>
+                                    </div>
+                                    <div class="stats-table-wrapper">
+                                        <table class="stats-table recent-stats-table">
+                                            <tbody id="minerstats2">
+                                                <tr>
+                                                    <td colspan="6">Loading info from the blockchain...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="row-miners">
+                            <div class="section">
+                                <h4>Block distribution since launch</h4>
+                                <div class="chart-containerf">
+                                    <div class="pie-chart-wrapper">
+                                        <div id="blockdistributionpiechart"></div>
+                                    </div>
+                                    <div class="stats-table-wrapper">
+                                        <table class="stats-table total-stats-table">
+                                            <tbody id="minerstats">
+                                                <tr>
+                                                    <td colspan="5">Loading info from the blockchain...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="row-blocks">
+                            <div class="section">
+                                <h4>Blocks solved since launch</h4>
+                                <div class="stats-table-wrapper">
+                                    <table class="blocks-table">
+                                        <tbody id="blockstats">
+                                            <tr>
+                                                <td colspan="5">Loading info from the blockchain...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mining Calculator Sub-Page -->
+                    <div id="stats-mining-calc" class="stats-page">
+                        <div class="info-card">
+                            <h3>B ZERO X (B0x) Mining Calculator</h3>
+                            <p>Test different values to see your mining results!</p>
+                        </div>
+
+                        <div class="mining-calculator">
+                            <div class="calculator-grid">
+                                <div class="calculator-left">
+                                    <!-- Controls Box -->
+                                    <div class="controls-box">
+                                        <div class="input-group">
+                                            <div class="hashrate-row">
+                                                <div class="hashrate-input-section">
+                                                    <label class="input-label">Your Hashrate:</label>
+                                                    <input type="number" class="calc-input" placeholder="100.00"
+                                                        value="100" step="1" id="hashrate-input">
+                                                </div>
+                                                <div class="units-section">
+                                                    <label class="input-label">Units:</label>
+                                                    <select class="unit-selector" id="hashrate-unit">
+                                                        <option value="1">H/s</option>
+                                                        <option value="1000">kH/s</option>
+                                                        <option value="1000000" selected>MH/s</option>
+                                                        <option value="1000000000">GH/s</option>
+                                                        <option value="1000000000000">TH/s</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="input-group">
+                                            <label class="input-label">Difficulty:</label>
+                                            <input type="number" class="calc-input difficulty-input" value="1"
+                                                id="difficulty-input" step="0.00000001">
+                                            <div class="button-group">
+                                                <button class="calc-button secondary" id="current-diff-btn"
+                                                    onclick="useCurrentDiff()">USE CURRENT DIFF</button>
+                                                <button class="calc-button secondary" id="next-diff-btn"
+                                                    onclick="useNextDiff()">USE NEXT DIFF</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="calculator-right">
+                                    <div class="results-section">
+                                        <h4 class="results-title">B ZERO X / B0x Solo Mining Results</h4>
+
+                                        <div class="result-category">
+                                            <h3 class="category-title">Block Timing</h3>
+                                            <div class="result-item">
+                                                <span class="result-label">Average time per block:</span>
+                                                <span id="avg-block-time" class="result-value">0.0</span>
+                                            </div>
+                                            <div class="result-item">
+                                                <span class="result-label">Time for 10 blocks:</span>
+                                                <span id="realistic-block-time" class="result-value">0.0</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="result-category">
+                                            <h3 class="category-title">Daily Earnings Estimate</h3>
+                                            <div class="result-item">
+                                                <span class="result-label">Tokens per day (MAX):</span>
+                                                <span id="max-tokens" class="result-value">0.00</span> B0x
+                                              </div>
+                                            <div class="result-note">
+                                                Based on your calculated hashrate
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="how-it-works">
+                            <h3 class="section-subtitle">How Does The Calculator Work?</h3>
+                            <p class="explanation">At its heart is the standard hashrate equation:</p>
+
+                            <div class="formula-block">
+                                <div class="formula-line">
+                                    time to solve a block in seconds =
+                                    <div class="fraction">
+                                        <span class="formula-fraction">2<sup>22</sup> × difficulty</span>
+                                        <span class="formula-divisor">hashrate</span>
+                                    </div>
+                                </div>
+
+                                <div class="formula-line">
+                                    <span class="arrow">→</span> blocks per second =
+                                    <div class="fraction">
+                                        <span class="formula-fraction">hashrate</span>
+                                        <span class="formula-divisor">2<sup>22</sup> × difficulty</span>
+                                    </div>
+                                </div>
+
+                                <div class="formula-line">
+                                    <span class="arrow">→</span> tokens per day =
+                                    <span class="formula-complex">
+                                        <div class="fraction">
+                                            <span class="formula-fraction">MIN: 6.25 tokens</span>
+                                            <span class="formula-divisor">1 block</span>
+                                        </div>
+                                        <span class="operator">×</span>
+                                        <div class="fraction">
+                                            <span class="formula-fraction">60 seconds</span>
+                                            <span class="formula-divisor">1 minute</span>
+                                        </div>
+                                    </span>
+                                    <span class="formula-complex">
+                                        <span class="operator">×</span>
+                                        <div class="fraction">
+                                            <span class="formula-fraction">60 minutes</span>
+                                            <span class="formula-divisor">1 hour</span>
+                                        </div>
+                                        <span class="operator">×</span>
+                                        <div class="fraction">
+                                            <span class="formula-fraction">24 hours</span>
+                                            <span class="formula-divisor">1 day</span>
+                                        </div>
+                                    </span>
+                                    <span class="operator">×</span>
+                                    <div class="fraction">
+                                        <span class="formula-fraction">hashrate</span>
+                                        <span class="formula-divisor">difficulty</span>
+                                    </div>
+                                </div>
+
+                                <div class="formula-line">
+                                    <span class="arrow">→</span> tokens per day range =
+                                    <div class="fraction">
+                                        <span class="formula-fraction">86400 × hashrate × (MIN 6.25 → MAX 25)</span>
+                                        <span class="formula-divisor">2<sup>22</sup> × difficulty</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Graphs Sub-Page -->
+                    <div id="stats-graphs" class="stats-page">
+                        <h3 class="section-title">Difficulty / Hashrate</h3>
+                        <p style="color: #888; text-align: center; margin-top: 50px;">Difficulty and hashrate charts
+                            coming soon...</p>
+
+                        <div id="topText">Loading blockchain data...</div>
+                        <div id="topText2">This may take a few minutes...</div>
+
+                        <div class="controls" id="controlsGraph">
+                            <button onclick="updateGraphData(30, 30)">30 Days</button>
+                            <button onclick="updateGraphData(60, 60)">60 Days</button>
+                            <button onclick="updateGraphData(120, 120)">120 Days</button>
+                        </div>
+
+                        <h2>Difficulty & Hashrate</h2>
+                        <div class="chart-containerf">
+                            <div id="difficultystats">Loading...</div>
+                        </div>
+
+                        <h2>Block Time & Supply</h2>
+                        <div class="chart-containerf">
+                            <div id="blocktimestats">Loading...</div>
+                        </div>
+
+                        <h2>Price Over Time</h2>
+                        <div class="chart-containerf">
+                            <div id="priceOverTimestats">Loading...</div>
+                        </div>
+
+                        <h2>Average Revenue for 31 GH/s</h2>
+                        <div class="chart-containerf">
+                            <div id="avgRevenue">Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Rich List Sub-Page -->
+                    <div id="stats-staking-rich-list" class="stats-page">
+
+                        <div class="header55">
+                            <h1>B0x Staking Dashboard</h1>
+                            <p>Real-time staking data from testnet</p>
+                        </div>
+
+                        <div class="stats55">
+                            <div class="stat-card55">
+                                <div class="stat-value55" id="lastBlock">-</div>
+                                <div class="stat-label55">Last Block</div>
+                            </div>
+                            <div class="stat-card55">
+                                <div class="stat-value55" id="totalUsers">-</div>
+                                <div class="stat-label55">Total Users</div>
+                            </div>
+                            <div class="stat-card55">
+                                <div class="stat-value55" id="totalB0xStaked">-</div>
+                                <div class="stat-label55">Total B0x Staked</div>
+                            </div>
+                            <div class="stat-card55">
+                                <div class="stat-value55" id="total0xBTCStaked">-</div>
+                                <div class="stat-label55">Total 0xBTC Staked</div>
+                            </div>
+                        </div>
+
+                        <div class="table-container55">
+                            <div class="controls55">
+                                <input type="text" class="search-box" id="searchBox" placeholder="Search by address...">
+                                <select class="page-size-selector" id="pageSize">
+                                    <option value="10">10 per page</option>
+                                    <option value="25" selected>25 per page</option>
+                                    <option value="50">50 per page</option>
+                                    <option value="100">100 per page</option>
+                                </select>
+                                <button class="refresh-btn" onclick="loadData2()">Refresh Data</button>
+                            </div>
+
+                            <div id="tableContent55">
+                                <div class="loading55">Loading staking data...</div>
+                            </div>
+
+                            <div class="pagination55" id="pagination55" style="display: none;"></div>
+                        </div>
+                    </div>
+
+
+
+
+
+
+                </div>
+
+
+
+
+
+                <!--STATS END NOW Contract Info-->
+                <div id="contract-info" class="page">
+                    <div class="container11">
+                        <h1>Contract Addresses</h1>
+                        <div id="contracts-container"></div>
+                    </div>
+
+                    <div id="toast" class="toast"></div>
+                </div>
+
+                <!--B0x <-> 0xBTC Converter-->
+
+
+                <div id="convert" class="page">
+                    <div class="info-card">
+                        <h3>Convert 0xBTC <-> B0x + RightsTo0xBitcoin</h3>
+                        <p>Convert from 0xBitcoin to B0x and back.</p>
+                    </div>
+
+                    <!-- Wallet Balances Display -->
+                    <div class="wallet-balances">
+                        <h3>Wallet Balances</h3>
+                        <div id="walletBalancesDisplay5" class="balances-grid">
+                            <!-- Will be populated by JavaScript -->
+                            <p style="color: #6c757d; font-style: italic;">Loading wallet balances...</p>
+                        </div>
+                    </div>
+
+
+                    <!-- Reload button container that takes full width -->
+                    <div class="reload-container">
+                        <div class="reload-btn" onclick="resetCountdown()">
+                            <!-- Arrow fills whole box -->
+                            <svg class="reload-icon" viewBox="2 2 20 20" fill="currentColor" preserveAspectRatio="none">
+                                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4
+                       A8,8 0 0,0 4,12
+                       A8,8 0 0,0 12,20
+                       C15.73,20 18.84,17.45 19.73,14
+                       H17.65C16.83,16.33 14.61,18 12,18
+                       A6,6 0 0,1 6,12
+                       A6,6 0 0,1 12,6
+                       C13.66,6 15.14,6.69 16.22,7.78
+                       L13,11H20V4L17.65,6.35Z" />
+                            </svg>
+                            <div class="overlay">
+                                <div id="countdown" class="countdown">30</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label>From Token</label>
+                        <div class="token-selector">
+                            <div class="token-icon" id="fromTokenIcon">B+R</div>
+                            <select id="fromToken" onchange="updateTokenIconETH('fromToken', 'fromTokenIcon')">
+                                <option value="0xBTC">0xBTC - 0xBitcoin Token</option>
+                                <option value="B0x">B0x Tokens & RightsTo0xBTC Tokens</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" class="input-class" placeholder="0.0" step="0.000001" value="0">
+
+                    </div>
+
+                    <div class="swap-direction">
+                        <button class="swap-arrow" onclick="swapTokensConvert()">⇅</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>To Token</label>
+                        <div class="token-selector">
+                            <div class="token-icon" id="toTokenIcon">0</div>
+                            <select id="toToken" onchange="updateTokenIconETH('toToken', 'toTokenIcon')">
+                                <option value="B0x">B0x Tokens & RightsTo0xBTC Tokens</option>
+                                <option value="0xBTC">0xBTC - 0xBitcoin Token</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Estimated Output</label>
+                        <input type="text" class="input-class" value="0.0" readonly
+                            style="background: #f8f9fa; padding-left: 10px;">
+                    </div>
+
+
+
+                    <button class="btn-primary" id="executeSwapConvertBtn" onclick="executeConvert()">Convert Tokens</button>
+                    <!--   <button class="btn-primary" onclick="getRatioCreatePositiontokenA()">getRatioCreatePositiontokenA Position</button>
+                    <button class="btn-primary" onclick="getRatioCreatePositiontokenB()">getRatioCreatePositiontokenB Position</button>
+                    <button class="btn-primary" onclick="getMaxCreatePosition()">getMaxCreatePosition Button</button> -->
+
+                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <!-- Settings Page -->
+                <div id="settings" class="page">
+                    <div class="info-card">
+                        <h3>System Settings</h3>
+                        <p>Configure minimum staking amounts and user holding requirements for the platform. To prevent
+                            Spam Attacks!</p>
+                    </div>
+
+                    <div class="settings-grid">
+             <div class="settings-form address-config22">
+    <h3>🔗 Base Custom RPC Configuration</h3>
+    <p>Set a custom RPC endpoint URL for BASE blockchain connections. Paste your RPC URL below to configure network connectivity.</p>
+    <p>Find the best public RPCs for Base here <a href="https://chainlist.org/chain/8453" style="color: orange">https://chainlist.org/chain/8453</a></p>
+    <div class="form-group">
+        <label>Custom RPC URL</label>
+        <div class="input-group">
+            <textarea id="customRPC" class="rpc-textarea" placeholder="https://sepolia.base.org">https://sepolia.base.org</textarea>
+        </div>
+    </div>
+<div style="display: flex; gap: 10px;">
+    <button class="btn-primary" onclick="saveCustomRPC_Base()">Save Custom Base RPC</button>
+    <button class="btn-primary" onclick="restoreDefaultRPC_Base()">Restore Default Base RPC</button>
+</div>
+    <div id="rpcSuccess" class="success-message" style="display: none;">Custom RPC URL saved successfully!</div>
+</div><br></br><br></br>  
+
+             <div class="settings-form address-config22">
+    <h3>🔗 Ethereum Custom RPC Configuration</h3>
+    <p>Set a custom RPC endpoint URL for ETHEREUM blockchain connections. Paste your RPC URL below to configure network connectivity.</p>
+    <p>Find the best public RPCs for ETHEREUM here <a href="https://chainlist.org/chain/1" style="color: orange">https://chainlist.org/chain/1</a></p>
+    <div class="form-group">
+        <label>Custom RPC URL</label>
+        <div class="input-group">
+            <textarea id="customRPC_ETH" class="rpc-textarea" placeholder="https://eth.llamarpc.com">https://eth.llamarpc.com</textarea>
+        </div>
+    </div>
+<div style="display: flex; gap: 10px;">
+    <button class="btn-primary" onclick="saveCustomRPC_ETH()">Save Custom ETH RPC</button>
+    <button class="btn-primary" onclick="restoreDefaultRPC_ETH()">Restore Default ETH RPC</button>
+</div>
+    <div id="rpcSuccess" class="success-message" style="display: none;">Custom RPC URL saved successfully!</div>
+</div><br></br><br></br>  
+
+
+<div class="settings-form address-config22">
+    <h3> Custom Data Source Configuration</h3>
+    <p>Set a custom data Source endpoint URL for up to date Data. Paste your data URL below to configure.</p>
+    <h2>After saving you must reload page to get new data sources</h2>
+     <div class="form-group">
+        <label>Custom Data Source URL</label>
+        <div class="input-group">
+            <textarea id="customDataSource" class="rpc-textarea" placeholder="https://data.bzerox.org/graph/">https://data.bzerox.org/graph/</textarea>
+        </div>
+    </div>
+<div style="display: flex; gap: 10px;">
+    <button class="btn-primary" onclick="saveCustomDataSource_Testnet()">Save Custom Data Source</button>
+    <button class="btn-primary" onclick="restoreDefaultCustomDataSource()">Restore Default Data Source</button>
+</div>
+    <div id="dataSourceSuccess" class="success-message" style="display: none;">Custom Data Source saved successfully!</div>
+</div><br></br><br></br>
+
+<div class="settings-form address-config22">
+    <h3> 2BACKUP Custom Data Source Configuration</h3>
+    <p>Set a BACKUP custom data Source endpoint URL for up to date BACKUP Data. Paste your data URL below to configure.</p>
+    <h2>After saving you must reload page to get new BACKUP data sources</h2>
+     <div class="form-group">
+        <label>Custom BACKUP Data Source URL</label>
+        <div class="input-group">
+            <textarea id="BACKUPcustomDataSource" class="rpc-textarea" placeholder="https://data.github.bzerox.org/">https://data.github.bzerox.org/</textarea>
+        </div>
+    </div>
+<div style="display: flex; gap: 10px;">
+    <button class="btn-primary" onclick="saveBACKUPCustomDataSource_Testnet()">Save Custom BACKUP Data Source</button>
+    <button class="btn-primary" onclick="restoreDefaultBACKUPCustomDataSource()">Restore Default BACKUP Data Source</button>
+</div>
+    <div id="dataBACKUPSourceSuccess" class="success-message" style="display: none;">Custom BACKUP Data Source saved successfully!</div>
+</div><br></br><br></br>
+                        <div class="settings-form address-config">
+                            <h3>🏦 Staking Rewards Contract Address Configuration</h3>
+                            <p>Configure the Reward contract addresses used by the platform. Enter reward addresses in
+                                JSON array format.</p>
+
+                            <div class="form-group">
+                                <label>Reward Contract Addresses (JSON Array)</label>
+                                <textarea id="contractAddresses"
+                                    placeholder='["0x4200000000000000000000000000000000000006", "0x0000000000000000000000000000000000000000"]'>["0x4200000000000000000000000000000000000006", "0x0000000000000000000000000000000000000000"]</textarea>
+                            </div>
+
+                            <div class="button-group">
+                                <button class="btn-secondary" onclick="restoreDefaultAddressesfromContract()">Get
+                                    Defaults from Contract</button>
+                                <button class="btn-secondary" onclick="restoreDefaultAddressesfromGithub()">Get Defaults
+                                    from Github</button>
+                                <button class="btn-secondary" onclick="restoreDefaultAddresses()">Restore Defaults
+                                </button>
+                                <button class="btn-primary" onclick="saveAddresses()">Save Addresses</button>
+                            </div>
+                            <div id="addressSuccess" class="success-message" style="display: none;">Contract addresses
+                                saved successfully!</div>
+                            <div class="toggle-container">
+                                <label class="toggle-switch">
+                                <input type="checkbox" id="toggle1" data-save-key="feature_notifications" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">Get New Reward Tokens from Contract Automatically</span>
+                            </div>
+                        </div>
+                        <br></br><br></br>
+                        <div class="settings-form">
+                            <h3>🔒 Minimum Staking Configuration</h3>
+                            <p>Set the minimum amount of tokenA required for users Staked Position. Used to prevent
+                                spam. Units is Wei</p>
+
+                            <div class="form-group">
+                                <label>Minimum Staking Amount</label>
+                                <div class="input-group">
+                                    <input type="number" id="minStaking" placeholder="0" step="1" min="0">
+                                    <div class="unit">Tokens</div>
+                                </div>
+                            </div>
+
+                            <button class="btn-primary" onclick="saveMinStaking()">Save Minimum Staking</button>
+                            <div id="stakingSuccess" class="success-message" style="display: none;">Minimum staking
+                                amount saved successfully!</div>
+                        </div>
+
+                        <br></br><br></br>
+                        <div class="settings-form">
+                            <h3>💰 Minimum User Holdings</h3>
+                            <p>Set the minimum tokenA required for user to see a NFT position held in wallet. To prevent
+                                spam attacks! Units is Wei</p>
+
+                            <div class="form-group">
+                                <label>Minimum Holdings Required</label>
+                                <div class="input-group">
+                                    <input type="number" id="minUserHoldings" placeholder="0" step="1" min="0">
+                                    <div class="unit">Tokens</div>
+                                </div>
+                            </div>
+
+                            <button class="btn-primary" onclick="saveMinUserHoldings()">Save Minimum Holdings</button>
+                            <div id="holdingsSuccess" class="success-message" style="display: none;">Minimum holdings
+                                amount saved successfully!</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Staking Management Page -->
+                <div id="staking-management" class="page">
+                    <div class="info-card">
+                        <h3>Staking Management</h3>
+                        <p>Manage reward tokens and configure staking reward periods for the platform.</p>
+                    </div>
+
+                    <div class="staking-management">
+                        <div class="management-card">
+                            <h3>🪙 Add Reward Token</h3>
+                            <p>Add new ERC20 tokens to be distributed as staking rewards. Costs 10 USDC, get Testnet
+                                USDC for Base Sepolia @ <a href="https://faucet.circle.com/" target="_blank"
+                                    rel="noopener noreferrer">https://faucet.circle.com/</a></p>
+
+                            <div class="form-group">
+                                <label>Reward Token Contract Address</label>
+                                <input type="text" id="rewardTokenAddress" class="address-input"
+                                    placeholder="0x742d35Cc6634C0532925a3b8D1C07E8DEa95C7C4"
+                                    pattern="^0x[a-fA-F0-9]{40}$">
+                            </div>
+                            <button class="btn-success" onclick="addRewardToken()">Add Reward Token</button>
+                            <br></br><br></br>
+                            <div class="reward-tokens-list" id="rewardTokensList">
+                                <h4>Current Reward Tokens Ready to Start new Period of Staking:</h4>
+                                <div id="rewardTokensContainer">
+                                    <p style="color: #6c757d; font-style: italic;">No reward tokens added yet.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="management-card">
+                            <h3>🚀 Start Reward Period</h3>
+                            <p>Configure and start a new reward distribution period for stakers.</p>
+
+                            <div class="form-group">
+                                <label>Select Reward Token</label>
+                                <select id="selectedRewardToken">
+                                    <option value="">Select a reward token...</option>
+                                </select>
+                            </div>
+                            <button class="btn-primary" onclick="startRewardPeriod()">Start Reward Period</button>
+                        </div><br></br>
+
+                        <div class="management-card">
+                            <h3>📊 Active Reward Periods</h3>
+                            <p>Monitor and manage currently active reward distribution periods.</p>
+
+                            <div id="activePeriodsContainer">
+                                <p style="color: #6c757d; font-style: italic;">No active reward periods.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="getRewardStats()">getRewardStats</button>
+                </div>
+
+
+                <!-- Swap Page -->
+                <div id="swap" class="page active">
+
+
+                    <!-- Wallet Balances Display -->
+                    <div class="wallet-balances">
+                        <h3>Wallet Balances</h3>
+                        <div id="walletBalancesDisplay3" class="balances-grid">
+                            <!-- Will be populated by JavaScript -->
+                            <p style="color: #6c757d; font-style: italic;">Loading wallet balances...</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>Token Swap</h3>
+                        <p>Exchange one token for another at current market rates with minimal slippage.</p>
+                    </div>
+
+
+
+
+                    <!-- Reload button container that takes full width -->
+                    <div class="reload-container">
+                        <div class="reload-btn" onclick="resetCountdown()">
+                            <!-- Arrow fills whole box -->
+                            <svg class="reload-icon" viewBox="2 2 20 20" fill="currentColor" preserveAspectRatio="none">
+                                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4
+                       A8,8 0 0,0 4,12
+                       A8,8 0 0,0 12,20
+                       C15.73,20 18.84,17.45 19.73,14
+                       H17.65C16.83,16.33 14.61,18 12,18
+                       A6,6 0 0,1 6,12
+                       A6,6 0 0,1 12,6
+                       C13.66,6 15.14,6.69 16.22,7.78
+                       L13,11H20V4L17.65,6.35Z" />
+                            </svg>
+                            <div class="overlay">
+                                <div id="countdown" class="countdown">30</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+                    <div class="form-group">
+                        <label>From Token</label>
+                        <div class="token-selector">
+                            <div class="token-icon" id="fromTokenIcon22">0</div>
+                            <select id="fromToken22" onchange="updateTokenIcon('fromToken22', 'fromTokenIcon22')">
+                                <option value="0xBTC">0xBTC - 0xBitcoin Token</option>
+                                <option value="B0x">B0x - B Zero X Token</option>
+                                <option value="ETH">Base Ethereum - Base ETH</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" placeholder="0.0" step="0.000001" value="0">
+                    </div>
+
+                    <div class="swap-direction">
+                        <button class="swap-arrow" onclick="swapTokens()">⇅</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>To Token</label>
+                        <div class="token-selector">
+                            <div class="token-icon" id="toTokenIcon11">B</div>
+                            <select id="toToken22" onchange="updateTokenIcon('toToken22', 'toTokenIcon11')">
+                                <option value="B0x">B0x - B Zero X Token</option>
+                                <option value="0xBTC">0xBTC - 0xBitcoin Token</option>
+                                <option value="ETH">Base Ethereum - Base ETH</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Estimated Output</label>
+                        <input type="text" id="estOutput" class="input-class" value="0.0" readonly
+                            style="background: #f8f9fa; padding-left: 10px;">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Slippage Tolerance</label>
+                        <select id="slippageToleranceSwap">
+                            <option>0.1%</option>
+                            <option>0.5%</option>
+                            <option>1.0%</option>
+                            <option>2.0%</option>
+                        </select>
+                    </div>
+                    <div id="estimateDisplay"></div>
+                    <button class="btn-primary" id="executeSwapBtn" onclick="executeSwap()">Execute Swap</button>
+                </div>
+
+                <!-- Staking Page -->
+                <div id="staking-main-page" class="page">
+                    <div class="info-card3">
+                        <h2>Uniswap V4 Token Staking</h2>
+                        <p>Stake your Unsiwap NFT tokens to earn rewards and support network security.</p>
+                    </div>
+                    <div class="rewards-card">
+                        <h3>Current Rewards</h3>
+                        <div class="rewards-amount" id="rewardsAmount">0.00 B0x & 0 ETH & 0 0xBTC</div>
+                        <div class="rewards-usd" id="rewardsUSD">≈ $0.0 USD</div>
+
+                        <button class="btn-primary" onclick="collectRewards()">Collect Rewards</button>
+                    </div>
+                    <div class="staking-stats" id="stakingStatsContainer">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                    <div class="info-card3">
+                        <h2>Uniswap V4 Token Staking</h2>
+                        <p>Stake your Unsiwap NFT tokens to earn rewards and support network security.</p>
+                    </div>
+
+                    <div class="info-card2">
+                        <h3>NFT Position Info</h3>
+                        <p>Create Position to Stake Position</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Position</label>
+                        <select>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Estimated Percentage of Staking Rewards this position is</label>
+                        <input type="text" id="estimatedRewards" value="0.00 B0x" readonly style="background: #f8f9fa;">
+                    </div>
+<h3 style="color: red"> You are now depositing a Uniswap v4 NFT Position to stake.  Withdrawl penalty is 20% to instant withdraw down to 3% after 15 days.  1% after 45 days. It is tracked per NFT, so multiple NFTs will have different withdraw Penalities</h3>
+                    <button class="btn-success" id="depositNFTStakeBtn" onclick="depositNFTStake()">Deposit
+                        NFT</button><br></br><br></br>
+
+                    <div class="info-card3">
+                        <h2>Uniswap v4 NFT Token Withdrawing</h2>
+                        <p>Unstake your Unsiwap NFT tokens below. It is cheaper if you use Stake Decrease if you are
+                            only removing a portion of your funds from staking.</p>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>Token Withdrawing</h3>
+                        <p>Unstake your Unsiwap NFT tokens below. Currently you have no staked positions.</p>
+                    </div>
+                    <br></br>
+                    <div class="form-group2">
+                        <label>Select NFT to Withdraw</label>
+                        <select>
+                            <option>UNSTAKE - UNStaking Token</option>
+                            <option>UNDAI - UNDai Stablecoin</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-warning" id="withdrawNFTStakeBtn" onclick="withdrawStake()">Withdraw NFT from
+                        Staking</button>
+
+
+                </div>
+
+                <!-- Create Position Page -->
+                <div id="create" class="page">
+                    <div class="info-card">
+                        <h3>Create Liquidity Position</h3>
+                        <p>Provide liquidity to earn fees by depositing token pairs into liquidity pools.</p>
+                    </div>
+
+                    <!-- Wallet Balances Display -->
+                    <div class="wallet-balances">
+                        <h3>Wallet Balances</h3>
+                        <div id="walletBalancesDisplay4" class="balances-grid">
+                            <!-- Will be populated by JavaScript -->
+                            <p style="color: #6c757d; font-style: italic;">Loading wallet balances...</p>
+                        </div>
+                    </div>
+
+                    <!-- Reload button container that takes full width -->
+                    <div class="reload-container">
+                        <div class="reload-btn" onclick="resetCountdown()">
+                            <!-- Arrow fills whole box -->
+                            <svg class="reload-icon" viewBox="2 2 20 20" fill="currentColor" preserveAspectRatio="none">
+                                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4
+                       A8,8 0 0,0 4,12
+                       A8,8 0 0,0 12,20
+                       C15.73,20 18.84,17.45 19.73,14
+                       H17.65C16.83,16.33 14.61,18 12,18
+                       A6,6 0 0,1 6,12
+                       A6,6 0 0,1 12,6
+                       C13.66,6 15.14,6.69 16.22,7.78
+                       L13,11H20V4L17.65,6.35Z" />
+                            </svg>
+                            <div class="overlay">
+                                <div id="countdown" class="countdown">30</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Token A</label>
+                            <div class="token-selector">
+
+                                <div class="token-icon" id="tokenAIcon">0</div>
+                                <select id="tokenA">
+                                    <option value="0xBTC">0xBTC - 0xBitcoin Token</option>
+                                    <option value="B0x">B0x - B Zero X Token</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Token B</label>
+                            <div class="token-selector">
+                                <div class="token-icon" id="tokenBIcon">B</div>
+                                <select id="tokenB">
+                                    <option value="0xBTC">0xBTC - 0xBitcoin Token</option>
+                                    <option value="B0x">B0x - B Zero X Token</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Amount A</label>
+                            <input type="number" id="amountA" placeholder="0.0" step="0.000001" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Amount B</label>
+                            <input type="number" id="amountB" placeholder="0.0" step="0.000001" value="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Fee Tier</label>
+                            <select>
+                                <option>Dynamic Fee - Required For Staking</option>
+                                <!-- <option>0.30% - Standard</option>
+                                <option>1.00% - Exotic pairs</option>-->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Price Range</label>
+                            <select>
+                                <option>Full Range - Required For Staking</option>
+                                <!---
+                                <option>Narrow (±10%)</option>
+                                <option>Wide (±50%)</option>
+                                <option>Custom</option>
+                                -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Hook Address</label>
+                            <select>
+                                <option>Use Dynamic Fee Hook - Required For Staking</option>
+                                <!---
+                                <option>Narrow (±10%)</option>
+                                <option>Wide (±50%)</option>
+                                <option>Custom</option>
+                                -->
+                            </select>
+                        </div>
+
+
+                        <div class="form-group">
+                            <label>Slippage Tolerance</label>
+                            <select id="slippageToleranceCreate">
+                                <option>0.1%</option>
+                                <option>0.5%</option>
+                                <option>1.0%</option>
+                                <option>2.0%</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <button class="btn-primary" id="getCreatePositionBtn" onclick="getCreatePosition()">Create
+                        Position</button>
+                    <!--   <button class="btn-primary" onclick="getRatioCreatePositiontokenA()">getRatioCreatePositiontokenA Position</button>
+                    <button class="btn-primary" onclick="getRatioCreatePositiontokenB()">getRatioCreatePositiontokenB Position</button>
+                    <button class="btn-primary" onclick="getMaxCreatePosition()">getMaxCreatePosition Button</button> -->
+
+                </div>
+
+
+                <!-- Increase Liquidity Page -->
+                <div id="increase" class="page">
+                    <div class="info-card">
+                        <h3>Increase Liquidity</h3>
+                        <p>Add more funds to your existing liquidity position to earn more fees.</p>
+                    </div>
+                    <!-- Wallet Balances Display -->
+                    <div class="wallet-balances">
+                        <h3>Wallet Balances</h3>
+                        <div id="walletBalancesDisplay" class="balances-grid">
+                            <!-- Will be populated by JavaScript -->
+                            <p style="color: #6c757d; font-style: italic;">Loading wallet balances...</p>
+                        </div>
+                    </div>
+
+
+                    <!-- Reload button container that takes full width -->
+                    <div class="reload-container">
+                        <div class="reload-btn" onclick="resetCountdown()">
+                            <!-- Arrow fills whole box -->
+                            <svg class="reload-icon" viewBox="2 2 20 20" fill="currentColor" preserveAspectRatio="none">
+                                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4
+                       A8,8 0 0,0 4,12
+                       A8,8 0 0,0 12,20
+                       C15.73,20 18.84,17.45 19.73,14
+                       H17.65C16.83,16.33 14.61,18 12,18
+                       A6,6 0 0,1 6,12
+                       A6,6 0 0,1 12,6
+                       C13.66,6 15.14,6.69 16.22,7.78
+                       L13,11H20V4L17.65,6.35Z" />
+                            </svg>
+                            <div class="overlay">
+                                <div id="countdown" class="countdown">30</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Select Position</label>
+                        <select>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <!--
+                    <div class="info-card">
+                        <h3>Current Selected Position</h3>
+                        <p><strong>Pool:</strong> ETH/USDC (0.30%)</p>
+                        <p><strong>Current Liquidity:</strong> $1,250.00</p>
+                        <p><strong>Unclaimed Fees:</strong> $12.50</p>
+                    </div>
+                            instead we want reminder -->
+                    <div class="info-card">
+                        <h3>Current Selected Position</h3>
+                        <p> create position to increase</p>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Add Total <span id="tokenALabel">B0x</span></label>
+                            <input type="number" id="tokenAAmount" placeholder="0.0" step="0.000001" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Add Total <span id="tokenBLabel">0xBTC</span></label>
+                            <input type="number" id="tokenBAmount" placeholder="0.0" step="0.000001" value="0">
+                        </div>
+                    </div>
+
+                    <b>Adding Liquidity Automatically uses your unclaimed fees in the deposit</b><br></br>
+
+                    <div class="form-group">
+                        <label>New Total Liquidity</label>
+                        <input type="text" value="$0.00" readonly style="background: #f8f9fa;">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Slippage Tolerance</label>
+                        <select id="slippageToleranceIncreaseLiquidity">
+                            <option>0.1%</option>
+                            <option>0.5%</option>
+                            <option>1.0%</option>
+                            <option>2.0%</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" id="increaseLiquidityBtn" onclick="increaseLiquidity()">Increase
+                        Liquidity</button>
+                    <!--      <button class="btn-primary" onclick="getTokenIDsOwnedByMetamask()">Get Metamask StakedTokensOwned</button>
+                    <button class="btn-primary" onclick="getTokenIDsOwnedByStaking()">Get Staking Contracted Owned NFTs</button>
+                    -->
+                </div>
+
+
+                <!-- Decrease Liquidity Page -->
+                <div id="decrease" class="page">
+                    <div class="info-card">
+                        <h3>Decrease Liquidity</h3>
+                        <p>Remove funds from your liquidity position and claim accumulated fees.</p>
+                    </div>
+
+                    <!-- Reload button container that takes full width -->
+                    <div class="reload-container">
+                        <div class="reload-btn" onclick="resetCountdown()">
+                            <!-- Arrow fills whole box -->
+                            <svg class="reload-icon" viewBox="2 2 20 20" fill="currentColor" preserveAspectRatio="none">
+                                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4
+                       A8,8 0 0,0 4,12
+                       A8,8 0 0,0 12,20
+                       C15.73,20 18.84,17.45 19.73,14
+                       H17.65C16.83,16.33 14.61,18 12,18
+                       A6,6 0 0,1 6,12
+                       A6,6 0 0,1 12,6
+                       C13.66,6 15.14,6.69 16.22,7.78
+                       L13,11H20V4L17.65,6.35Z" />
+                            </svg>
+                            <div class="overlay">
+                                <div id="countdown" class="countdown">30</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                    <div class="form-group">
+                        <label>Select Position</label>
+                        <select onchange="updatePositionInfo()">
+                        </select>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>Current Selected Position</h3>
+                        <p> create position to decrease</p>
+                    </div>
+
+                    <!-- old
+                    <div class="info-card">
+                        <h3>Position Details</h3>
+                        <p><strong>Pool:</strong> ETH/USDC (0.30%)</p>
+                        <p><strong>Total Liquidity:</strong> $1,250.00</p>
+                        <p><strong>Unclaimed Fees:</strong> $12.50</p>
+                        <p><strong>Position Age:</strong> 15 days</p>
+                    </div>
+-->
+                    <div class="form-group">
+                        <label>Removal Percentage</label>
+                        <div class="slider-container">
+                            <input type="range" min="0" max="100" value="25" class="slider"
+                                onchange="updatePercentage(this.value)">
+                            <div class="percentage-display" id="percentageDisplay">25%</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><span id="tokenALabel">B0x</span> to Recieve</label>
+                            <input type="text" value="0.00 B0x" readonly style="background: #f8f9fa;" id="tokenAAmount">
+                        </div>
+                        <div class="form-group">
+                            <label><span id="tokenBLabel">0xBTC</span> to Recieve</label>
+                            <input type="text" value="0.00 0xBTC" readonly style="background: #f8f9fa;"
+                                id="tokenBAmount">
+                        </div>
+                    </div>
+
+                    <b>Remving Liquidity Automatically claims your unclaimed fees.</b><br></br>
+
+                    <div class="form-group">
+                        <label>Fees to Claim</label>
+                        <input type="text" value="$0.00" readonly style="background: #f8f9fa;">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Slippage Tolerance</label>
+                        <select id="slippageToleranceDecrease">
+                            <option>0.1%</option>
+                            <option>0.5%</option>
+                            <option>1.0%</option>
+                            <option>2.0%</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" id="decreaseLiquidityBtn" onclick="decreaseLiquidity()">Remove Liquidity
+                        & Claim Fees</button>
+                </div>
+
+                <!-- Staking Increase Liquidity Page -->
+                <!-- Staking Increase Liquidity Page -->
+                <div id="stake-increase" class="page">
+                    <div class="info-card">
+                        <h3>Increase Staking Liquidity</h3>
+                        <p>Add more funds to your existing staking position to earn more rewards.</p>
+                    </div>
+
+                    <!-- Wallet Balances Display -->
+                    <div class="wallet-balances">
+                        <h3>Wallet Balances</h3>
+                        <div id="walletBalancesDisplay2" class="balances-grid">
+                            <!-- Will be populated by JavaScript -->
+                            <p style="color: #6c757d; font-style: italic;">Loading wallet balances...</p>
+                        </div>
+                    </div>
+
+
+
+
+                    <!-- Reload button container that takes full width -->
+                    <div class="reload-container">
+                        <div class="reload-btn" onclick="resetCountdown()">
+                            <!-- Arrow fills whole box -->
+                            <svg class="reload-icon" viewBox="2 2 20 20" fill="currentColor" preserveAspectRatio="none">
+                                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4
+                       A8,8 0 0,0 4,12
+                       A8,8 0 0,0 12,20
+                       C15.73,20 18.84,17.45 19.73,14
+                       H17.65C16.83,16.33 14.61,18 12,18
+                       A6,6 0 0,1 6,12
+                       A6,6 0 0,1 12,6
+                       C13.66,6 15.14,6.69 16.22,7.78
+                       L13,11H20V4L17.65,6.35Z" />
+                            </svg>
+                            <div class="overlay">
+                                <div id="countdown" class="countdown">30</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label>Select Position</label>
+                        <select>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+
+                    <div class="info-card">
+                        <h3>Current Selected Position</h3>
+                        <p> stake position to increase</p>
+                    </div>
+                    <!-- old
+                    <div class="info-card">
+                        <h3>Current Selected Position</h3>
+                        <p><strong>Pool:</strong> ETH/USDC (0.30%)</p>
+                        <p><strong>Current Liquidity:</strong> $1,250.00</p>
+                   
+                    </div>-->
+
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Add <span id="tokenALabelINC">B0x</span></label>
+                            <input type="number" id="tokenAAmount" placeholder="0.01" step="0.000001" value=1>
+                        </div>
+                        <div class="form-group">
+                            <label>Add <span id="tokenBLabelINC">0xBTC</span></label>
+                            <input type="number" id="tokenBAmount" placeholder="0.01" step="0.000001" value=2>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>New Total Liquidity</label>
+                        <input type="text" value="$0.00" readonly style="background: #f8f9fa;">
+                    </div>
+                    <div class="form-group">
+                        <label>Slippage Tolerance</label>
+                        <select id="slippageToleranceStakeIncrease">
+                            <option>0.1%</option>
+                            <option>0.5%</option>
+                            <option>1.0%</option>
+                            <option>2.0%</option>f
+                        </select>
+                    </div>
+
+                    <button class="btn-primary" id="increaseLiquidityStakedBtn"
+                        onclick="increaseLiquidityStaking()">Increase Staked Position Liquidity</button>
+                </div>
+
+                <!-- Staking Decrease Liquidity Page -->
+                <div id="stake-decrease" class="page">
+                    <div class="info-card">
+                        <h3>Decrease Staking Liquidity</h3>
+                        <p>Remove funds from your staking position and claim accumulated rewards.</p>
+                    </div>
+
+
+
+
+                    <!-- Reload button container that takes full width -->
+                    <div class="reload-container">
+                        <div class="reload-btn" onclick="resetCountdown()">
+                            <!-- Arrow fills whole box -->
+                            <svg class="reload-icon" viewBox="2 2 20 20" fill="currentColor" preserveAspectRatio="none">
+                                <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4
+                       A8,8 0 0,0 4,12
+                       A8,8 0 0,0 12,20
+                       C15.73,20 18.84,17.45 19.73,14
+                       H17.65C16.83,16.33 14.61,18 12,18
+                       A6,6 0 0,1 6,12
+                       A6,6 0 0,1 12,6
+                       C13.66,6 15.14,6.69 16.22,7.78
+                       L13,11H20V4L17.65,6.35Z" />
+                            </svg>
+                            <div class="overlay">
+                                <div id="countdown" class="countdown">30</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="form-group">
+                        <label>Select Position</label>
+                        <select>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <!-- old
+                    <div class="info-card">
+                        <h3>Position Details</h3>
+                        <p><strong>Pool:</strong> ETH/USDC (0.30%)</p>
+                        <p><strong>Total Staked:</strong> $1,250.00</p>
+                        <p><strong>Unclaimed Rewards:</strong> $12.50</p>
+                        <p><strong>APY:</strong> 8.75%</p>
+                    </div>
+                    -->
+                    <div class="info-card">
+                        <h3>Current Selected Position</h3>
+                        <p> stake position to decrease</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Removal Percentage</label>
+                        <div class="slider-container">
+                            <input type="range" min="0" max="100" value="25" class="slider">
+                            <div class="percentage-display" id="stakePercentageDisplay">25%</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><span id="tokenALabelDec">B0x</span> to Recieve</label>
+                            <input type="text" value="0.0 0xBTC" readonly style="background: #f8f9fa;"
+                                id="tokenAAmountDec">
+                        </div>
+                        <div class="form-group">
+                            <label><span id="tokenBLabelDec">0xBTC</span> to Recieve</label>
+                            <input type="text" value="0.0 B0x" readonly style="background: #f8f9fa;"
+                                id="tokenBAmountDec">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Slippage Tolerance</label>
+                        <select id="slippageToleranceStakeDecrease">
+                            <option>0.1%</option>
+                            <option>0.5%</option>
+                            <option>1.0%</option>
+                            <option>2.0%</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-primary" id="decreaseLiquidityStakedBtn"
+                        onclick="decreaseLiquidityStaking()">Decrease Liquidity on Staked NFT</button>
+
+                </div>
+
+
+                <!-- SOCIAL MEDIA PAGE -->
+                <div id="socials" class="page">
+                    <div class="info-card">
+                        <h3>Connect With Us</h3>
+                        <p>Join our community across all platforms and stay updated with the latest developments!</p>
+                    </div>
+
+                
+        <div class="section">
+            <h2 class="section-title">Social Media & Platforms</h2>
+            <div class="social-grid">
+                <a href="https://discord.gg/xWrRCRJEFC" class="social-link discord" target="_blank" rel="noopener noreferrer">
+                    <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.019 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1568 2.4189Z"/>
+                    </svg>
+                    Discord
+                </a>
+
+                <a href="https://github.com/B0x-Token" class="social-link github" target="_blank" rel="noopener noreferrer">
+                    <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    GitHub
+                </a>
+
+                <a href="https://x.com/B0x_Token" class="social-link twitter" target="_blank" rel="noopener noreferrer">
+                    <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                    </svg>
+                    Twitter / X
+                </a>
+
+                <a href="https://t.me/B0x_Token" class="social-link telegram" target="_blank" rel="noopener noreferrer">
+                    <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                    </svg>
+                    Telegram
+                </a>
+
+                <a href="https://medium.com/@B0x_Token" class="social-link medium" target="_blank" rel="noopener noreferrer">
+                    <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zM20.96 12c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/>
+                    </svg>
+                    Medium
+                </a>
+
+                <a href="https://bzerox.com" class="social-link website" target="_blank" rel="noopener noreferrer">
+                    <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                    </svg>
+                    Main Website
+                </a>
+
+                <a href="https://bzerox.org" class="social-link website" target="_blank" rel="noopener noreferrer">
+                    <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                    </svg>
+                    Alternative Website
+                </a>
+
+                <a href="https://dev.bzerox.org" class="social-link website" target="_blank" rel="noopener noreferrer">
+                    <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                    </svg>
+                    Developer / Documents Mainnet
+                </a>
+                <a href="https://www.reddit.com/r/bzerox/" class="social-link reddit" target="_blank" rel="noopener noreferrer">
+                    <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/>
+                    </svg>
+                    Reddit (B0x Subreddit)
+                </a>
+
+                <a href="https://bitcointalk.org/index.php?topic=5523969" class="social-link bitcointalk" target="_blank" rel="noopener noreferrer">
+                    <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M23.638 14.904c-1.602 6.43-8.113 10.34-14.542 8.736C2.67 22.05-1.244 15.525.362 9.105 1.962 2.67 8.475-1.243 14.9.358c6.43 1.605 10.342 8.115 8.738 14.548v-.002zm-6.35-4.613c.24-1.59-.974-2.45-2.64-3.03l.54-2.153-1.315-.33-.525 2.107c-.345-.087-.705-.167-1.064-.25l.526-2.127-1.32-.33-.54 2.165c-.285-.065-.565-.13-.836-.2l-1.815-.45-.35 1.407s.974.225.955.236c.535.136.63.486.615.766l-1.477 5.92c-.075.166-.24.406-.566.314.015.02-.955-.24-.955-.24l-.66 1.51 1.71.426.93.242-.54 2.19 1.32.327.54-2.17c.36.1.71.19 1.05.273l-.51 2.154 1.32.33.54-2.19c2.24.427 3.93.257 4.64-1.774.57-1.637-.03-2.58-1.217-3.196.854-.193 1.5-.76 1.68-1.93h.01zm-3.01 4.22c-.404 1.64-3.157.75-4.05.53l.72-2.9c.896.23 3.757.67 3.33 2.37zm.41-4.24c-.37 1.49-2.662.73-3.405.55l.654-2.64c.744.18 3.137.524 2.75 2.084v.006z"/>
+                    </svg>
+                    BitcoinTalk
+                </a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Meet Our Team</h2>
+            <p style="text-align: center; color: #b0b0b0; margin-bottom: 3rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+                Our team combines extensive experience in blockchain development, DeFi protocols, and community building to deliver innovative solutions in the decentralized finance space.
+            </p>
+            
+            <div class="team-grid">
+
+                <div class="team-member-card">
+                    <div class="member-header">
+                        <div class="member-avatar">
+                            <div class="avatar-placeholder">U</div>
+                        </div>
+                        <div class="member-basic-info">
+                            <h3 class="member-name">Untouchable2k</h3>
+                            <div class="member-role">Technical Lead</div>
+                        </div>
+                    </div>
+                    
+                    <div class="member-bio">
+                        <p>Senior blockchain engineer specializing in protocol optimization, security auditing, and mining infrastructure development.</p>
+                    </div>
+                    
+                    <div class="member-social-links">
+                        <a href="https://discordapp.com/users/949504000317857792" class="member-social discord" target="_blank" rel="noopener noreferrer" title="Discord: Untouchable2k">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.019 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1568 2.4189Z"/>
+                            </svg>
+                        </a>
+                        <a href="https://www.linkedin.com/in/stuart-salamon" class="member-social linkedin" target="_blank" rel="noopener noreferrer" title="LinkedIn Profile">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                            </svg>
+                        </a>
+                        <a href="https://x.com/0xbitcoiner" class="member-social twitter" target="_blank" rel="noopener noreferrer" title="Twitter Profile">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+
+                <div class="team-member-card">
+                    <div class="member-header">
+                        <div class="member-avatar">
+                            <div class="avatar-placeholder">P</div>
+                        </div>
+                        <div class="member-basic-info">
+                            <h3 class="member-name">PirateDC</h3>
+                            <div class="member-role">Community Manager</div>
+                        </div>
+                    </div>
+                    
+                    <div class="member-bio">
+                        <p>Community strategist and project coordinator focused on ecosystem growth and user engagement across multiple platforms.</p>
+                    </div>
+                    
+                    <div class="member-social-links">
+                        <a href="https://discordapp.com/users/337914503817854976" class="member-social discord" target="_blank" rel="noopener noreferrer" title="Discord: PirateDC">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.019 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1568 2.4189Z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="member-social twitter" target="_blank" rel="noopener noreferrer" title="Twitter Profile">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+
+
+                <div class="team-member-card">
+                    <div class="member-header">
+                        <div class="member-avatar">
+                            <div class="avatar-placeholder">C</div>
+                        </div>
+                        <div class="member-basic-info">
+                            <h3 class="member-name">Crnxhh</h3>
+                            <div class="member-role">Core Developer</div>
+                        </div>
+                    </div>
+                    
+                    <div class="member-bio">
+                        <p>Blockchain developer and protocol architect with expertise in smart contract development and Proof of Work Mining mechanisms.</p>
+                    </div>
+                    
+                    <div class="member-social-links">
+                        <a href="https://discordapp.com/users/630005673232564244" class="member-social discord" target="_blank" rel="noopener noreferrer" title="Discord: Crnxhh">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.019 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1568 2.4189Z"/>
+                            </svg>
+                        </a>
+                        <a href="https://x.com/crnxhh" class="member-social twitter" target="_blank" rel="noopener noreferrer" title="Twitter Profile">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    
+                </div>
+
+
+
+                <!-- whitepaper dapp page-->
+
+                <!-- ADMIN FUNCTION DAPP PAGE -->
+                <div id="whitepaper" class="page">
+
+                    <div class="bx-scroll-indicator" id="bxScrollProgress"></div>
+
+                    <div class="bx-document-wrapper">
+                        <header class="bx-header-container">
+                            <h1 class="bx-title-primary">B0x Token</h1>
+                            <p class="bx-subtitle-text">Proof of Work Mining & Liquidity Staking Protocol</p>
+                        </header>
+
+                        <main class="bx-content-main">
+                            <section class="bx-section-block bx-fade-in">
+                                <h2 class="bx-heading-secondary">Executive Summary</h2>
+                                <p class="bx-text-paragraph">
+                                    B0x Token represents the next evolution in proof-of-work mining, designed as a
+                                    Version 2 upgrade to the original 0xBitcoin protocol.
+                                    Built on Ethereum as an ERC20 token, B0x addresses the mining halt experienced by
+                                    0xBitcoin while introducing innovative
+                                    economic mechanisms that balance miner incentives with protocol sustainability.
+                                </p>
+
+                                <div class="bx-highlight-box">
+                                    <h3 style="margin-bottom: 1rem; font-size: 1.3rem;">Key Innovation</h3>
+                                    <p>B0x introduces a revolutionary fee redistribution system where 50% goes to miners
+                                        and 50% to liquidity providers,
+                                        creating a sustainable economic model that prevents overmining while ensuring
+                                        long-term protocol viability.</p>
+                                </div>
+                            </section>
+
+                            <section class="bx-section-block bx-fade-in">
+                                <h2 class="bx-heading-secondary">Protocol Overview</h2>
+
+                                <div class="bx-stats-container">
+                                    <div class="bx-stat-item">
+                                        <span class="bx-stat-number">31.5M</span>
+                                        <span class="bx-stat-label">Total Supply</span>
+                                    </div>
+                                    <div class="bx-stat-item">
+                                        <span class="bx-stat-number">210000</span>
+                                        <span class="bx-stat-label">Epochs per Halving</span>
+                                    </div>
+                                    <div class="bx-stat-item">
+                                        <span class="bx-stat-number">4x</span>
+                                        <span class="bx-stat-label">Difficulty Adjustment Range</span>
+                                    </div>
+                                    <div class="bx-stat-item">
+                                        <span class="bx-stat-number">10 min</span>
+                                        <span class="bx-stat-label">Target Block Time</span>
+                                    </div>
+                                </div>
+
+                                <p class="bx-text-paragraph">
+                                    B0x Token serves as an optional upgrade path for 0xBitcoin holders, designed to
+                                    complete the remaining 100+ years
+                                    of mining that was halted due to a contract bug. The protocol maintains full
+                                    reversibility through the RightsTo0xBitcoin
+                                    token mechanism, allowing users to return to the original 0xBitcoin at any time.
+                                </p>
+                            </section>
+
+                            <section class="bx-section-block bx-fade-in">
+                                <h2 class="bx-heading-secondary">Technical Improvements</h2>
+
+                                <div class="bx-feature-grid">
+                                    <div class="bx-feature-card">
+                                        <h3 class="bx-feature-title">Dynamic Difficulty Adjustment</h3>
+                                        <p>4x up and 4x down difficulty adjustments with emergency protocols for periods
+                                            exceeding 7-14 days, ensuring network stability. This is because we use 2016
+                                            blocks like Bitcoin.</p>
+                                    </div>
+
+                                    <div class="bx-feature-card">
+                                        <h3 class="bx-feature-title">Challenge Reuse System</h3>
+                                        <p>Challenges are reused 2016 times before renewal, enabling multiple miners to
+                                            submit simultaneously and improving network participation.</p>
+                                    </div>
+
+                                    <div class="bx-feature-card">
+                                        <h3 class="bx-feature-title">Layer 2 Integration</h3>
+                                        <p>21.5M tokens bridged to Base Layer 2 for efficient staking and minting, while
+                                            maintaining mainnet security for core operations.</p>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="bx-section-block bx-fade-in">
+                                <h2 class="bx-heading-secondary">Economic Model</h2>
+
+                                <div class="bx-tech-specs">
+                                    <h3 style="margin-bottom: 1.5rem; color: #3498db;">Fee Structure & Distribution</h3>
+                                    <ul class="bx-spec-list">
+                                        <li class="bx-spec-item">
+                                            <span class="bx-spec-label">Mining Fee Distribution</span>
+                                            <span class="bx-spec-value">50% Miners / 50% LPs</span>
+                                        </li>
+                                        <li class="bx-spec-item">
+                                            <span class="bx-spec-label">Variable Mining Fee</span>
+                                            <span class="bx-spec-value">Based on Difficulty</span>
+                                        </li>
+                                        <li class="bx-spec-item">
+                                            <span class="bx-spec-label">Demand Fee Multiplier</span>
+                                            <span class="bx-spec-value">Up to 16x for Fast Mining</span>
+                                        </li>
+                                        <li class="bx-spec-item">
+                                            <span class="bx-spec-label">Time Bonus Maximum</span>
+                                            <span class="bx-spec-value">200 Minutes Optimal</span>
+                                        </li>
+                                        <li class="bx-spec-item">
+                                            <span class="bx-spec-label">Maximum Contract Depletion Rate</span>
+                                            <span class="bx-spec-value">Infinity!</span>
+                                        </li>
+                                        <li class="bx-spec-item">
+                                            <span class="bx-spec-label">Minimum Contract Depletion Rate</span>
+                                            <span class="bx-spec-value">50% in 1-2 Years</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <p class="bx-text-paragraph">
+                                    B0x Token operates on a 31.5M total supply model with strategic allocation: 21M
+                                    tokens dedicated to proof-of-work mining
+                                    and 10.5M allocated to staking rewards. The protocol implements sophisticated
+                                    difficulty adjustment mechanisms with
+                                    2016 blocks per standard adjustment period. Emergency adjustments activate under
+                                    specific conditions: 7 days if
+                                    the network reaches 4x target blocktime with at least 256 blocks mined, or 14 days
+                                    maximum under normal slow conditions.
+                                    The halving schedule operates on 210,000 epoch intervals, ensuring sustainable
+                                    long-term emission.
+                                </p>
+                            </section>
+
+                            <section class="bx-section-block bx-fade-in">
+                                <h2 class="bx-heading-secondary">Mining & Hardware Support</h2>
+
+                                <div class="bx-mining-info">
+                                    <h3 style="margin-bottom: 1rem;">Multi-Platform Mining Support</h3>
+                                    <p>CPU • GPU (NVIDIA/AMD) • FPGA Compatible</p>
+                                    <p style="margin-top: 1rem; font-size: 1.1rem;">Windows & Ubuntu Mining Software
+                                        Available</p>
+                                </div>
+
+                                <p class="bx-text-paragraph">
+                                    B0x Token launches at difficulty 1, making it accessible to CPU and GPU miners from
+                                    day one. The community-driven
+                                    mining ecosystem includes public software for all major platforms, ensuring broad
+                                    participation and decentralization.
+                                    As network adoption grows, difficulty scales naturally based on miner participation.
+                                </p>
+                            </section>
+
+                            <section class="bx-section-block bx-fade-in">
+                                <h2 class="bx-heading-secondary">Liquidity Staking Protocol</h2>
+
+                                <div class="bx-feature-grid">
+                                    <div class="bx-feature-card">
+                                        <h3 class="bx-feature-title">Uniswap V4 Integration</h3>
+                                        <p>Custom Hook contract enables dynamic swap fee adjustments to optimize returns
+                                            for staking participants.</p>
+                                    </div>
+
+                                    <div class="bx-feature-card">
+                                        <h3 class="bx-feature-title">NFT-Based Staking</h3>
+                                        <p>Accepts custom Uniswap V4 Pool NFTs created through the official dApp
+                                            interface for enhanced security.</p>
+                                    </div>
+
+                                    <div class="bx-feature-card">
+                                        <h3 class="bx-feature-title">Dual Token Liquidity</h3>
+                                        <p>B0x Token paired with 0xBitcoin creates a unique liquidity pool connecting
+                                            both ecosystems.</p>
+                                    </div>
+
+                                    <div class="bx-feature-card">
+                                        <h3 class="bx-feature-title">Revenue Sharing</h3>
+                                        <p>50% of minted B0x tokens and 50% of mining fees distributed to liquidity
+                                            providers over time.
+                                            Also the contract claims any fees gained from holding the Uniswap NFTs to
+                                            redistribute 100% back to stakers.</p>
+                                    </div>
+
+                                    <div class="bx-feature-card">
+                                        <h3 class="bx-feature-title">Withdrawal Penalty</h3>
+                                        <p>There is a withdrawl penalty ranging from 20% instant to ~0% after 45-90
+                                            days.
+                                            It goes down quickly to 15 days for 3% penalty.</p>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="bx-section-block bx-fade-in">
+                                <h2 class="bx-heading-secondary">Risk Considerations</h2>
+
+                                <p class="bx-text-paragraph">
+                                    As with any experimental protocol, B0x Token carries inherent risks including smart
+                                    contract vulnerabilities,
+                                    market volatility, and regulatory uncertainty. The optional upgrade mechanism
+                                    provides flexibility but requires
+                                    careful management of multiple token positions. Mining profitability varies based on
+                                    network conditions and
+                                    hardware efficiency.
+                                </p>
+
+                                <div
+                                    style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
+                                    <strong>Important:</strong> This protocol is experimental. Only participate with
+                                    funds you can afford to lose.
+                                    Conduct thorough research and consider consulting with financial advisors before
+                                    participating.
+                                </div>
+                            </section>
+
+                            <section class="bx-section-block bx-fade-in">
+                                <h2 class="bx-heading-secondary">Getting Started</h2>
+
+                                <p class="bx-text-paragraph">
+                                    Join the B0x Token ecosystem at launch for optimal mining opportunities. Early
+                                    participants benefit from low
+                                    initial difficulty and growing protocol value. Access mining software, staking
+                                    interfaces, and community
+                                    resources through the official dApp.
+                                </p>
+
+                                <div style="text-align: center; margin: 2rem 0;">
+
+                                    <button class="bx-cta-button" onclick="switchTab('miner')">Start Mining</button>
+                                    <button class="bx-cta-button" onclick="switchTab('create')">Join Staking</button>
+
+                                    <a href="https://github.com/B0x-Token" class="bx-cta-button" target="_blank">View
+                                        Documentation</a>
+                                </div>
+                            </section>
+                        </main>
+
+                        <footer class="bx-footer-section">
+                            <p>&copy; 2024 B0x Token Protocol. This document is for informational purposes only.</p>
+                            <p style="margin-top: 1rem; opacity: 0.8;">Always verify smart contracts and conduct your
+                                own research before participating.</p>
+                        </footer>
+                    </div>
+
+
+
+
+
+                </div>
+
+
+                <div id="side-pools" class="page">
+    <div id="b0x-miner-container">
+        <div id="b0x-main-content">
+            <header id="b0x-header">
+                <h1 id="b0x-title">💧 B0x Liquidity Pools</h1>
+                <p id="b0x-subtitle">Provide liquidity and earn fees with our Uniswap v4 Dynamic Fee Pools</p>
+            </header>
+
+            <div class="b0x-section">
+                <h2 class="b0x-section-title">🎯 What Are Dynamic Fee Pools?</h2>
+                <p>We've created innovative Uniswap v4 pools with a <strong>Dynamic Fee Hook</strong> that automatically adjusts trading fees to optimize returns for our Liquidity Providers. This means you get the best possible rates based on market conditions!</p>
+                
+                <div class="b0x-important-note">
+                    💡 <strong>Key Benefit:</strong> Our dynamic fee system adapts to market volatility, ensuring competitive fees that maximize your earnings as a liquidity provider.
+                </div>
+            </div>
+
+            <div class="b0x-section">
+                <h2 class="b0x-section-title">🏊 Available Pools</h2>
+                <p>Choose the pool that best fits your liquidity strategy. All pools use full range for maximum fee capture:</p>
+
+                <div class="b0x-platform-instructions">
+                    <div class="b0x-platform-card">
+                        <div class="b0x-platform-title">
+                            <div class="b0x-platform-icon">1</div>
+                            B0x / ETH Pool
+                        </div>
+                        <p>Provide liquidity across the entire price range for maximum fee capture or target specific Ranges.</p>
+                        <ul><li data-fee-start="2%">
+                            <strong>Fee:</strong> Dynamic (<span class="fee-valueB0xETH">?%</span>)
+</li>
+                            <li><strong>Tick Spacing:</strong> 60</li>
+                            <li><strong>Range:</strong> Full Range or Dynamic</li>
+                            <li><strong>Staking:</strong> Not Eligible ❌</li>
+                        </ul>
+                        <div class="b0x-important-note" style="margin-bottom: 15px;">
+                            ⚠️ <strong>Note:</strong> Positions in this pool do not qualify for staking rewards.
+                        </div>
+                        <a href="https://app.uniswap.org/positions/create/v4?currencyA=0x30456a1da01117ab06044665854bccd29640585d&currencyB=NATIVE&chain=base&hook=0xA54CbcF7449421E5842C483CC30d992ced301000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22isDynamic%22:true,%22feeAmount%22:20000,%22tickSpacing%22:60}&step=1" 
+                           target="_blank" class="b0x-download-btn">
+                            Add Liquidity to B0x/ETH
+                        </a>
+                    </div>
+
+                    <div class="b0x-platform-card">
+                        <div class="b0x-platform-title">
+                            <div class="b0x-platform-icon">2</div>
+                            0xBTC / ETH Pool
+                        </div>
+                        <p>Provide liquidity across the entire price range for maximum fee capture or target specific Ranges</p>
+                        <ul>
+                            <strong>Fee:</strong> Dynamic (<span class="fee-value0xBTCETH">?%</span>)
+                            <li><strong>Tick Spacing:</strong> 60</li>
+                            <li><strong>Range:</strong> Full Range or Dynamic</li>
+                            <li><strong>Staking:</strong> Not Eligible ❌</li>
+                        </ul>
+                        <div class="b0x-important-note" style="margin-bottom: 15px;">
+                            ⚠️ <strong>Note:</strong> Positions in this pool do not qualify for staking rewards.
+                        </div>
+                        <a href="https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=NATIVE&chain=base&hook=0xA54CbcF7449421E5842C483CC30d992ced301000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:20000,%22tickSpacing%22:60,%22isDynamic%22:true}&step=1" 
+                           target="_blank" class="b0x-download-btn">
+                            Add Liquidity to 0xBTC/ETH
+                        </a>
+                    </div>
+
+                    <div class="b0x-platform-card">
+                        <div class="b0x-platform-title">
+                            <div class="b0x-platform-icon">3</div>
+                            B0x / 0xBTC Pool
+                        </div>
+                        <p>Full range positions between B0x and 0xBTC tokens for Staking, specific Ranges for Not Staking</p>
+                        <ul>
+                            <strong>Fee:</strong> Dynamic (<span class="fee-valueB0x0xBTC">?%</span>)
+                            <li><strong>Tick Spacing:</strong> 60</li>
+                            <li><strong>Range:</strong> Full Range or Dynamic</li>
+                            <li><strong>Staking:</strong> Eligible ✅</li>
+                        </ul>
+                        <div class="b0x-important-note" style="margin-bottom: 15px;">
+                            ⚠️ <strong>Note:</strong> Positions in this pool do not qualify to be staked for staking rewards unless they are Full Range and made in our dAPP.
+                        </div>
+                        <a href="https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=0x30456a1da01117ab06044665854bccd29640585d&chain=base&hook=0xA54CbcF7449421E5842C483CC30d992ced301000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22isDynamic%22:true,%22feeAmount%22:100000,%22tickSpacing%22:60}&step=1" 
+                           target="_blank" class="b0x-download-btn">
+                            Add Liquidity to B0x/0xBTC
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="b0x-section">
+                <h2 class="b0x-section-title">📋 How to Provide Liquidity</h2>
+
+                <div class="b0x-step">
+                    <span class="b0x-step-number">1</span>
+                    <strong>Connect Your Wallet:</strong> Click on any pool link above. You'll be directed to Uniswap v4 where you can connect your wallet (MetaMask, WalletConnect, etc.).
+                </div>
+
+                <div class="b0x-step">
+                    <span class="b0x-step-number">2</span>
+                    <strong>Ensure You're on Base Network:</strong> Make sure your wallet is connected to the Base network (Chain ID: 8453).
+                </div>
+
+                <div class="b0x-step">
+                    <span class="b0x-step-number">3</span>
+                    <strong>Approve Tokens:</strong> You'll need to approve both tokens in the pair before providing liquidity. This is a one-time transaction per token.
+                </div>
+
+                <div class="b0x-step">
+                    <span class="b0x-step-number">4</span>
+                    <strong>Set Your Amounts:</strong> Enter the amount of liquidity you want to provide. The interface will automatically calculate the ratio needed for both tokens.
+                </div>
+
+                <div class="b0x-step">
+                    <span class="b0x-step-number">5</span>
+                    <strong>Review & Confirm:</strong> Double-check the details including price range, fees, and amounts, then confirm the transaction in your wallet.
+                </div>
+            </div>
+
+            <div class="b0x-section">
+                <h2 class="b0x-section-title">💎 Benefits of Our Dynamic Fee Pools</h2>
+
+                <div class="b0x-download-links">
+                    <div class="b0x-download-card">
+                        <h3>📈 Optimized Returns</h3>
+                        <p>Our dynamic fee hook automatically adjusts fees based on market conditions to maximize your earnings.</p>
+                    </div>
+
+                    <div class="b0x-download-card">
+                        <h3>🔒 Uniswap v4 Security</h3>
+                        <p>Built on Uniswap's battle-tested v4 infrastructure with advanced hook capabilities.</p>
+                    </div>
+
+                    <div class="b0x-download-card">
+                        <h3>🎁 Staking Rewards</h3>
+                        <p>Eligible full range positions in B0x/ETH and 0xBTC/ETH pools can be staked for additional rewards!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="b0x-section">
+                <h2 class="b0x-section-title">⚠️ Important Considerations</h2>
+
+                <div class="b0x-important-note">
+                    <strong>Impermanent Loss:</strong> Providing liquidity involves risk. If token prices diverge significantly, you may experience impermanent loss. Full range positions have higher exposure to this risk.
+                </div>
+
+                <div class="b0x-important-note">
+                    <strong>Gas Fees:</strong> All transactions require Base ETH for gas fees. Make sure you have enough ETH in your wallet for approvals and liquidity deposits.
+                </div>
+
+                <div class="b0x-important-note">
+                    <strong>Full Range Benefits:</strong> Full range positions earn fees on all trades regardless of price movement, but require balancing both tokens in the pair.
+                </div>
+            </div>
+
+            <div class="b0x-final-section">
+                <h2>🎉 Ready to Earn?</h2>
+                <p style="font-size: 1.2em; margin-bottom: 0;">Choose your pool and start earning fees today!</p>
+                <p>Our dynamic fee system works 24/7 to optimize your returns as a liquidity provider.</p>
+<button class="mining-stats-button" onclick="switchTab('stats'); switchTab2('stats-staking-rich-list');">View Staked Pool Statistics</button>
+<a href="https://app.uniswap.org/positions" target="_blank" class="mining-stats-button" style="display: inline-block; text-align: center; text-decoration: none;">View Your Not Staked Pool Positions</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+                <div id="miner" class="page">
+
+                    <div id="b0x-miner-container">
+                        <div id="b0x-main-content">
+                            <header id="b0x-header">
+                                <h1 id="b0x-title">🚀 B0x Token Miner Setup</h1>
+                                <p id="b0x-subtitle">Complete guide to get your miner up and running</p>
+                            </header>
+
+                            <div class="b0x-section">
+                                <h2 class="b0x-section-title">📋 Prerequisites</h2>
+
+                                <div class="b0x-step">
+                                    <span class="b0x-step-number">1</span>
+                                    <strong>Update Graphics Drivers:</strong> Install the latest NVIDIA graphics drivers
+                                    from the
+                                    <a href="https://www.nvidia.com/drivers" target="_blank"
+                                        class="b0x-external-link">official NVIDIA website</a>
+                                </div>
+
+                                <div class="b0x-step">
+                                    <span class="b0x-step-number">2</span>
+                                    <strong>Install .NET 6.0:</strong> Download and install .NET 6.0 Runtime from
+                                    <a href="https://dotnet.microsoft.com/download/dotnet/6.0" target="_blank"
+                                        class="b0x-external-link">Microsoft's official site</a>
+                                </div>
+                            </div>
+
+                            <div class="b0x-section">
+                                <h2 class="b0x-section-title">⬇️ Download Miner</h2>
+                                <p>Choose your operating system and download the appropriate miner:</p>
+
+                                <div class="b0x-download-links">
+                                    <div class="b0x-download-card">
+                                        <h3>🪟 Windows Miner</h3>
+                                        <p>For Windows 10/11 users</p>
+                                        <a href="https://github.com/B0x-Token/B0xToken-Windows-Miner-Mainnet/"
+                                            target="_blank" class="b0x-download-btn">
+                                            Download Windows Miner
+                                        </a>
+                                    </div>
+
+                                    <div class="b0x-download-card">
+                                        <h3>🐧 Ubuntu Miner</h3>
+                                        <p>For Ubuntu 20+ users</p>
+                                        <a href="https://github.com/B0x-Token/B0xToken-Miner-Mainnet-Ubuntu/"
+                                            target="_blank" class="b0x-download-btn">
+                                            Download Ubuntu Miner
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="b0x-section">
+                                <h2 class="b0x-section-title">⚙️ Configuration Setup</h2>
+
+                                <div class="b0x-step">
+                                    <span class="b0x-step-number">3</span>
+                                    <strong>Extract Files:</strong> After downloading, extract the .zip file contents to
+                                    your desired location.
+                                </div>
+
+                                <div class="b0x-step">
+                                    <span class="b0x-step-number">4</span>
+                                    <strong>Configure Settings:</strong> Navigate to the B0x Token Miner folder and open
+                                    <code>B0xToken.conf</code> file. Edit the following settings:
+                                </div>
+
+                                <div class="b0x-config-block">
+                                    "minerAddress": "0xF2E00a6DbA02eD1115e5BEf3CcD7B5dD47141dDC",<br></br>
+                                    "privateKey": "0xf7a41INPUTYOURPRIVATEKEYHEREc3e0ac4fd7e83bd900de10190",
+                                </div>
+
+                                <div class="b0x-important-note">
+                                    ⚠️ <strong>Important:</strong> Replace with your Base Blockchain account
+                                    that has Base Ethereum in it. Using this exposed key will result in loss of funds.
+                                    **ESPECIALLY TRUE ON MAINNET, USING the included testnet key will result in loss of funds,
+                                    you must supply your own private key and address for mining!**
+                                </div>
+
+                                <h3 style="color: white; margin-top: 25px;">Optional Configuration Parameters:</h3>
+
+                                <div class="b0x-config-block">
+                                    "mintToAddress": "",</div>
+                                <p><strong>mintToAddress:</strong> Optional. If you want tokens minted to a different
+                                    address. Overpayment ETH will also go to this address.</p>
+
+                                <div class="b0x-config-block">
+                                    "MaxSolvesperMint": 15,<br></br>
+                                    "MinSolvesperMint": 3,</div>
+                                <p><strong>MaxSolvesperMint:</strong> Maximum number of solves before submitting a
+                                    transaction.<br>
+                                    <strong>MinSolvesperMint:</strong> Minimum number of solves before submitting (lower
+                                    is better).
+                                </p>
+
+                                <div class="b0x-config-block">
+                                    "Difficulty_Multiplier": 1,</div>
+                                <p><strong>Difficulty_Multiplier:</strong> Work at higher difficulties for more reward
+                                    per mint. Suggested: 2-5 at start, then 1 after 1000 difficulty.</p>
+
+                                <div class="b0x-config-block">
+                                    "minSecondsPerAnswer": 0,<br></br>
+                                    "maxUSDperToken": -0.10,</div>
+                                <p><strong>maxUSDperToken:</strong> Maximum USD you plan to spend per B0x token
+                                    (negative means it costs money to mint - this is normal).
+                                    -0.10 means 10c per Token is the maximum you want to spend per token in ur mints
+                                </p>
+
+                                <h3 style="color: white; margin-top: 25px;">Network Configuration (Testnet):</h3>
+                                <div class="b0x-config-block">
+                                    "web3api": "https://base.llamarpc.com",<br></br>
+                                    "contractAddress": "0xE377d143a472EB0b255264f22af858075b6b9529",<br></br>
+                                    "chainID": 8453,</div>
+                            </div>
+
+                            <div class="b0x-section">
+                                <h2 class="b0x-section-title">💰 Get Base Ethereum & Bridgeing to Base</h2>
+
+                                <div class="b0x-step">
+                                    <span class="b0x-step-number">5</span>
+                                    <strong>Get Base Ethereum:</strong> First, get Base Ethereum frome bridge
+                                </div>
+
+                                <div class="b0x-bridge-links">
+                                    <a href="https://jumper.exchange/?fromChain=8453&toChain=8453&toToken=0x0000000000000000000000000000000000000000"
+                                        target="_blank" class="b0x-bridge-btn">
+                                        🚰 Get Base Ethereum from the Bridge
+                                    </a>
+                                </div>      <div class="b0x-bridge-links">
+                                    <a href="https://superbridge.app/?fromChainId=1&toChainId=8453"
+                                        target="_blank" class="b0x-bridge-btn">
+                                        🚰 Get Base Ethereum from the SuperBridge Bridge
+                                    </a>
+                                </div>
+                                <div class="b0x-important-note">
+                                    ⏱️ <strong>Wait Time:</strong> After bridging, wait approximately 1-5 minutes for                        
+                                    Base Ethereum to appear in your wallet.
+                                </div>
+                            </div>
+
+                            <div class="b0x-section">
+                                <h2 class="b0x-section-title">🚀 Start Mining</h2>
+
+                                <div class="b0x-platform-instructions">
+                                    <div class="b0x-platform-card">
+                                        <div class="b0x-platform-title">
+                                            <div class="b0x-platform-icon">W</div>
+                                            Windows Instructions
+                                        </div>
+                                        <ol>
+                                            <li>Double-click <strong>AStartMiner.bat</strong></li>
+                                            <li>The system will verify all components are installed correctly</li>
+                                            <li>The miner should start automatically!</li>
+                                            <li>Check the logs for easy monitoring</li>
+                                        </ol>
+                                    </div>
+
+                                    <div class="b0x-platform-card">
+                                        <div class="b0x-platform-title">
+                                            <div class="b0x-platform-icon">U</div>
+                                            Ubuntu Instructions
+                                        </div>
+                                        <ol>
+                                            <li>Right-click on <strong>1RunThisToMineB0xToken.sh</strong></li>
+                                            <li>Select "Properties" → "Permissions"</li>
+                                            <li>Enable "Allow executing file as program"</li>
+                                            <li>Double-click the file and select "Run in terminal"</li>
+                                        </ol>
+                                        <p><strong>Alternative:</strong> Open terminal in the directory and run:<br>
+                                            <code>./1RunThisToMineB0xToken.sh</code>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="b0x-final-section">
+                                <h2>🎉 Congratulations!</h2>
+                                <p style="font-size: 1.2em; margin-bottom: 0;">You're now mining B0x Tokens!</p>
+                                <p>Monitor the logs to track your mining progress and earnings.</p>
+                                <button class="mining-stats-button" onclick="switchTab('stats')">GO View Mining
+                                    Statistics</button>
+
+
+
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                </div>
+                <!-- ADMIN FUNCTION DAPP PAGE -->
+                <div id="admin-functions" class="page">
+
+                    <div class="info-card">
+                        <h3>ADMIN FUNCTIONS Update Fees or Add/Remove Reward Tokens</h3>
+                        <p>Update Pool Fee and Add ERC20 Token Reward and Remove ERC20 Reward</p>
+                    </div>
+                    <button class="btn-primary" id="currentPoolFeeBtn"
+                        onclick="getCurrentPoolFee()">getCurrentPoolFee</button>
+                    <button class="btn-primary" id="currentPoolFeeBtn"
+                        onclick="getCurrentPoolFee0xBTCETH()">getCurrentPoolFee0xBTCETH</button>
+                    <button class="btn-primary" id="currentPoolFeeBtn"
+                        onclick="getCurrentPoolFeeB0xETH()">getCurrentPoolFeeB0xETH</button>
+                    <div class="info-card2">
+                        <h3>Current Pool Fee<h3>
+                                <p>Not loaded yet...</p>
+                    </div>
+
+                    <h1>Hook Admin Functions</h1>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>New Fee %</label>
+                            <div style="position: relative; display: inline-block; width: 100%;">
+                                <input type="number" id="UpdateAdminFee" value="10" step="1" min="0.1" max="90"
+                                    style="width: 100%; padding: 10px 25px 10px 10px; border: 1px solid #ddd; border-radius: 4px;">
+                                <span
+                                    style="position: absolute; left: 55px; top: 50%; transform: translateY(-50%); color: #666; pointer-events: none;">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" onclick="updateAdminFeeForPool()">Update Admin PooL Fee B0x 0xBTC Pool</button><br></br>
+                    <button class="btn-primary" onclick="updateAdminFeeForPool0xBTCETH()">Update Admin PooL Fee 0xBTC ETH Pool</button><br></br>
+                    <button class="btn-primary" onclick="updateAdminFeeForPoolB0xETH()">Update Admin PooL Fee B0x ETH Pool</button>
+                    <br></br><br></br><br></br>
+                    <h1>Staking Admin Functions</h1>
+
+
+                    <!-- Basic Address Input -->
+                    <div class="form-group">
+                        <label for="basic-address-Add">Add ERC20 to Staking</label>
+                        <input type="text" id="basic-address-add" class="address-input"
+                            placeholder="0x1234567890abcdef1234567890abcdef12345678" maxlength="42">
+                    </div>
+                    <button class="btn-primary" onclick="addERC20ToStakingContract()">Add ERC20 to Staking
+                        Contract</button>
+                    <br></br><br></br>
+                    <!-- Basic Address Input -->
+                    <div class="form-group">
+                        <label for="basic-address-Remove">Remove ERC20 from Staking</label>
+                        <input type="text" id="basic-address-remove" class="address-input"
+                            placeholder="0x2222567890abcdef1234567890abcdef12345678" maxlength="42">
+                    </div>
+
+                    <button class="btn-primary" onclick="removeERC20FromStakingContract()">Remove ERC20 to Staking
+                        Contract</button>
+
+                </div>
+
+            </div>
+
+
+
+
+    <script src="script.js" defer></script>
+</body>
+</html>
