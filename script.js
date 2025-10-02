@@ -15184,8 +15184,8 @@ async function getAllPoolFees() {
             "stateMutability": "view"
         }
     ];
-
-    const multicallContract = new ethers.Contract(MULTICALL3_ADDRESS, multicall3ABI, provider);
+        const provider12121212 = new ethers.providers.JsonRpcProvider(customRPC);
+    const multicallContract = new ethers.Contract(MULTICALL3_ADDRESS, multicall3ABI, provider12121212);
     const hookInterface = new ethers.utils.Interface(hookABI);
 
     // Helper function to sort currencies
