@@ -1757,6 +1757,7 @@ function handleWalletError(error) {
             break;
         default:
             alert('Failed to connect wallet: ' + error.message);
+            attemptf2f21 = 0;
     }
 }
 
