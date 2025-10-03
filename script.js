@@ -46,54 +46,6 @@ const tokenIconsETH = {
 
 /*
 
-const UnsiwapV4PoolCreatorAddress = "0x176893CaD9f87670ffDcaEa1F0b1893406FD1111";
-const USDCToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
-const positionManager_address = "0x7c5f5a4bbd8fd63184577525326123b519429bdc";
-const contractAddress_PositionFinderPro = '0x42FA2F1eAC85897AcaD0f4C02C1A961a788DC441'; // Replace with actual contract address
-const contractAddress_Swapper = '0x09CdF8012f6A94664Bdf0Bf8f01EaBD8520C9052'; // Replace with actual contract address
-const contractAddressLPRewardsStaking = '0x511ad50ac7D0D3a85D1a5731961cd7ae61f3796B';
-const hookAddress = '0xAe6265d04E3477dCb271B0b4fb557Dea58d49000';
-const ProofOfWorkAddresss = '0x3b36c60703C8608ED1AE7F7D854635Bc0F4A1CCD';
-
-// Token addresses mapping
-const tokenAddresses = {
-'ETH': '0x0000000000000000000000000000000000000000', // addresses
-'B0x': '0x481767a80dA65424dAC4fA5464228e92DE645a41',
-'0xBTC': '0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B',
-'WETH': '0x4200000000000000000000000000000000000006',
-'RightsTo0xBTC': '0x0000000000000000000000000000000000000000', //temp until mainnet fill in with actual token on launch
-'USDC': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', //mainnet base USDC
-};
-
-
-
-    const tokenMap = {
-        "0x4200000000000000000000000000000000000006": "WETH",
-        "0x0000000000000000000000000000000000000000": "ETH",
-        "0x481767a80dA65424dAC4fA5464228e92DE645a41": "B0x",
-        "0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B": "0xBTC",
-        "0x0000000000000000000000000000000000000000": "RightsTo0xBTC",  //temp until mainnet fill in with actual token on launch
-        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": "USDC", //mainnet base USDC
-        // Add more token mappings as needed
-    };
-
-
-   
-
-
-// Token addresses mapping FOR ETHEREUM MAINNET ONLY but using testnet base sepolia instead of mainnet ETH
-  const tokenAddressesETH = {
-      'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
-      'B0x': '0xdd450AdADc7707bd8Cc5983A7093478c11c6df59', //TEMP UNTIL MAINNET FILL IN WITH ACTUAL TOKEN ON LAUNCH
-      '0xBTC': '0xB6eD7644C69416d67B522e20bC294A9a9B405B31',
-      'RightsTo0xBTC': '0xC81991ebeC19eCb2D65587C407Afce4B0012B3ed', //TEMP UNTIL MAINNET FILL IN WITH ACTUAL TOKEN ON LAUNCH
-      };
-
-
-*/
-
-
-
 
 const UnsiwapV4PoolCreatorAddress = "0x398395C860EcaaF9B58FEBd0b91118c129DbcBe7";
 const USDCToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
@@ -137,6 +89,58 @@ const tokenAddressesETH = {
     '0xBTC': '0xB6eD7644C69416d67B522e20bC294A9a9B405B31',
     'RightsTo0xBTC': '0xCD62959Dc839410f62cD95b3c2A2aF5ae4c535ae', //TEMP UNTIL MAINNET FILL IN WITH ACTUAL TOKEN ON LAUNCH
 };
+
+
+
+*/
+
+
+
+const UnsiwapV4PoolCreatorAddress = "0xE82F72200f54968Dcc3b6900d4B33701dA62A48C";
+const USDCToken = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+const positionManager_address = "0x7c5f5a4bbd8fd63184577525326123b519429bdc";
+const contractAddress_PositionFinderPro = '0x6be8BAFFC70696404Cdc191129e832238d242C34'; // Replace with actual contract address
+const contractAddress_Swapper = '0x7efA6a3B86B630013a1541c1DEe4Abf729a3a775'; // Replace with actual contract address
+const contractAddressLPRewardsStaking = '0xe66EA3fe7659310d3392363673aFB39fd1019AdA';
+const hookAddress = '0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000';
+const ProofOfWorkAddresss = '0x97bBa9F710DE42536843Bd1061514b5104D7DE50';
+
+// Token addresses mapping
+const tokenAddresses = {
+'ETH': '0x0000000000000000000000000000000000000000', // addresses
+'B0x': '0xa9520FC8c54691af586544aD13Db954AfC345cd4',
+'0xBTC': '0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B',
+'WETH': '0x4200000000000000000000000000000000000006',
+'RightsTo0xBTC': '0x0000000000000000000000000000000000000000', //temp until mainnet fill in with actual token on launch
+'USDC': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', //mainnet base USDC
+};
+
+
+
+    const tokenMap = {
+        "0x4200000000000000000000000000000000000006": "WETH",
+        "0x0000000000000000000000000000000000000000": "ETH",
+        "0xa9520FC8c54691af586544aD13Db954AfC345cd4": "B0x",
+        "0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B": "0xBTC",
+        "0x0000000000000000000000000000000000000000": "RightsTo0xBTC",  //temp until mainnet fill in with actual token on launch
+        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": "USDC", //mainnet base USDC
+        // Add more token mappings as needed
+    };
+
+
+   
+
+
+// Token addresses mapping FOR ETHEREUM MAINNET ONLY but using testnet base sepolia instead of mainnet ETH
+  const tokenAddressesETH = {
+      'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
+      'B0x': '0x313cD1962Cb6fA0A53900586C19373939F781909', //TEMP UNTIL MAINNET FILL IN WITH ACTUAL TOKEN ON LAUNCH
+      '0xBTC': '0xB6eD7644C69416d67B522e20bC294A9a9B405B31',
+      'RightsTo0xBTC': '0xE3A582b3588c9BB73027e5C0531912d880e76E1E', //TEMP UNTIL MAINNET FILL IN WITH ACTUAL TOKEN ON LAUNCH
+      };
+
+
+
 
 
 
@@ -8608,19 +8612,19 @@ function getAllPossibleRoutes(fromToken, toToken) {
 
 async function getSingleRouteEstimate(route, amountIn, fromToken, toToken) {
 console.log("Custom RPC1: ", customRPC);
+await sleep(300);
     const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
     const provider_temp = walletConnected ? provider : provider_zzzzz12;
     const contractInterface = new ethers.utils.Interface(SPLIT_ROUTE_ABI);
     
     const fromAddress = tokenAddresses[fromToken];
     const toAddress = tokenAddresses[toToken];
-    
     const callData = buildRouteCall(route, amountIn, contractInterface, fromAddress, toAddress);
-    
     try {
         const result = await provider_temp.call({
             to: contractAddress_Swapper,
-            data: callData
+            data: callData,
+            gasLimit: 1000000
         });
         
         const decoded = contractInterface.decodeFunctionResult(
@@ -8628,6 +8632,7 @@ console.log("Custom RPC1: ", customRPC);
             result
         );
         
+await sleep(300);
         return {
             route: route,
             output: decoded[0]
@@ -9031,11 +9036,11 @@ async function optimizeMultiRoutesBatch(
 
 function buildRouteCall(route, amount, contractInterface, tokenInAddress, tokenOutAddress) {
     if (route.isSingleHop) {
-      //  console.log("route.tokenA",route.tokenA );
-     //   console.log("route.tokenB",route.tokenB );
-      //  console.log("tokenInAddress",tokenInAddress );
-     //   console.log("amount",amount);
-      //  console.log("route.hookAddress", route.hookAddress );
+        console.log("route.tokenA",route.tokenA );
+       console.log("route.tokenB",route.tokenB );
+        console.log("tokenInAddress",tokenInAddress );
+       console.log("amount",amount);
+        console.log("route.hookAddress", route.hookAddress );
         return contractInterface.encodeFunctionData("getOutput", [
             route.tokenA,
             route.tokenB,
@@ -14077,6 +14082,36 @@ async function getCreatePosition() {
 
     const amountToDepositBN = ethers.BigNumber.from(amountToDeposit.toString());
     const amountToDepositBN2 = ethers.BigNumber.from(amountWith8Decimals0xBTC.toString());
+
+ 
+    const tokenSwapperABI = [
+        { "inputs": [{ "name": "token", "type": "address" }, { "name": "token2", "type": "address" }, { "name": "amountIn", "type": "uint256" }, { "name": "amountIn2", "type": "uint256" }, { "name": "currentx96", "type": "uint256" }, { "name": "slippage", "type": "uint256" }, { "name": "hookAddress", "type": "address" }, { "name": "toSendNFTto", "type": "address" }], "name": "createPositionWith2Tokens", "outputs": [{ "name": "", "type": "bool" }], "stateMutability": "payable", "type": "function" },
+        { "inputs": [{ "internalType": "address", "name": "token", "type": "address" }, { "internalType": "address", "name": "token2", "type": "address" }, { "internalType": "address", "name": "hookAddress", "type": "address" }], "name": "getsqrtPricex96", "outputs": [{ "internalType": "uint160", "name": "", "type": "uint160" }], "stateMutability": "view", "type": "function" },
+        {
+            "inputs": [
+                { "internalType": "address", "name": "token", "type": "address" },
+                { "internalType": "address", "name": "token2", "type": "address" },
+                { "internalType": "address", "name": "hookAddress", "type": "address" }
+            ],
+            "name": "getPriceRatio",
+            "outputs": [
+                { "internalType": "uint256", "name": "ratio", "type": "uint256" },
+                { "internalType": "address", "name": "token0z", "type": "address" },
+                { "internalType": "address", "name": "token1z", "type": "address" },
+                { "internalType": "uint8", "name": "token0decimals", "type": "uint8" },
+                { "internalType": "uint8", "name": "token1decimals", "type": "uint8" }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ];
+
+
+    tokenSwapperContract = new ethers.Contract(
+        contractAddress_Swapper, // your tokenSwapper contract address
+        tokenSwapperABI,
+        signer // Use signer since the function isn't view/pure
+    );
 
 
     try {
@@ -23671,11 +23706,11 @@ const CONFIG = {
 
     // Target pool key
     TARGET_POOL_KEY: {
-        currency0: "0x30456A1da01117Ab06044665854BCCd29640585d",
+        currency0: "0xa9520FC8c54691af586544aD13Db954AfC345cd4",
         currency1: "0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B",
         fee: 8388608,
         tickSpacing: 60,
-        hooks: "0xA54CbcF7449421E5842C483CC30d992ced301000"
+        hooks: "0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000"
     }
 };
 
@@ -24932,4 +24967,3 @@ initializeChart().catch(error => {
 });
 
 //reload button javascript above
-
