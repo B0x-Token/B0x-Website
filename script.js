@@ -1260,6 +1260,7 @@ async function quickconnectWallet() {
 }
 
 var previousAct = "";
+var attemptf2f21= 0;
 async function connectWallet() {
 
     console.log("ConnectWallet");
@@ -1273,6 +1274,13 @@ async function connectWallet() {
         alert('Please install MetaMask or Rabby wallet!');
         return null;
     }
+    attemptf2f21 = attemptf2f21 + 1;
+    if(attemptf2f21 > 2){
+            alert("A connection request is already pending in your wallet. The page will refresh to clear this. Please connect wallet and approve the connection after refresh.");
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000); // Give user time to read the message
+    }
 
 
     try {
@@ -1281,7 +1289,7 @@ async function connectWallet() {
         });
         if (accounts.length > 0) {
 
-
+            attemptf2f21 = 0;
             // Switch to Base Sepolia network
             await switchToBase();
             userAddress = accounts[0];
@@ -1741,9 +1749,11 @@ function handleWalletError(error) {
     switch (error.code) {
         case 4001:
             alert('Please approve the connection request in your wallet');
+            attemptf2f21 = 0;
             break;
         case -32002:
             alert('Connection request is already pending. Please check your wallet');
+            attemptf2f21 = 0;
             break;
         default:
             alert('Failed to connect wallet: ' + error.message);
