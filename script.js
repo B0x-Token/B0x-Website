@@ -17735,7 +17735,21 @@ function initializeTabFromURL() {
     } else {
         console.error("Could not find .fee-valueB0x0xBTC element");
     }
-    
+    var linkB0x0xBTCz= "https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=0xa9520fc8c54691af586544ad13db954afc345cd4&chain=base&hook=0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" +poolsfee.b0xOxbtc+",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
+      var linkB0xETHz = "https://app.uniswap.org/positions/create/v4?currencyA=0xa9520FC8c54691af586544aD13Db954AfC345cd4&currencyB=NATIVE&chain=base&hook=0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22isDynamic%22:true,%22feeAmount%22:"+ poolsfee.b0xEth +",%22tickSpacing%22:60}&step=1";
+
+
+        var link0xBTCETHz = "https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=NATIVE&chain=base&hook=0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" + poolsfee.oxbtcEth +",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
+const linkB0xETH = document.getElementById('uniswap-linkB0xETH');
+const linkB0x0xBTC = document.getElementById('uniswap-linkB0x0xBTC');
+const link0xBTCETH = document.getElementById('uniswap-link0xBTCETH');
+
+// Assign href values to each link
+linkB0xETH.href = linkB0xETHz;
+linkB0x0xBTC.href = linkB0x0xBTCz;
+link0xBTCETH.href = link0xBTCETHz;
+
+
     await sleep(300);
 }
 
