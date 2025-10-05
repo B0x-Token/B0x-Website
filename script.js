@@ -23172,7 +23172,7 @@ function fixsize() {
                         } else if (header.classList.contains('balance-th')) {
                             header.style.fontSize = '0.7em';
                             header.style.padding = '2px 2px';
-                            header.style.width = '15%';
+                            header.style.width = '35%';
                             header.textContent = 'Address';
                         } else if (header.classList.contains('balance-th-balance')) {
                             header.style.fontSize = '0.6em';
@@ -23195,7 +23195,7 @@ function fixsize() {
                             cell.style.fontSize = '1.5em';
                         }
                         if (cell.classList.contains('address-rich')) {
-                            cell.style.fontSize = '0.6em';
+                            cell.style.fontSize = '1.7em';
                             const link = cell.querySelector('a');
                             if (link) {
                                 const address = link.textContent;
