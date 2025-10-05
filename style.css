@@ -2295,7 +2295,7 @@ body::before {
         }
 
         .chart-container2 {
-            height: 90%;
+            /*height: 90%;
             /* make chart fill the space */
         }
 
@@ -2305,7 +2305,7 @@ body::before {
         }
 
         .chart-container {
-            height: 90%;
+           /* height: 90%;
             /* make chart fill the space */
         }
     }
@@ -2422,8 +2422,31 @@ body::before {
             min-height: calc(1.4em * 3);
             /* Slightly smaller font on mobile if needed */
         }
+
+        #stats {
+            padding: 0px 0px !important;
+        }
+
+
+    #priceChart {
+        width: 100% !important;
+        height: 90% !important;
     }
 
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 210px) {
+
+.header-content p {
+    margin: 0;
+    visibility: hidden;
+    position: absolute;
+}
+
+
+
+    }
     .address:focus {
         outline: none;
         border-color: #7877c6;
@@ -3168,6 +3191,12 @@ body::before {
         .notification-message {
             font-size: 11px;
         }
+
+        .nav-tabs {
+            grid-template-columns: repeat(1, 1fr);
+            font-size: 4vw !important;
+        }
+
     }
 
     .code-example {
@@ -4478,7 +4507,6 @@ body::before {
     }
 
     .miner-col {
-        min-width: 125px;
         white-space: nowrap;
     }
 
@@ -4494,7 +4522,8 @@ body::before {
 
     .chart-containerf {
         width: 1200px;
-        height: 400px;
+        flex: 1;
+        min-width: 0;
         margin: 10px 0;
         /* Minimal vertical spacing */
         padding: 0;
@@ -4668,7 +4697,8 @@ body::before {
     /* Solution 1: Force canvas sizing with viewport units */
     .chart-containerf {
         width: 100%;
-        height: 30%;
+        flex: 1;
+        min-width: 0;
         margin: 4vh 0 !important;
         padding: 0;
         position: relative;
@@ -4699,7 +4729,7 @@ body::before {
     .chart-containerf>div {
         width: 100%;
         /* full width of container */
-        height: 400px;
+      /*  height: 400px;
         /* or whatever height you want */
         max-height: 600px;
         /* optional, limit height */

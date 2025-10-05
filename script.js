@@ -375,10 +375,19 @@ async function initializeChart() {
         }
     });
 
+    var minPrice=10000000000;
+    var maxPrice=0;
+
     // Create movement bars data - each bar spans from previous price to current price
     const movementBars = [];
     for (let i = 1; i < prices.length; i++) {
         const prevPrice = prices[i - 1];
+        if(minPrice > prices[i]){
+            minPrice = prices[i];
+        }
+        if(maxPrice < prices[i]){
+            maxPrice = prices[i];
+        }
         const currentPrice = prices[i];
         movementBars.push({
             x: i - 0.5, // Position between previous and current point
@@ -388,6 +397,7 @@ async function initializeChart() {
         });
     }
 
+        console.log("minPrice: ", minPrice);
     const ctx = document.getElementById('priceChart').getContext('2d');
 
 
@@ -576,7 +586,15 @@ async function initializeChart() {
                     ticks: {
                         color: 'white', // Make y-axis labels white
                         callback: function (value) {
-                            return '$' + value.toFixed(6);
+                            if(0.01 < minPrice){
+                                return '$' + value.toFixed(2);
+                            }else if(0.001 < minPrice)
+                            {
+                                return '$' + value.toFixed(3);
+                            }else if(0.0001 < minPrice)
+                            {
+                                return '$' + value.toFixed(4);
+                            }
                         }
                     },
                     grid: {
