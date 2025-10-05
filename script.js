@@ -22956,12 +22956,12 @@ let currentSort = 'b0x';
 async function loadData() {
     const primaryUrls = {
         base: customDataSource + 'RichList_B0x_testnet.json',
-        eth: customDataSource + 'RichList_B0x_testnet.json' // Will be different when you have separate file
+        eth: customDataSource + 'RichList__MainnetETH_holders.json' // Will be different when you have separate file
     };
 
     const backupUrls = {
         base: customBACKUPDataSource + 'RichList_B0x_testnet.json',
-        eth: customBACKUPDataSource + 'RichList_B0x_testnet.json' // Will be different when you have separate file
+        eth: customBACKUPDataSource + 'RichList__MainnetETH_holders.json' // Will be different when you have separate file
     };
 
     try {
@@ -23041,68 +23041,75 @@ var rankBaseb0x = 0;
 function combineData() {
     const addressMap = new Map();
 
-    rankETHb0x = 0;
-    rankBaseb0x = 0;
     // Process Base data
     baseData.holders.forEach(holder => {
-        rankBaseb0x = rankBaseb0x + 1;
         addressMap.set(holder.address, {
             address: holder.address,
             b0xBalance: parseFloat(holder.balanceFormatted) || 0,
             b0xBalanceRaw: holder.balance,
             ethB0xBalance: 0,
-            ethB0xBalanceRaw: '0',
-            RankBaseB0x: rankBaseb0x,
-
+            ethB0xBalanceRaw: '0'
         });
     });
 
     // Process ETH data
     ethData.holders.forEach(holder => {
-        rankETHb0x = rankETHb0x + 1;
         const existing = addressMap.get(holder.address);
         if (existing) {
             existing.ethB0xBalance = parseFloat(holder.balanceFormatted) || 0;
             existing.ethB0xBalanceRaw = holder.balance;
-            existing.rankETHb0x = rankETHb0x;
         } else {
-            rankBaseb0x = rankBaseb0x + 1;
             addressMap.set(holder.address, {
                 address: holder.address,
                 b0xBalance: 0,
                 b0xBalanceRaw: '0',
                 ethB0xBalance: parseFloat(holder.balanceFormatted) || 0,
-                ethB0xBalanceRaw: holder.balance,
-                RankETHB0x: rankETHb0x,
-                RankBaseB0x: rankBaseb0x
-
-
+                ethB0xBalanceRaw: holder.balance
             });
         }
     });
+    
     combinedData = Array.from(addressMap.values());
-
+    
     // Filter out addresses with zero balances for both tokens
     combinedData = combinedData.filter(holder =>
         holder.b0xBalance > 0 || holder.ethB0xBalance > 0
     );
 
+    // Assign ranks AFTER filtering
+    assignRanks();
     sortData();
     filteredData2 = [...combinedData];
 }
 
-var sortByB0xBaseChain = true;
-function sortData() {
-    combinedData.sort((a, b) => {
-        if (currentSort === 'b0x') {
-            sortByB0xBaseChain = true;
-            return b.b0xBalance - a.b0xBalance;
-
-        } else {
-            sortByB0xBaseChain = false;
-            return b.ethB0xBalance - a.ethB0xBalance;
-        }
+// New function to assign ranks based on current balances
+function assignRanks() {
+    // Sort by Base B0x and assign ranks
+    const baseSort = [...combinedData].sort((a, b) => b.b0xBalance - a.b0xBalance);
+    baseSort.forEach((holder, index) => {
+        holder.rankBaseB0x = index + 1;
     });
+    
+    // Sort by ETH B0x and assign ranks
+    const ethSort = [...combinedData].sort((a, b) => b.ethB0xBalance - a.ethB0xBalance);
+    ethSort.forEach((holder, index) => {
+        holder.rankETHb0x = index + 1;
+    });
+}
+
+
+var sortByB0xBaseChain = true;
+
+function sortData() {
+    if (currentSort === 'b0x') {
+        sortByB0xBaseChain = true;
+        // Sort by Base B0x balance, highest first
+        combinedData.sort((a, b) => b.b0xBalance - a.b0xBalance);
+    } else {
+        sortByB0xBaseChain = false;
+        // Sort by ETH B0x balance, highest first
+        combinedData.sort((a, b) => b.ethB0xBalance - a.ethB0xBalance);
+    }
 }
 
 function updateStats() {
@@ -23351,8 +23358,8 @@ function renderTable() {
                 <tr>
                     <th class="balance-th-rank">Rank</th>
                     <th class="balance-th">Address</th>
-                    <th class="balance-th-balance">ETH B0x Balance</th>
                     <th class="balance-th-balance">Base B0x Balance</th>
+                    <th class="balance-th-balance">ETH B0x Balance</th>
                 </tr>
             </thead>
             <tbody>
@@ -23362,13 +23369,13 @@ function renderTable() {
     const screenWidth = window.innerWidth;
     const maxDecimals = screenWidth <= 650 ? 1 : 6;
 
-    pageData.forEach((holder, index) => {
-        var rank = ""
-        if (sortByB0xBaseChain) {
-            rank = holder.RankBaseB0x.toLocaleString(undefined, { maximumFractionDigits: 6 })
-        } else {
-            rank = holder.RankETHB0x.toLocaleString(undefined, { maximumFractionDigits: 6 })
-        }
+        pageData.forEach((holder, index) => {
+            var rank = "";
+            if (sortByB0xBaseChain) {
+                rank = holder.rankBaseB0x;
+            } else {
+                rank = holder.rankETHb0x;
+            }
         tableHTML += `
             <tr>
                 <td class="spot-rich">${rank}</td>
@@ -23465,29 +23472,30 @@ document.getElementById('pageSize2').addEventListener('change', function () {
     renderTable();
 });
 
+
+
+
 document.getElementById('sortB0x').addEventListener('click', function () {
     if (currentSort !== 'b0x') {
         currentSort = 'b0x';
         document.getElementById('sortB0x').classList.add('active');
         document.getElementById('sort0xBTC').classList.remove('active');
         sortData();
-        filterData();
+        filteredData2 = [...combinedData]; // Re-copy the sorted data
+        renderTable();
     }
 });
 
 document.getElementById('sort0xBTC').addEventListener('click', function () {
-    if (currentSort !== '0xbtc') {
-        currentSort = '0xbtc';
+    if (currentSort !== 'ethb0x') { // Changed from '0xbtc' to 'ethb0x'
+        currentSort = 'ethb0x'; // Changed from '0xbtc' to 'ethb0x'
         document.getElementById('sort0xBTC').classList.add('active');
         document.getElementById('sortB0x').classList.remove('active');
         sortData();
-        filterData();
+        filteredData2 = [...combinedData]; // Re-copy the sorted data
+        renderTable();
     }
 });
-
-
-
-
 
 
 
