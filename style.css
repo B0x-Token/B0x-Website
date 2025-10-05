@@ -2705,6 +2705,10 @@ body::before {
         color: black !important;
         background-color: white !important;
     }
+    .form-group2 select option {
+        color: black !important;
+        background-color: white !important;
+    }
 
 
     /* Default: side by side layout */
