@@ -6481,7 +6481,7 @@ body::before {
 
         .member-social:hover {
             background: rgba(0, 212, 255, 0.3);
-            transform: scale(1.1);pie-chart-wrapper
+            transform: scale(1.1);
         }
 
         .member-social svg {
