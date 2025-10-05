@@ -1261,107 +1261,178 @@ async function quickconnectWallet() {
 
 var previousAct = "";
 var attemptf2f21= 0;
-async function connectWallet() {
-
-    console.log("ConnectWallet");
-
-    if (walletConnected) {
-        console.log('Wallet already connected');
-        return userAddress;
-    }
-
-    if (typeof window.ethereum === 'undefined') {
-        alert('Please install MetaMask or Rabby wallet!');
-        return null;
-    }
-    attemptf2f21 = attemptf2f21 + 1;
-    if(attemptf2f21 > 2){
-            alert("A connection request is already pending in your wallet. The page will refresh to clear this. Please connect wallet and approve the connection after refresh.");
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000); // Give user time to read the message
-    }
 
 
+
+var previousAct = "";
+var attemptf2f21 = 0;
+var connectionState = {
+  lastStep: '',
+  isRecovering: false
+};
+
+// Wrap network-sensitive operations with retry logic
+async function withNetworkRetry(fn, maxRetries = 3, stepName = '') {
+  for (let i = 0; i < maxRetries; i++) {
     try {
-        const accounts = await window.ethereum.request({
-            method: 'eth_requestAccounts'
-        });
-        if (accounts.length > 0) {
-
-            attemptf2f21 = 0;
-            // Switch to Base Sepolia network
-            await switchToBase();
-            userAddress = accounts[0];
-            walletConnected = true;
-
-            if (previousAct != userAddress) {
-                WhereToStartSearch = LAUNCH_UNISWAP_ID;
-            }
-            previousAct = userAddress;
-            localStorage.setItem('walletConnected', 'true');
-            localStorage.setItem('walletAddress', userAddress);
-
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            signer = provider.getSigner();
-
-            updateWalletUI(userAddress, true);
-
-
-
-            // Set up event listeners for account changes
-            setupWalletListeners();
-            await fetchBalances();
-
-            await switchToEthereum();
-            await fetchBalancesETH();
-            await switchToBase();
-
-
-            WhereToStartSearch = LAUNCH_UNISWAP_ID;
-            WhereToStartSearchStaked = 0;
-
-            Object.keys(positionData).forEach(key => {
-                const idNumber = parseInt(key.split('_')[1]);
-                if (idNumber > 0) {
-                    delete positionData[key];
-                }
-            });
-
-            await getRewardStats();
-            await sleep(300);
-            await getTokenIDsOwnedByMetamask();
-            await sleep(300);
-            await checkAdminAccess();
-
-
-            await sleep(300);
-            await loadPositionsIntoDappSelections();
-
-            await sleep(300);
-            await throttledGetSqrtRtAndPriceRatio("ConnectWallet");
-
-            const toggle = document.getElementById('#settings toggle1');
-            if (toggle1.checked) {
-                console.log("contractAddresses MATCH ");
-                await restoreDefaultAddressesfromContract();
-            }
-            await sleep(300);
-            await getRewardStats();
-            await sleep(300);
-                       await GetRewardAPY();
-
-            await sleep(1300);
-            await checkAdminAccess();
-
-
-
-            return userAddress;
-        }
+      connectionState.lastStep = stepName;
+      return await fn();
     } catch (error) {
-        handleWalletError(error);
-        return null;
+      if (error.code === 'NETWORK_ERROR' && i < maxRetries - 1) {
+        console.log(`Network error at step "${stepName}", retrying... (${i + 1}/${maxRetries})`);
+        await sleep(1000*i); // Wait before retry
+        // Reinitialize provider and signer
+       // provider = new ethers.providers.Web3Provider(window.ethereum);
+      //  signer = provider.getSigner();
+        continue;
+      }
+      throw error; // Rethrow if max retries reached or different error
     }
+  }
+}
+
+async function connectWallet(resumeFromStep = null) {
+  console.log("ConnectWallet", resumeFromStep ? `(resuming from: ${resumeFromStep})` : '');
+  
+  if (walletConnected && !resumeFromStep) {
+    console.log('Wallet already connected');
+    return userAddress;
+  }
+  
+  if (typeof window.ethereum === 'undefined') {
+    alert('Please install MetaMask or Rabby wallet!');
+    return null;
+  }
+  
+  attemptf2f21 = attemptf2f21 + 1;
+  if (attemptf2f21 > 2) {
+    alert("A connection request is already pending in your wallet. The page will refresh to clear this. Please connect wallet and approve the connection after refresh.");
+    setTimeout(() => {
+      window.location.reload();
+    }, 2000);
+    return null;
+  }
+  
+  try {
+    // Step 1: Request accounts (skip if resuming from later step)
+    if (true) {
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts'
+      });
+      
+      if (accounts.length === 0) return null;
+      
+      attemptf2f21 = 0;
+      userAddress = accounts[0];
+      walletConnected = true;
+      
+      if (previousAct != userAddress) {
+        WhereToStartSearch = LAUNCH_UNISWAP_ID;
+      }
+      previousAct = userAddress;
+      
+      localStorage.setItem('walletConnected', 'true');
+      localStorage.setItem('walletAddress', userAddress);
+      
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      signer = provider.getSigner();
+      
+      await updateWalletUI(userAddress, true);
+      setupWalletListeners();
+      await switchToBase();
+    }
+    
+    // Step 2: Fetch Base balances
+    if (!resumeFromStep || resumeFromStep === 'fetchBalances') {
+      await switchToBase();
+      await withNetworkRetry(() => fetchBalances(), 3, 'fetchBalances');
+    }
+    
+    // Step 3: Fetch ETH balances
+    if (!resumeFromStep || ['fetchBalances', 'fetchBalancesETH'].includes(resumeFromStep)) {
+      await switchToEthereum();
+      await withNetworkRetry(() => fetchBalancesETH(), 3, 'fetchBalancesETH');
+      await switchToBase(); // Switch back to Base
+    }
+    
+    // Step 4: Initialize position data
+    if (!resumeFromStep || ['fetchBalances', 'fetchBalancesETH', 'initPositions'].includes(resumeFromStep)) {
+      WhereToStartSearch = LAUNCH_UNISWAP_ID;
+      WhereToStartSearchStaked = 0;
+      Object.keys(positionData).forEach(key => {
+        const idNumber = parseInt(key.split('_')[1]);
+        if (idNumber > 0) {
+          delete positionData[key];
+        }
+      });
+    }
+    
+    // Step 5: Get token IDs
+    if (!resumeFromStep || resumeFromStep === 'getTokenIDs') {
+      await sleep(300);
+      await withNetworkRetry(() => getTokenIDsOwnedByMetamask(), 3, 'getTokenIDs');
+    }
+    
+    // Step 6: Check admin access
+    if (!resumeFromStep || resumeFromStep === 'checkAdmin') {
+      await sleep(300);
+      await withNetworkRetry(() => checkAdminAccess(), 3, 'checkAdmin');
+    }
+    
+    // Step 7: Load positions
+    if (!resumeFromStep || resumeFromStep === 'loadPositions') {
+      await sleep(300);
+      await withNetworkRetry(() => loadPositionsIntoDappSelections(), 3, 'loadPositions');
+    }
+    
+    // Step 8: Get price data
+    if (!resumeFromStep || resumeFromStep === 'getPriceData') {
+      await sleep(300);
+      await withNetworkRetry(() => throttledGetSqrtRtAndPriceRatio("ConnectWallet"), 3, 'getPriceData');
+    }
+    
+    // Step 9: Restore addresses if needed
+    if (!resumeFromStep || resumeFromStep === 'restoreAddresses') {
+      const toggle1 = document.getElementById('toggle1');
+      if (toggle1 && toggle1.checked) {
+        console.log("contractAddresses MATCH");
+        await withNetworkRetry(() => restoreDefaultAddressesfromContract(), 3, 'restoreAddresses');
+      }
+    }
+    
+    // Step 10: Get reward stats
+    if (!resumeFromStep || resumeFromStep === 'getRewardStats') {
+      await sleep(300);
+      await withNetworkRetry(() => getRewardStats(), 3, 'getRewardStats');
+    }
+    
+    // Step 11: Get APY
+    if (!resumeFromStep || resumeFromStep === 'getAPY') {
+      await sleep(300);
+      await withNetworkRetry(() => GetRewardAPY(), 3, 'getAPY');
+    }
+    
+    // Step 12: Final admin check
+    await withNetworkRetry(() => checkAdminAccess(), 3, 'finalAdminCheck');
+    
+    connectionState.isRecovering = false;
+    connectionState.lastStep = 'completed';
+    
+    return userAddress;
+    
+  } catch (error) {
+    if (error.code === 'NETWORK_ERROR' && !connectionState.isRecovering) {
+      console.log('Network error detected, attempting recovery...');
+      connectionState.isRecovering = true;
+      await sleep(2000);
+      // Retry from the last known step
+      return connectWallet(connectionState.lastStep);
+    }
+    
+    handleWalletError(error);
+    connectionState.isRecovering = false;
+    return null;
+  }
 }
 
 
@@ -23551,17 +23622,21 @@ async function startCountdown() {
 }
 
 function startChecker() {
-    if (checker) clearInterval(checker);
+  if (checker) clearInterval(checker);
+  const startTime = Date.now();
+  const minWaitTime = count*1000; // Wait at least 5 seconds
+  
+  checker = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    console.log("Checker running - elapsed:", elapsed, "inFunctionDontRefresh:", inFunctionDontRefresh);
     
-    checker = setInterval(() => {
-        console.log("Checker running - inFunctionDontRefresh:", inFunctionDontRefresh);
-        if (!inFunctionDontRefresh) {
-            console.log("Resuming - inFunctionDontRefresh is now false");
-            clearInterval(checker);
-            checker = null;
-            handleCountdownComplete();
-        }
-    }, 1000);
+    if (!inFunctionDontRefresh && elapsed >= minWaitTime) {
+      console.log("Resuming - conditions met");
+      clearInterval(checker);
+      checker = null;
+      handleCountdownComplete();
+    }
+  }, 1000);
 }
 
 async function handleCountdownComplete() {
@@ -23626,46 +23701,7 @@ startCountdown();
 
 var isReloading = false;
 
-
-async function runReloadFunctions() {
-    if (!walletConnected) {
-        console.log("wallet not connected no reload for it");
-           await getEstimate();
-        return;
-    }
-
-    if (isReloading) return;
-    isReloading = true;
-
-
-    try {
-        // Execute all functions in the order you specified
-        await fetchBalances();
-
-        if(PreviousTabName == "convert"){
-            console.log("Tabname = convert do ETH")
-
-        await switchToEthereum();
-        await fetchBalancesETH();
-        await switchToBase();
-        }
-
-
-        await getRewardStats();
-        await throttledGetSqrtRtAndPriceRatio("SwapFunction");
-
-        const now = new Date().toLocaleTimeString();
-        isReloading = false;
-    } catch (error) {
-        isReloading = false;
-
-        console.error('Error during reload:', error);
-    } finally {
-        isReloading = false;
-        resetCountdown();
-    }
-}
-
+var lastReload = Date.now();
 
 
 
