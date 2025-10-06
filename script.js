@@ -23540,7 +23540,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const steps = document.querySelectorAll('.b0x-step');
     steps.forEach((step, index) => {
         step.addEventListener('click', function () {
-            this.style.backgroundColor = '#e8f5e8';
+            this.style.backgroundColor = 'black';
             this.style.borderLeft = '4px solid #4CAF50';
 
             const stepNumber = this.querySelector('.b0x-step-number');
