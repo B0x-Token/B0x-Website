@@ -2918,6 +2918,14 @@ body::before {
         max-width: calc(100vw - 20px);
     }
 
+
+    .notification-container.middle-right {
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        max-width: calc(100vw - 20px);
+        }
+
     /* Individual Notification - Mobile Optimized */
     .notification {
         display: flex;

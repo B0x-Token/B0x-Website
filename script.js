@@ -4750,6 +4750,7 @@ async function collectRewards() {
 
 async function depositNFTStake() {
 
+    
     if (!walletConnected) {
         await connectWallet();
     }
@@ -22398,11 +22399,6 @@ const notificationWidget = new MobileNotificationWidget('bottom-right');
 function setPosition(position) {
     notificationWidget.setPosition(position);
 
-    // Update active button
-    document.querySelectorAll('.position-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    event.target.classList.add('active');
 }
 
 
