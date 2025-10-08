@@ -3327,7 +3327,7 @@ body::before {
         gap: 1px;
         background: #333;
         border-radius: 8px;
-        overflow: hidden;
+        overflow: auto;
     }
 
     .stat-row {
@@ -4154,6 +4154,7 @@ body::before {
         #stats .calculator-grid {
             grid-template-columns: 1fr;
             gap: 20px;
+            overflow: auto;
         }
 
         #stats .button-group {
