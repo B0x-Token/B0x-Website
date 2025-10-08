@@ -2918,14 +2918,6 @@ body::before {
         max-width: calc(100vw - 20px);
     }
 
-
-    .notification-container.middle-right {
-        top: 50%;
-        right: 10px;
-        transform: translateY(-50%);
-        max-width: calc(100vw - 20px);
-        }
-
     /* Individual Notification - Mobile Optimized */
     .notification {
         display: flex;
@@ -4257,11 +4249,6 @@ body::before {
         position: relative;
     }
 
-    #stats .stats-table-wrapper {
-        flex: 1;
-        min-width: 0;
-    }
-
     #stats .stats-table {
         width: 90%;
         border-collapse: collapse;
@@ -4754,13 +4741,6 @@ body::before {
 
 
 
-    /* BASE STYLES FOR ALL STATS TABLES */
-    #stats .stats-table-wrapper {
-        flex: 1;
-        min-width: 0;
-        width: 100%;
-        overflow: hidden;
-    }
 
     #stats .stats-table,
     #stats .blocks-table {
@@ -5328,20 +5308,6 @@ body::before {
             max-width: 40px;
             padding: 1px 2px;
         }
-    }
-
-    #stats .blocks-table th:nth-child(1) {
-        width: 40px;
-    }
-
-    /* First column (hash2) */
-    #stats .blocks-table th:nth-child(2) {
-        width: 100px;
-    }
-
-    /* Second column */
-    #stats .blocks-table th:nth-child(3) {
-        width: 80px;
     }
 
     /* Third column */
@@ -6570,3 +6536,41 @@ body::before {
 .bx-tech-specs {
     color: white !important;
 }
+
+/* Hide the Base Block # column on screens less than 500px */
+@media (max-width: 499px) {
+    .blocks-table th:nth-child(2),
+    .blocks-table td:nth-child(2) {
+        display: none;
+    }
+}
+#stats .blocks-table .hash {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: clamp(7px, 1.4vw, 16px);
+    color: #64b5f6;
+    word-wrap: break-word;
+    max-width: clamp(60px, 20vw, 150px); /* Dynamically scale width */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Gradually shrink the hash column below 400px */
+@media (max-width: 400px) {
+    #stats .blocks-table .hash {
+        max-width: clamp(50px, 25vw, 100px);
+        font-size: clamp(6px, 3vw, 12px);
+    }
+    #stats .blocks-table .miner-name {
+        max-width: clamp(50px, 25vw, 100px);
+        font-size: clamp(6px, 3vw, 12px);
+    }
+}
+.stats-table-wrapper {
+     font-size: clamp(5px, 1.2vw, 12px);
+    overflow-x: auto;
+    max-width: 100%;
+    width: 100%;
+}
+
+

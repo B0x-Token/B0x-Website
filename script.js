@@ -21205,6 +21205,34 @@ async function updateAllMinerInfo(provider) {
         return new Date(date_of_last_mint.getTime() - ((last_reward_eth_block - eth_block) * _SECONDS_PER_ETH_BLOCK * 1000)).toLocaleString('en-US', options);
     }
 
+    function get_date_from_eth_block(eth_block) {
+    const blockTime = new Date(
+        date_of_last_mint.getTime() - ((last_reward_eth_block - eth_block) * _SECONDS_PER_ETH_BLOCK * 1000)
+    );
+
+    const now = new Date();
+    const diffMs = now - blockTime;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHr = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHr / 24);
+    const diffYr = Math.floor(diffDay / 365);
+
+    let result;
+    if (diffYr >= 1) {
+        result = diffYr === 1 ? "1 year ago" : `${diffYr} years ago`;
+    } else if (diffDay >= 1) {
+        result = diffDay === 1 ? "1 day ago" : `${diffDay} days ago`;
+    } else if (diffHr >= 1) {
+        result = diffHr === 1 ? "1 hr ago" : `${diffHr} hrs ago`;
+    } else if (diffMin >= 1) {
+        result = diffMin === 1 ? "1 min ago" : `${diffMin} mins ago`;
+    } else {
+        result = "just now";
+    }
+
+    return result;
+}
     var totalzkBTCMinted = 0.0;
     var previousBlock = 0;
     var index = 0;
@@ -21269,13 +21297,13 @@ async function updateAllMinerInfo(provider) {
 
             // Add the new period row with placeholder for next update
             if (eth_block > 25990908) {
-                innerhtml_buffer += '<tr><td align="right" style="text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">'
+                innerhtml_buffer += '<tr><td id="statsTime"">'
                     + get_date_from_eth_block(eth_block) + '</td><td>'
                     + '<b>New difficulty period</b>' + '</td><td>'
                     + '<b>New Challenge</b>'
                     + '</td><td><b> Previous Period had</b></td><td class="stat-value"><b>PeriodNumberperiod Mints</b></td></tr>';
             } else {
-                innerhtml_buffer += '<tr><td align="right" style="text-overflow:ellipsis;white-space: nowrap;overflow: hidden;">'
+                innerhtml_buffer += '<tr><td id="statsTime">'
                     + get_date_from_eth_block(eth_block) + '</td><td>'
                     + '<b>New difficulty period</b>' + '</td><td>'
                     + '<b>New Challenge</b>'
@@ -21283,7 +21311,7 @@ async function updateAllMinerInfo(provider) {
             }
         } else {
             // Generate styled HTML for blocks with proper CSS classes
-            innerhtml_buffer += '<tr><td align="right" style="width: 200px;">'
+            innerhtml_buffer += '<tr><td id="statsTime">'
                 + get_date_from_eth_block(eth_block) + '</td><td class="hash2">'
                 + '<a href="' + block_url + '" target="_blank">' + eth_block + '</a></td><td class="hash">'
                 + '<a href="' + transaction_url + '" title="' + tx_hash + '" target="_blank">'
@@ -21301,14 +21329,13 @@ async function updateAllMinerInfo(provider) {
 
 
 
-    document.querySelectorAll('#stats .blocks-table th:nth-child(2), #stats .blocks-table td:nth-child(2)').forEach(element => {
-        element.style.width = '10vw';
-        element.style.maxWidth = '10vw';
-        element.style.overflow = 'hidden';
-        element.style.textOverflow = 'ellipsis';
-        element.style.whiteSpace = 'nowrap';
-    });
-
+document.querySelectorAll('#stats .blocks-table th:nth-child(2), #stats .blocks-table td:nth-child(2)').forEach(element => {
+    element.style.width = '10%';  // % of table width, not viewport
+    element.style.maxWidth = '10%';
+    element.style.overflow = 'hidden';
+    element.style.textOverflow = 'ellipsis';
+    element.style.whiteSpace = 'nowrap';
+});
 
 
 }
