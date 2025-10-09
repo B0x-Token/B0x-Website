@@ -1464,85 +1464,91 @@ async function connectWallet(resumeFromStep = null) {
 //async function switchToBaseSepolia() {
 async function switchToBase() {
     const baseConfig = {
-        chainId: '0x2105', // 84532 in hex
+        chainId: '0x2105', // 8453 in hex for Base Mainnet
         chainName: 'Base',
         nativeCurrency: {
             name: 'Ethereum',
             symbol: 'ETH',
             decimals: 18
         },
+        // Provide multiple public RPC options - wallet will choose
         rpcUrls: [customRPC],
         blockExplorerUrls: ['https://basescan.org/']
     };
-
+    
     try {
-        // Try to add the network first (this will do nothing if it already exists)
-        await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [baseConfig]
-        });
-        console.log('Base network added/confirmed');
-
-        // Then switch to it
+        // First, try to just switch (works if user already has Base configured)
         await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: baseConfig.chainId }]
         });
         console.log('Switched to Base network');
-
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-    } catch (error) {
-        console.error('Error with Base network:', error);
-        throw new Error(`Failed to setup Base network: ${error.message}`);
+    } catch (switchError) {
+        // This error code indicates the chain has not been added to MetaMask
+        if (switchError.code === 4902) {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [baseConfig]
+                });
+                console.log('Base network added and switched');
+            } catch (addError) {
+                throw new Error(`Failed to add Base network: ${addError.message}`);
+            }
+        } else {
+            throw new Error(`Failed to switch to Base network: ${switchError.message}`);
+        }
     }
+    
+    // Get provider/signer from user's wallet connection
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
 }
-
 
 
 
 // Alternative approach - always try to add first, then switch
 async function switchToEthereum() {
-
-    const EthereumConfig = {
-        chainId: '0x1', // 84532 in hex
-        chainName: 'Ethereum',
+    const ethereumConfig = {
+        chainId: '0x1', // 1 in hex for Ethereum Mainnet
+        chainName: 'Ethereum Mainnet',
         nativeCurrency: {
             name: 'Ethereum',
             symbol: 'ETH',
             decimals: 18
         },
-        rpcUrls: [customRPC_ETH],
+        rpcUrls: [customRPC_ETH], // Public RPC
         blockExplorerUrls: ['https://etherscan.io/']
     };
-
+    
     try {
-        // Try to add the network first (this will do nothing if it already exists)
-        await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [EthereumConfig]
-        });
-        console.log('Ethereum network added/confirmed');
-
-        // Then switch to it
+        // First, try to just switch (works if user already has Ethereum configured)
         await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: EthereumConfig.chainId }]
+            params: [{ chainId: ethereumConfig.chainId }]
         });
         console.log('Switched to Ethereum network');
-
-        providerETH = new ethers.providers.Web3Provider(window.ethereum);
-        signerETH = providerETH.getSigner();
-    } catch (error) {
-        console.error('Error with Ethereum network:', error);
-        throw new Error(`Failed to setup Ethereum network: ${error.message}`);
+    } catch (switchError) {
+        // This error code indicates the chain has not been added to MetaMask
+        if (switchError.code === 4902) {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [ethereumConfig]
+                });
+                console.log('Ethereum network added and switched');
+            } catch (addError) {
+                throw new Error(`Failed to add Ethereum network: ${addError.message}`);
+            }
+        } else {
+            throw new Error(`Failed to switch to Ethereum network: ${switchError.message}`);
+        }
     }
+    
+    // Get provider/signer from user's wallet connection
+    providerETH = new ethers.providers.Web3Provider(window.ethereum);
+    signerETH = providerETH.getSigner();
 }
-
-
-
-
-
 
 
 
