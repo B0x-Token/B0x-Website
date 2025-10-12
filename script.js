@@ -195,6 +195,7 @@ let MinamountOut; // Declare this variable globally
 
 
 var pricesLoaded = false;
+var latestSearch = false;
 async function fetchPriceData() {
     console.log("customDataSource customDataSource: ", customDataSource);
     const primaryUrl = customDataSource + 'price_data_bwork.json';
@@ -1462,10 +1463,9 @@ async function connectWallet(resumeFromStep = null) {
 
 // Alternative approach - always try to add first, then switch
 //async function switchToBaseSepolia() {
-
-async function switchToBase(retryCount = 0, maxRetries = 5) {
+async function switchToBase() {
     const baseConfig = {
-        chainId: '0x2105', // 8453 in hex for Base Mainnet
+        chainId: '0x2105', // 84532 in hex
         chainName: 'Base',
         nativeCurrency: {
             name: 'Ethereum',
@@ -1475,71 +1475,39 @@ async function switchToBase(retryCount = 0, maxRetries = 5) {
         rpcUrls: [customRPC],
         blockExplorerUrls: ['https://basescan.org/']
     };
-    
-    // Check if already on Base
-    const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-    if (currentChainId === baseConfig.chainId) {
-        console.log('Already on Base network');
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-        return;
-    }
-    
+
     try {
+        // Try to add the network first (this will do nothing if it already exists)
+        await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [baseConfig]
+        });
+        console.log('Base network added/confirmed');
+
+        // Then switch to it
         await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: baseConfig.chainId }]
         });
         console.log('Switched to Base network');
+
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
-    } catch (switchError) {
-        // Chain not added yet
-        if (switchError.code === 4902) {
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_addEthereumChain',
-                    params: [baseConfig]
-                });
-                console.log('Base network added and switched');
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                signer = provider.getSigner();
-            } catch (addError) {
-                throw new Error(`Failed to add Base network: ${addError.message}`);
-            }
-        }
-        // User rejected
-        else if (switchError.code === 4001) {
-            throw new Error('User rejected the network switch request');
-        }
-        // Network changed during request or pending request
-        else if (switchError.code === -32002 || 
-                 switchError.message.includes('change in selected network') ||
-                 switchError.message.includes('request already pending')) {
-            
-            if (retryCount >= maxRetries) {
-                throw new Error('Maximum retry attempts reached. Please manually switch to Base network.');
-            }
-            
-            console.log(`Network switch interrupted, retrying... (attempt ${retryCount + 1}/${maxRetries})`);
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Wait before retry
-            
-            // Recursive retry
-            return await switchToBase(retryCount + 1, maxRetries);
-        }
-        else {
-            throw new Error(`Failed to switch to Base network: ${switchError.message}`);
-        }
+    } catch (error) {
+        console.error('Error with Base network:', error);
+        throw new Error(`Failed to setup Base network: ${error.message}`);
     }
 }
 
 
-// Alternative approach - always try to add first, then switch
 
-async function switchToEthereum(retryCount = 0, maxRetries = 5) {
-    const ethereumConfig = {
-        chainId: '0x1', // 1 in hex for Ethereum Mainnet
-        chainName: 'Ethereum Mainnet',
+
+// Alternative approach - always try to add first, then switch
+async function switchToEthereum() {
+
+    const EthereumConfig = {
+        chainId: '0x1', // 84532 in hex
+        chainName: 'Ethereum',
         nativeCurrency: {
             name: 'Ethereum',
             symbol: 'ETH',
@@ -1548,64 +1516,34 @@ async function switchToEthereum(retryCount = 0, maxRetries = 5) {
         rpcUrls: [customRPC_ETH],
         blockExplorerUrls: ['https://etherscan.io/']
     };
-    
-    // Check if already on Ethereum
-    const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-    if (currentChainId === ethereumConfig.chainId) {
-        console.log('Already on Ethereum network');
-        providerETH = new ethers.providers.Web3Provider(window.ethereum);
-        signerETH = providerETH.getSigner();
-        return;
-    }
-    
+
     try {
-        // First, try to just switch (works if user already has Ethereum configured)
+        // Try to add the network first (this will do nothing if it already exists)
+        await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [EthereumConfig]
+        });
+        console.log('Ethereum network added/confirmed');
+
+        // Then switch to it
         await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: ethereumConfig.chainId }]
+            params: [{ chainId: EthereumConfig.chainId }]
         });
         console.log('Switched to Ethereum network');
+
         providerETH = new ethers.providers.Web3Provider(window.ethereum);
         signerETH = providerETH.getSigner();
-    } catch (switchError) {
-        // This error code indicates the chain has not been added to MetaMask
-        if (switchError.code === 4902) {
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_addEthereumChain',
-                    params: [ethereumConfig]
-                });
-                console.log('Ethereum network added and switched');
-                providerETH = new ethers.providers.Web3Provider(window.ethereum);
-                signerETH = providerETH.getSigner();
-            } catch (addError) {
-                throw new Error(`Failed to add Ethereum network: ${addError.message}`);
-            }
-        }
-        // User rejected
-        else if (switchError.code === 4001) {
-            throw new Error('User rejected the network switch request');
-        }
-        // Network changed during request or pending request
-        else if (switchError.code === -32002 || 
-                 switchError.message.includes('change in selected network') ||
-                 switchError.message.includes('request already pending')) {
-            
-            if (retryCount >= maxRetries) {
-                throw new Error('Maximum retry attempts reached. Please manually switch to Ethereum network.');
-            }
-            
-            console.log(`Network switch interrupted, retrying... (attempt ${retryCount + 1}/${maxRetries})`);
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Wait before retry
-            
-            // Recursive retry
-            return await switchToEthereum(retryCount + 1, maxRetries);
-        }
-        else {
-            throw new Error(`Failed to switch to Ethereum network: ${switchError.message}`);
-        }
+    } catch (error) {
+        console.error('Error with Ethereum network:', error);
+        throw new Error(`Failed to setup Ethereum network: ${error.message}`);
     }
 }
+
+
+
+
+
 
 
 
@@ -18292,7 +18230,7 @@ async function initializeDApp() {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         var x=0
-       while(!pricesLoaded){
+       while(!pricesLoaded && x < 120){
         x++;
                 if(x > 12){
                     updateLoadingStatus('Loading price graphs... takes up to 30-60 seconds if main server is down');
@@ -18306,8 +18244,28 @@ async function initializeDApp() {
         }
 
 
-        updateLoadingStatus('Absolutely Ready!');
-        await new Promise(resolve => setTimeout(resolve, 500));
+        var xx=0
+       while(!latestSearch && xx < 180){
+        xx++;
+                if(xx > 12){
+                    updateLoadingStatus('Loading latest blockchain data... takes up to 30-90 seconds if main server is down');
+
+                }else{
+
+                    updateLoadingStatus('Loading blockchain data...');
+                }
+                
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        if(xx<180 && x<120){
+            updateLoadingStatus('Absolutely Ready!');
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+        }else{
+            updateLoadingStatus('Ready, although took max time to get data!');
+            await new Promise(resolve => setTimeout(resolve, 2500));
+        }
 
         hideLoadingScreen();
     } catch (error) {
@@ -25039,6 +24997,7 @@ async function runContinuous(blocksPerScan = 1000, sleepSeconds = 10) {
             }
 
             if (isRunning && !forceRefresh) {
+                latestSearch=true;
                 console.log(`Waiting ${sleepSeconds}s before checking for new blocks...`);
                 let test = 0;
                 while (!forceRefresh && test < sleepSeconds) {

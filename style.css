@@ -6573,5 +6573,13 @@ body::before {
     max-width: 100%;
     width: 100%;
 }
-
-
+.image-container {
+  height: auto;
+  margin-top: -6rem; /* more predictable spacing */
+  margin-bottom: -3.5rem;
+  transform-origin: center center;
+    overflow: hidden; /* clip the image to container size */
+}
+        .zoom-image:hover {
+            transform: scale(1.7);
+        }
