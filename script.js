@@ -22802,13 +22802,28 @@ function adjustTableForScreenSize() {
         const table = document.querySelector('#tableContent55 table');
         const screenWidth = window.innerWidth;
 
+       
         if (screenWidth <= 768) {
-            // Mobile styles
+            // Mobile styles - shrink to content with overflow
             table.style.fontSize = '0.8rem';
+            table.style.width = 'auto';  // Let table size itself
+            table.style.minWidth = '415px';  // Minimum width before overflow
+            table.style.tableLayout = 'auto';  // Flexible column sizing
+
+            // Make the table's parent scrollable
+            const tableParent = table.parentElement;
+            if (tableParent) {
+                tableParent.style.overflowX = 'auto';
+                tableParent.style.maxWidth = '100%';
+            }
+
             const headers = table.querySelectorAll('th');
             const cells = table.querySelectorAll('td');
 
             headers.forEach(header => {
+                header.style.whiteSpace = 'nowrap';  // Prevent wrapping
+                header.style.width = '1%';  // Shrink to content
+                
                 if (header.textContent === 'Rank') {
                     header.style.fontSize = '0.8em';
                     header.style.padding = '2px 3px';
@@ -22820,13 +22835,23 @@ function adjustTableForScreenSize() {
 
             cells.forEach(cell => {
                 cell.style.padding = '8px 6px';
+                cell.style.whiteSpace = 'nowrap';  // Prevent wrapping
+                cell.style.width = '1%';  // Shrink to content
+                cell.style.overflow = 'hidden';
             });
+
         } else if (screenWidth <= 1024) {
             // Tablet styles
             table.style.fontSize = '0.9rem';
+            table.style.width = '100%';
+            table.style.tableLayout = '';  // Reset to default
+            
             const headers = table.querySelectorAll('th');
 
             headers.forEach(header => {
+                header.style.width = '';  // Reset width
+                header.style.whiteSpace = '';  // Reset whitespace
+                
                 if (header.textContent === 'Rank') {
                     header.style.fontSize = '0.9em';
                     header.style.padding = '3px 4px';
@@ -22835,25 +22860,17 @@ function adjustTableForScreenSize() {
                     header.style.padding = '10px 14px';
                 }
             });
-        } else {
-            // Desktop styles (keep original)
-            table.style.fontSize = '1rem';
-            const headers = table.querySelectorAll('th');
 
-            headers.forEach(header => {
-                if (header.textContent === 'Rank') {
-                    header.style.fontSize = '1em';
-                    header.style.padding = '3px 4px';
-                } else {
-                    header.style.fontSize = '3em';
-                    header.style.padding = '12px 16px';
-                }
+            const cells = table.querySelectorAll('td');
+            cells.forEach(cell => {
+                cell.style.width = '';  // Reset width
+                cell.style.whiteSpace = '';  // Reset whitespace
             });
-        }
 
-    } else {
+        }  else {
         console.log("not in the staking rich list for stats")
     }
+}
 }
 
 
@@ -23192,63 +23209,81 @@ function fixsize() {
                 console.log("Processing table with class:", table.className);
                 const screenWidth = window.innerWidth;
 
-                if (screenWidth <= 650) {
-                    // Extra small screens - aggressive compression
-                    table.style.fontSize = '0.5rem';
-                    table.style.width = '100%';
-                    table.style.tableLayout = 'fixed';
+       if (screenWidth <= 650) {
+    // Extra small screens - aggressive compression
+    table.style.fontSize = '0.5rem';
+    table.style.width = 'auto';  // Let table size itself
+    table.style.minWidth = '415px';
+    table.style.tableLayout = 'auto';  // Use auto layout
 
-                    const headers = table.querySelectorAll('th');
-                    const cells = table.querySelectorAll('td');
+    const headers = table.querySelectorAll('th');
+    const cells = table.querySelectorAll('td');
 
-                    console.log("Headers found:", headers.length);
-                    console.log("Cells found:", cells.length);
+    console.log("Headers found:", headers.length);
+    console.log("Cells found:", cells.length);
 
-                    headers.forEach(header => {
-                        header.style.wordBreak = 'break-word';
-                        header.style.hyphens = 'auto';
+    // Make the table's parent scrollable if it exists
+    const tableParent = table.parentElement;
+    if (tableParent) {
+        tableParent.style.overflowX = 'auto';
+        tableParent.style.maxWidth = '100%';
+    }
 
-                        if (header.classList.contains('balance-th-rank')) {
-                            header.style.fontSize = '0.5em';
-                            header.style.padding = '1px 1px';
-                            header.style.width = '5%';
-                            header.textContent = 'Rank';
-                        } else if (header.classList.contains('balance-th')) {
-                            header.style.fontSize = '0.7em';
-                            header.style.padding = '2px 2px';
-                            header.style.width = '35%';
-                            header.textContent = 'Address';
-                        } else if (header.classList.contains('balance-th-balance')) {
-                            header.style.fontSize = '0.6em';
-                            header.style.padding = '2px 2px';
-                            header.style.width = '27.5%';
-                            if (header.textContent.includes('ETH B0x')) {
-                                header.textContent = 'ETH B0x';
-                            } else if (header.textContent.includes('Base B0x')) {
-                                header.textContent = 'Base B0x';
-                            }
-                        }
-                    });
+    headers.forEach(header => {
+        if (header.classList.contains('balance-th-rank')) {
+            header.style.fontSize = '0.8em';
+            header.style.padding = '1px';
+            header.style.width = '1%';  // Minimal width
+            header.style.whiteSpace = 'nowrap';
+            header.textContent = 'Rank';
+        } else if (header.classList.contains('balance-th')) {
+            header.style.fontSize = '1.5em';
+            header.style.padding = '2px';
+            header.style.width = '1%';  // Minimal width - let content decide
+            header.style.whiteSpace = 'nowrap';
+            header.textContent = 'Addr';
+        } else if (header.classList.contains('balance-th-balance')) {
+            header.style.fontSize = '1.5em';
+            header.style.whiteSpace = 'nowrap';
+            header.style.width = '1%';  // Shrink to content
+            header.style.padding = '2px';
+            if (header.textContent.includes('ETH B0x')) {
+                header.textContent = 'ETH B0x';
+            } else if (header.textContent.includes('Base B0x')) {
+                header.textContent = 'Base B0x';
+            }
+        }
+    });
 
-                    cells.forEach(cell => {
-                        cell.style.padding = '2px 1px';
-                        cell.style.wordBreak = 'break-all';
-                        cell.style.overflow = 'hidden';
+    cells.forEach(cell => {
+        cell.style.padding = '2px 1px';
+        cell.style.overflow = 'hidden';
 
-                        if (cell.classList.contains('balance-rich')) {
-                            cell.style.fontSize = '1.5em';
-                        }
-                        if (cell.classList.contains('address-rich')) {
-                            cell.style.fontSize = '1.7em';
-                            const link = cell.querySelector('a');
-                            if (link) {
-                                const address = link.textContent;
-                                if (address.length > 20 && !address.includes('...')) {
-                                    link.textContent = address.slice(0, 6) + '...' + address.slice(-6);
-                                }
-                            }
-                        }
-                    });
+        if (cell.classList.contains('balance-rich')) {
+            cell.style.fontSize = '1.5em';
+            cell.style.whiteSpace = 'nowrap';
+            cell.style.width = '1%';  // Shrink to content
+        }
+        
+        if (cell.classList.contains('address-rich')) {
+            cell.style.fontSize = '1.7em';
+            cell.style.overflow = 'hidden';
+            cell.style.whiteSpace = 'nowrap';
+            cell.style.width = '1%';  // Minimal width - shrink to content
+            
+            const link = cell.querySelector('a');
+            if (link) {
+                link.style.display = 'inline-block';
+                link.style.whiteSpace = 'nowrap';
+                
+                const address = link.textContent;
+                if (address.length > 14 && !address.includes('...')) {
+                    link.textContent = address.slice(0, 4) + '...' + address.slice(-4);
+                }
+            }
+        }
+    });
+
 
                 } else if (screenWidth <= 875) {
                     table.style.fontSize = '0.6rem';
@@ -23259,7 +23294,7 @@ function fixsize() {
 
                     headers.forEach(header => {
                         if (header.classList.contains('balance-th-rank')) {
-                            header.style.fontSize = '0.6em';
+                            header.style.fontSize = '1.5em';
                             header.style.padding = '2px 2px';
                             header.style.width = 'auto';
                         } else if (header.classList.contains('balance-th')) {
@@ -23272,9 +23307,9 @@ function fixsize() {
                             header.style.padding = '4px 4px';
                             header.style.width = 'auto';
                             if (header.textContent === 'ETH B0x') {
-                                header.textContent = 'ETH B0x Balance';
+                                header.textContent = 'ETH B0x';
                             } else if (header.textContent === 'Base B0x') {
-                                header.textContent = 'Base B0x Balance';
+                                header.textContent = 'Base B0x';
                             }
                         }
                     });
@@ -23402,8 +23437,8 @@ function renderTable() {
                 <tr>
                     <th class="balance-th-rank">Rank</th>
                     <th class="balance-th">Address</th>
-                    <th class="balance-th-balance">Base B0x Balance</th>
-                    <th class="balance-th-balance">ETH B0x Balance</th>
+                    <th class="balance-th-balance">Base B0x</th>
+                    <th class="balance-th-balance">ETH B0x</th>
                 </tr>
             </thead>
             <tbody>
