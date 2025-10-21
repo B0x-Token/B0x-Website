@@ -21382,7 +21382,7 @@ async function updateAllMinerInfo(provider) {
             innerhtml_buffer = finalstr;
 
             // Add the new period row with placeholder for next update
-            if (eth_block > 25990908) {
+            if (eth_block > 36415630) {
                 innerhtml_buffer += '<tr><td id="statsTime"">'
                     + get_date_from_eth_block(eth_block) + '</td><td>'
                     + '<b>New difficulty period</b>' + '</td><td>'
@@ -21393,7 +21393,7 @@ async function updateAllMinerInfo(provider) {
                     + get_date_from_eth_block(eth_block) + '</td><td>'
                     + '<b>New difficulty period</b>' + '</td><td>'
                     + '<b>New Challenge</b>'
-                    + '</td><td><b> Previous Period had</b></td><td class="stat-value"><b>PeriodNumberperiod Mints</b></td></tr>';
+                    + '</td><td><b> Previous Period had</b></td><td class="stat-value"><b>2016 Mints</b></td></tr>';
             }
         } else {
             // Generate styled HTML for blocks with proper CSS classes
