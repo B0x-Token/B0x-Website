@@ -1460,12 +1460,9 @@ async function connectWallet(resumeFromStep = null) {
 
 
 
-
-// Alternative approach - always try to add first, then switch
 async function switchToEthereum(retryCount = 0, maxRetries = 5) {
-
     const EthereumConfig = {
-        chainId: '0x1', // 84532 in hex
+        chainId: '0x1', // 1 in hex
         chainName: 'Ethereum',
         nativeCurrency: {
             name: 'Ethereum',
@@ -1475,22 +1472,22 @@ async function switchToEthereum(retryCount = 0, maxRetries = 5) {
         rpcUrls: [customRPC_ETH],
         blockExplorerUrls: ['https://etherscan.io/']
     };
-
+    
+    // Check if already on Ethereum
+    const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+    if (currentChainId === EthereumConfig.chainId) {
+        console.log('Already on Ethereum network');
+        providerETH = new ethers.providers.Web3Provider(window.ethereum);
+        signerETH = providerETH.getSigner();
+        return;
+    }
+    
     try {
-        // Try to add the network first (this will do nothing if it already exists)
-        await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [EthereumConfig]
-        });
-        console.log('Ethereum network added/confirmed');
-
-        // Then switch to it
         await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: EthereumConfig.chainId }]
         });
         console.log('Switched to Ethereum network');
-
         providerETH = new ethers.providers.Web3Provider(window.ethereum);
         signerETH = providerETH.getSigner();
     } catch (switchError) {
@@ -1499,13 +1496,13 @@ async function switchToEthereum(retryCount = 0, maxRetries = 5) {
             try {
                 await window.ethereum.request({
                     method: 'wallet_addEthereumChain',
-                    params: [baseConfig]
+                    params: [EthereumConfig]
                 });
-                console.log('Base network added and switched');
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                signer = provider.getSigner();
+                console.log('Ethereum network added and switched');
+                providerETH = new ethers.providers.Web3Provider(window.ethereum);
+                signerETH = providerETH.getSigner();
             } catch (addError) {
-                throw new Error(`Failed to add Base network: ${addError.message}`);
+                throw new Error(`Failed to add Ethereum network: ${addError.message}`);
             }
         }
         // User rejected
@@ -1518,7 +1515,7 @@ async function switchToEthereum(retryCount = 0, maxRetries = 5) {
                  switchError.message.includes('request already pending')) {
             
             if (retryCount >= maxRetries) {
-                throw new Error('Maximum retry attempts reached. Please manually switch to Base network.');
+                throw new Error('Maximum retry attempts reached. Please manually switch to Ethereum network.');
             }
             
             console.log(`Network switch interrupted, retrying... (attempt ${retryCount + 1}/${maxRetries})`);
@@ -1528,10 +1525,13 @@ async function switchToEthereum(retryCount = 0, maxRetries = 5) {
             return await switchToEthereum(retryCount + 1, maxRetries);
         }
         else {
-            throw new Error(`Failed to switch to Base network: ${switchError.message}`);
+            throw new Error(`Failed to switch to Ethereum network: ${switchError.message}`);
         }
     }
 }
+
+
+
 
 async function switchToBase(retryCount = 0, maxRetries = 5) {
     const baseConfig = {
