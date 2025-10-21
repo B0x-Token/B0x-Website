@@ -1493,9 +1493,6 @@ async function switchToEthereum(retryCount = 0, maxRetries = 5) {
 
         providerETH = new ethers.providers.Web3Provider(window.ethereum);
         signerETH = providerETH.getSigner();
-    } catch (error) {
-        console.error('Error with Ethereum network:', error);
-        throw new Error(`Failed to setup Ethereum network: ${error.message}`);
     } catch (switchError) {
         // Chain not added yet
         if (switchError.code === 4902) {
