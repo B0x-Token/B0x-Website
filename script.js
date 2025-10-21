@@ -4180,6 +4180,7 @@ async function switchToChain(chainKey) {
 
 
 // Updated MetaMask function to work with array index
+// Updated MetaMask function to work with array index
 async function addToMetaMaskByIndex(index, button) {
     if (!window.ethereum) {
         showToast("MetaMask not detected. Please install MetaMask.", true);
@@ -4193,7 +4194,6 @@ async function addToMetaMaskByIndex(index, button) {
     }
 
     if (!walletConnected) {
-
         await quickconnectWallet();
     }
 
@@ -4201,7 +4201,6 @@ async function addToMetaMaskByIndex(index, button) {
     const originalText = button.innerHTML;
 
     try {
-
         button.innerHTML = '⏳ Switching chain...';
         button.disabled = true;
 
@@ -4217,6 +4216,11 @@ async function addToMetaMaskByIndex(index, button) {
         // Now add the token
         button.innerHTML = '⏳ Adding token...';
 
+        // Conditionally set iconURL based on chain
+        const iconURL = contractData.chain === "ethereum" ?
+            tokenIconsETH[contractData.imageSymbol] :
+            tokenIconsBase[contractData.imageSymbol];
+        console.log("iconURL 4 add: ", iconURL);
         const wasAdded = await window.ethereum.request({
             method: 'wallet_watchAsset',
             params: {
@@ -4225,6 +4229,7 @@ async function addToMetaMaskByIndex(index, button) {
                     address: contractData.address,
                     symbol: contractData.symbol,
                     decimals: contractData.decimals,
+                    image: iconURL, // Add the icon URL here
                 },
             },
         });
