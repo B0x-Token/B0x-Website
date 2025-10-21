@@ -4237,14 +4237,15 @@ body::before {
         text-align: left;
     }
 
-    #stats .chart-containerf {
-        min-width: 350px  !important;
-    max-width: 100% !important; /* Shrink with parent */
-        overflow-x: auto !important;
-        display: flex;
-        gap: 20px;
-        align-items: flex-start;
-    }
+#stats .chart-containerf {
+    width: 100% !important;           /* Make it fill the parent */
+    max-width: 100% !important;       /* Don't exceed parent */
+    min-width: 0 !important;          /* Allow shrinking */
+    overflow-x: auto !important;      /* Enable horizontal scroll */
+}
+
+
+
 .scroll-wrapper {
     overflow-x: auto;
     width: 100%;
