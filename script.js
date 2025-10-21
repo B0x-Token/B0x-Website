@@ -1462,7 +1462,7 @@ async function connectWallet(resumeFromStep = null) {
 
 
 // Alternative approach - always try to add first, then switch
-async function switchToEthereu(retryCount = 0, maxRetries = 5) {
+async function switchToEthereum(retryCount = 0, maxRetries = 5) {
 
     const EthereumConfig = {
         chainId: '0x1', // 84532 in hex
