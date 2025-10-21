@@ -23837,7 +23837,7 @@ async function runReloadFunctions(fromChecker = false, fromReset = true) {
     
     try {
         await fetchBalances();
-        
+        console.log("PreviousTabName: ",PreviousTabName);
         if (PreviousTabName == "convert") {
             console.log("Tabname = convert do ETH");
             await switchToEthereum();
