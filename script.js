@@ -3969,7 +3969,7 @@ const contractsList = [
     {
         name: "B0x Token / B ZERO X Token ",
         address: tokenAddresses['B0x'],
-        symbol: "tB0X",
+        symbol: "B0X",
         imageSymbol: "B0x",
         decimals: 18,
         isToken: true,
@@ -3978,7 +3978,7 @@ const contractsList = [
     {
         name: "0xBitcoin Token ",
         address: tokenAddresses['0xBTC'],
-        symbol: "T0xBTC",
+        symbol: "0xBTC",
         imageSymbol: "0xBTC",
         decimals: 8,
         isToken: true,
