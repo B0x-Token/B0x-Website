@@ -4340,6 +4340,7 @@ body::before {
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
+        table-layout: auto;
     }
 
     #stats .blocks-table th,
@@ -4735,7 +4736,6 @@ body::before {
         /* full width of container */
       /*  height: 400px;
         /* or whatever height you want */
-        max-height: 600px;
         /* optional, limit height */
         position: relative;
         /* required for Chart.js canvas sizing */
@@ -4749,10 +4749,8 @@ body::before {
 
     #stats .stats-table,
     #stats .blocks-table {
-        width: 100%;
         border-collapse: collapse;
         background: transparent;
-        table-layout: auto;
         font-size: clamp(8px, 1.8vw, 20px);
     }
 
