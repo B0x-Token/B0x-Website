@@ -20096,6 +20096,10 @@ function combineWithMinerData(miner_blk_cnt, transactionsData) {
     console.log("Combined Data: ", combinedData);
     return combinedData;
 }
+
+
+
+
 function showBlockDistributionPieChart(piechart_dataset, piechart_labels) {
     //console.log('dataset', piechart_dataset);
     document.querySelector('#row-miners').style.display = 'block';
@@ -20138,33 +20142,43 @@ function showBlockDistributionPieChart(piechart_dataset, piechart_labels) {
 }
 
 
-
 function showBlockDistributionPieChart2(piechart_dataset, piechart_labels) {
     document.querySelector('#row-miners2').style.display = 'block';
-    document.querySelector('#blockdistributionpiechart2').innerHTML = '<canvas id="chart-block-distribution2"></canvas>';
+    document.querySelector('#blockdistributionpiechart2').innerHTML = '<canvas id="chart-block-distribution2" width="3.5rem" height="3.5rem"></canvas>';
 
     if (piechart_dataset.length == 0 || piechart_labels.length == 0) {
         return;
     }
 
     Chart.defaults.elements.arc.borderColor = 'rgb(32, 34, 38)';
-    Chart.defaults.elements.arc.borderWidth = 3;
+    Chart.defaults.elements.arc.borderWidth = 1.8;
 
     delete piechart_dataset.label;
+    
+    /* hashrate and difficulty chart */
     var hr_diff_chart = new Chart(document.getElementById('chart-block-distribution2').getContext('2d'), {
         type: 'doughnut',
+
         data: {
             datasets: [piechart_dataset],
-            labels: [], // Pass empty labels array
+            labels: piechart_labels, // Add labels here instead of empty array
         },
+
         options: {
-            legend: {
-                display: false
-            },
-            tooltips: {
-                enabled: false
+            plugins: {
+                legend: {
+                    display: false,
+                },
+                tooltip: {
+                    enabled: true,
+                    callbacks: {
+                        label: function(context) {
+                            return piechart_labels[context.dataIndex] + ': ' + context.parsed;
+                        }
+                    }
+                }
             }
-        }
+        },
     });
 }
 
