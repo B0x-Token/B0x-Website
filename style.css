@@ -4251,12 +4251,99 @@ body::before {
     width: 100%;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Base styles */
+#stats .pie-chart-wrapper {
+    flex-shrink: 0;
+    width: 300px;
+    height: 300px;
+    position: relative;
+}
+
+/* Large tablets and smaller desktops */
+@media (max-width: 1300px) {
     #stats .pie-chart-wrapper {
-        flex-shrink: 0;
         width: 240px;
         height: 240px;
-        position: relative;
     }
+}
+
+/* Tablets */
+@media (max-width: 1024px) {
+    #stats .chart-containerf {
+        gap: 15px;
+    }
+
+    #stats .pie-chart-wrapper {
+        width: 200px;
+        height: 200px;
+    }
+}
+
+/* Small tablets */
+@media (max-width: 1100px) {
+    #stats .pie-chart-wrapper {
+        width: 100%;
+        max-width: 200px;
+        height: 200px;
+        margin: 0 auto;
+    }
+}
+
+/* Mobile landscape */
+@media (max-width: 768px) {
+    #stats .pie-chart-wrapper {
+        max-width: 180px;
+        height: 180px;
+    }
+}
+
+/* Mobile portrait */
+@media (max-width: 480px) {
+    #stats .pie-chart-wrapper {
+        max-width: 160px;
+        height: 160px;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 400px) {
+    #stats .pie-chart-wrapper {
+        max-width: 140px;
+        height: 140px;
+    }
+}
+
+
+
+
+
+
+
 
     #stats .stats-table {
         width: 90%;
@@ -4393,10 +4480,6 @@ body::before {
             gap: 15px;
         }
 
-        #stats .pie-chart-wrapper {
-            width: 200px;
-            height: 200px;
-        }
     }
 
     @media (max-width: 768px) {
@@ -4411,13 +4494,6 @@ body::before {
         #stats .chart-containerf {
             flex-direction: column;
             gap: 15px;
-        }
-
-        #stats .pie-chart-wrapper {
-            width: 100%;
-            max-width: 240px;
-            height: 240px;
-            margin: 0 auto;
         }
 
         #stats .stats-table,
@@ -4450,11 +4526,6 @@ body::before {
             padding: 4px 6px;
         }
 
-        #stats .pie-chart-wrapper {
-            width: 100%;
-            max-width: 200px;
-            height: 200px;
-        }
     }
 
 
@@ -4893,12 +4964,6 @@ body::before {
         align-items: flex-start;
     }
 
-#stats .pie-chart-wrapper {
-    flex-shrink: 0;
-    width: 200px;
-    height: 200px;
-    position: relative;
-}
 
 
     /* LINKS */
@@ -4928,18 +4993,12 @@ body::before {
     /* RESPONSIVE BREAKPOINTS */
 
     /* Tablet */
-    @media (max-width: 900px) {
+    @media (max-width: 1100px) {
         #stats .chart-containerf {
             flex-direction: column;
             gap: 15px;
         }
 
-        #stats .pie-chart-wrapper {
-            width: 100%;
-            max-width: 200px;
-            height: 200px;
-            margin: 0 auto;
-        }
 
         /* Hide less important columns on tablets */
         #stats .recent-stats-table th:nth-child(3),
@@ -5001,10 +5060,6 @@ body::before {
             padding: 3px 4px;
         }
 
-        #stats .pie-chart-wrapper {
-            max-width: 150px;
-            height: 150px;
-        }
     }
 
     /* Very small screens */
@@ -6586,3 +6641,7 @@ body::before {
         .zoom-image:hover {
             transform: scale(1.7);
         }
+
+
+
+

@@ -18114,19 +18114,19 @@ function setPadding() {
 
 
         const contentEl = document.querySelector('.content');
-        if (window.innerWidth < 1000) {
-            contentEl.style.padding = '0px';
+        if (window.innerWidth < 1300) {
+            contentEl.style.padding = '1px';
         } else {
-            contentEl.style.padding = '25px';
+            contentEl.style.padding = '15px';
         }
 
     } else {
 
         const contentEl = document.querySelector('.content');
-        if (window.innerWidth < 1000) {
-            contentEl.style.padding = '3px';
+        if (window.innerWidth < 1300) {
+            contentEl.style.padding = '1px';
         } else {
-            contentEl.style.padding = '25px';
+            contentEl.style.padding = '15px';
         }
 
 
@@ -20096,45 +20096,42 @@ function combineWithMinerData(miner_blk_cnt, transactionsData) {
     console.log("Combined Data: ", combinedData);
     return combinedData;
 }
-
-
 function showBlockDistributionPieChart(piechart_dataset, piechart_labels) {
     //console.log('dataset', piechart_dataset);
     document.querySelector('#row-miners').style.display = 'block';
-    document.querySelector('#blockdistributionpiechart').innerHTML = '<canvas id="chart-block-distribution" width="2rem" height="2rem"></canvas>';
+    document.querySelector('#blockdistributionpiechart').innerHTML = '<canvas id="chart-block-distribution" width="3.5rem" height="3.5rem"></canvas>';
 
     if (piechart_dataset.length == 0 || piechart_labels.length == 0) {
         return;
     }
 
-    //Chart.defaults.global.elements.arc.backgroundColor = 'rgba(255,0,0,1)';
     Chart.defaults.elements.arc.borderColor = 'rgb(32, 34, 38)';
-    Chart.defaults.elements.arc.borderWidth = 3;
+    Chart.defaults.elements.arc.borderWidth = 1.8;
 
     delete piechart_dataset.label;
+    
     /* hashrate and difficulty chart */
     var hr_diff_chart = new Chart(document.getElementById('chart-block-distribution').getContext('2d'), {
         type: 'doughnut',
 
         data: {
             datasets: [piechart_dataset],
-            labels: [], // Empty to prevent legend
+            labels: piechart_labels, // Add labels here instead of empty array
         },
 
         options: {
-            legend: {
-                display: false,
-            },
-            tooltips: {
-                enabled: true,
-                callbacks: {
-                    label: function(tooltipItem, data) {
-                        return piechart_labels[tooltipItem.index] + ': ' + data.datasets[0].data[tooltipItem.index];
+            plugins: {
+                legend: {
+                    display: false,
+                },
+                tooltip: {
+                    enabled: true,
+                    callbacks: {
+                        label: function(context) {
+                            return piechart_labels[context.dataIndex] + ': ' + context.parsed;
+                        }
                     }
                 }
-            },
-            legendCallback: function() {
-                return '';
             }
         },
     });
