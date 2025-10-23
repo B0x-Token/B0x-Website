@@ -22602,6 +22602,25 @@ let stakingData = null;
 let filteredData = [];
 let currentPage = 1;
 let pageSize = 25;
+// Handle page size change
+function changePageSize() {
+    pageSize = parseInt(document.getElementById('pageSize').value);
+    currentPage = 1; // Reset to first page
+    renderTable2();
+    renderPagination2();
+}
+// Add event listener for page size selector
+document.addEventListener('DOMContentLoaded', function() {
+    // Search box - filters as you type
+    document.getElementById('searchBox').addEventListener('input', filterData);
+    
+    // Page size selector
+    document.getElementById('pageSize').addEventListener('change', changePageSize);
+    
+    // Load initial data
+    loadData2();
+});
+
 
 // Format large numbers
 function formatNumber(num) {
@@ -22978,7 +22997,7 @@ function renderPagination2() {
     pagination.style.display = 'flex';
 
     let paginationHTML = `
-                <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                <button onclick="changePage2(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
                     Previous
                 </button>
             `;
@@ -22989,18 +23008,18 @@ function renderPagination2() {
 
     for (let i = startPage; i <= endPage; i++) {
         paginationHTML += `
-                    <button onclick="changePage(${i})" class="${i === currentPage ? 'active' : ''}">
+                    <button onclick="changePage2(${i})" class="${i === currentPage ? 'active' : ''}">
                         ${i}
                     </button>
                 `;
     }
 
     paginationHTML += `
-                <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                <button onclick="changePage2(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
                     Next
                 </button>
                 <span class="pagination55-info">
-                    Showing ${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, filteredData.length)} 
+                    11Showing ${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, filteredData.length)} 
                     of ${filteredData.length} users
                 </span>
             `;
@@ -23008,8 +23027,10 @@ function renderPagination2() {
     pagination.innerHTML = paginationHTML;
 }
 
+
+
 // Change page
-function changePage(page) {
+function changePage2(page) {
     const totalPages = Math.ceil(filteredData.length / pageSize);
     if (page < 1 || page > totalPages) return;
 
@@ -23017,6 +23038,19 @@ function changePage(page) {
     renderTable2();
     renderPagination2();
 }
+
+
+// Change page
+function changePage(page) {
+    const totalPages = Math.ceil(filteredData.length / pageSize);
+    if (page < 1 || page > totalPages) return;
+
+    currentPage2 = page;
+    renderTable();
+    renderPagination();
+}
+
+
 
 // Event listeners
 document.getElementById('searchBox').addEventListener('input', filterData);
@@ -23617,8 +23651,8 @@ function changePage(page) {
     renderTable();
 }
 
-function filterData() {
-    const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+function filterData2() {
+    const searchTerm = document.getElementById('searchBox2').value.toLowerCase();
 
     if (searchTerm === '') {
         filteredData2 = [...combinedData];
@@ -23633,7 +23667,7 @@ function filterData() {
 }
 
 // Event listeners
-document.getElementById('searchBox').addEventListener('input', filterData);
+document.getElementById('searchBox2').addEventListener('input', filterData2);
 
 document.getElementById('pageSize2').addEventListener('change', function () {
     pageSize2 = parseInt(this.value);
