@@ -20097,6 +20097,7 @@ function combineWithMinerData(miner_blk_cnt, transactionsData) {
     return combinedData;
 }
 
+
 function showBlockDistributionPieChart(piechart_dataset, piechart_labels) {
     //console.log('dataset', piechart_dataset);
     document.querySelector('#row-miners').style.display = 'block';
@@ -20110,53 +20111,66 @@ function showBlockDistributionPieChart(piechart_dataset, piechart_labels) {
     Chart.defaults.elements.arc.borderColor = 'rgb(32, 34, 38)';
     Chart.defaults.elements.arc.borderWidth = 3;
 
+    delete piechart_dataset.label;
     /* hashrate and difficulty chart */
     var hr_diff_chart = new Chart(document.getElementById('chart-block-distribution').getContext('2d'), {
         type: 'doughnut',
 
         data: {
             datasets: [piechart_dataset],
-            labels: piechart_labels,
+            labels: [], // Empty to prevent legend
         },
 
         options: {
             legend: {
                 display: false,
             },
+            tooltips: {
+                enabled: true,
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        return piechart_labels[tooltipItem.index] + ': ' + data.datasets[0].data[tooltipItem.index];
+                    }
+                }
+            },
+            legendCallback: function() {
+                return '';
+            }
         },
     });
 }
 
+
+
 function showBlockDistributionPieChart2(piechart_dataset, piechart_labels) {
-    //console.log('dataset', piechart_dataset);
     document.querySelector('#row-miners2').style.display = 'block';
     document.querySelector('#blockdistributionpiechart2').innerHTML = '<canvas id="chart-block-distribution2"></canvas>';
-
 
     if (piechart_dataset.length == 0 || piechart_labels.length == 0) {
         return;
     }
 
-    //Chart.defaults.global.elements.arc.backgroundColor = 'rgba(255,0,0,1)';
     Chart.defaults.elements.arc.borderColor = 'rgb(32, 34, 38)';
     Chart.defaults.elements.arc.borderWidth = 3;
 
-    /* hashrate and difficulty chart */
+    delete piechart_dataset.label;
     var hr_diff_chart = new Chart(document.getElementById('chart-block-distribution2').getContext('2d'), {
         type: 'doughnut',
-
         data: {
             datasets: [piechart_dataset],
-            labels: piechart_labels,
+            labels: [], // Pass empty labels array
         },
-
         options: {
             legend: {
-                display: false,
+                display: false
             },
-        },
+            tooltips: {
+                enabled: false
+            }
+        }
     });
 }
+
 
 function getMinerColor(address, known_miners) {
     function simpleHash(seed, string) {
