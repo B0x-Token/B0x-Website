@@ -5271,7 +5271,7 @@ body::before {
     }
 
     .refresh-btn {
-        background: linear-gradient(135deg, #27ae60, #2ecc71);
+            background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
         border: none;
         padding: 12px 24px;
