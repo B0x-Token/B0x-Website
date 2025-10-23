@@ -111,7 +111,7 @@ const tokenAddresses = {
 'B0x': '0xa9520FC8c54691af586544aD13Db954AfC345cd4',
 '0xBTC': '0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B',
 'WETH': '0x4200000000000000000000000000000000000006',
-'RightsTo0xBTC': '0x0000000000000000000000000000000000000000', //temp until mainnet fill in with actual token on launch
+'RightsTo0xBTC': '0x004DCEb20712EaBA0606e83c2E43BF2CDdfa0388', //temp until mainnet fill in with actual token on launch
 'USDC': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', //mainnet base USDC
 };
 
@@ -122,7 +122,7 @@ const tokenAddresses = {
         "0x0000000000000000000000000000000000000000": "ETH",
         "0xa9520FC8c54691af586544aD13Db954AfC345cd4": "B0x",
         "0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B": "0xBTC",
-        "0x0000000000000000000000000000000000000000": "RightsTo0xBTC",  //temp until mainnet fill in with actual token on launch
+        "0x004DCEb20712EaBA0606e83c2E43BF2CDdfa0388": "RightsTo0xBTC",  //temp until mainnet fill in with actual token on launch
         "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": "USDC", //mainnet base USDC
         // Add more token mappings as needed
     };
@@ -15428,11 +15428,20 @@ async function getAllPoolFees() {
         hooks: hookAddress
     };
 
+    const [R0xBTC0xbtcCurrency0, R0xBTC0xbtcCurrency1] = sortCurrencies(Address_ZEROXBTC_TESTNETCONTRACT, tokenAddresses['RightsTo0xBTC']);
+    const poolKeyR0xBTC0xBTC = {
+        currency0: R0xBTC0xbtcCurrency0,
+        currency1: R0xBTC0xbtcCurrency1,
+        fee: 0x800000,
+        tickSpacing: 60,
+        hooks: hookAddress
+    };
+
     // Encode call data for each pool
     const callData1 = hookInterface.encodeFunctionData("getCurrentPoolFee", [poolKeyB0xETH]);
     const callData2 = hookInterface.encodeFunctionData("getCurrentPoolFee", [poolKey0xBTCETH]);
     const callData3 = hookInterface.encodeFunctionData("getCurrentPoolFee", [poolKeyB0x0xBTC]);
-
+    const callData4 = hookInterface.encodeFunctionData("getCurrentPoolFee", [poolKeyR0xBTC0xBTC]);
     // Prepare multicall calls array
     const calls = [
         {
@@ -15449,6 +15458,11 @@ async function getAllPoolFees() {
             target: hookAddress,
             allowFailure: true,
             callData: callData3
+        },
+        {
+            target: hookAddress,
+            allowFailure: true,
+            callData: callData4
         }
     ];
 
@@ -15484,6 +15498,15 @@ async function getAllPoolFees() {
         if (results[2].success) {
             const decoded = hookInterface.decodeFunctionResult("getCurrentPoolFee", results[2].returnData);
             poolFees.b0xOxbtc = decoded.currentFee;
+            console.log("B0x/0xBTC Fee:", poolFees.b0xOxbtc / 10000, "%");
+        } else {
+            console.error("Failed to fetch B0x/0xBTC fee");
+        }
+
+        // Decode result 4- R0xBTC/0xBTC
+        if (results[3].success) {
+            const decoded = hookInterface.decodeFunctionResult("getCurrentPoolFee", results[3].returnData);
+            poolFees.R0xBTC0xBTC = decoded.currentFee;
             console.log("B0x/0xBTC Fee:", poolFees.b0xOxbtc / 10000, "%");
         } else {
             console.error("Failed to fetch B0x/0xBTC fee");
@@ -17903,19 +17926,29 @@ function initializeTabFromURL() {
     } else {
         console.error("Could not find .fee-valueB0x0xBTC element");
     }
+
+   // poolsfee.R0xBTC0xBTC
+
+   // poolsfee.b0xOxbtc
     var linkB0x0xBTCz= "https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=0xa9520fc8c54691af586544ad13db954afc345cd4&chain=base&hook=0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" +poolsfee.b0xOxbtc+",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
       var linkB0xETHz = "https://app.uniswap.org/positions/create/v4?currencyA=0xa9520FC8c54691af586544aD13Db954AfC345cd4&currencyB=NATIVE&chain=base&hook=0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22isDynamic%22:true,%22feeAmount%22:"+ poolsfee.b0xEth +",%22tickSpacing%22:60}&step=1";
 
 
         var link0xBTCETHz = "https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=NATIVE&chain=base&hook=0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" + poolsfee.oxbtcEth +",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
-const linkB0xETH = document.getElementById('uniswap-linkB0xETH');
+
+        var linkR0xBTC0xBTCz = "https://app.uniswap.org/positions/create?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=0x004dceb20712eaba0606e83c2e43bf2cddfa0388&chain=base&hook=0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:false,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22,%22inputMode%22:%22price%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" + poolsfee.R0xBTC0xBTC +",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
+
+
+        const linkB0xETH = document.getElementById('uniswap-linkB0xETH');
 const linkB0x0xBTC = document.getElementById('uniswap-linkB0x0xBTC');
 const link0xBTCETH = document.getElementById('uniswap-link0xBTCETH');
-
+const linkR0xBTC0xBTC = document.getElementById('uniswap-linkR0xBTC0xBTC');
 // Assign href values to each link
 linkB0xETH.href = linkB0xETHz;
 linkB0x0xBTC.href = linkB0x0xBTCz;
 link0xBTCETH.href = link0xBTCETHz;
+
+linkR0xBTC0xBTC.href = linkR0xBTC0xBTCz;
 
 
     await sleep(300);
