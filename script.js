@@ -96,8 +96,44 @@ const tokenAddressesETH = {
 
 
 
+
+/*
+
+
+Token Addresses Base Network
+```
+'ETH on Base': 0x0000000000000000000000000000000000000000
+'B0x on Base': 0xa9520FC8c54691af586544aD13Db954AfC345cd4
+'0xBTC on Base': 0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B
+'WETH on Base': '0x4200000000000000000000000000000000000006
+'RightsTo0xBTC on Base': 0x004DCEb20712EaBA0606e83c2E43BF2CDdfa0388
+'USDC on Base': 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+```
+
+Token Addresses Ethereum Network
+```
+'ETH on ETH': 0x0000000000000000000000000000000000000000
+'B0x on ETH': 0x313cD1962Cb6fA0A53900586C19373939F781909
+'0xBTC on ETH': 0xB6eD7644C69416d67B522e20bC294A9a9B405B31
+'RightsTo0xBTC on ETH': 0xE3A582b3588c9BB73027e5C0531912d880e76E1E 
+```
+
+
+//OTHER BASE Network Contracts
+```
+UnsiwapV4PoolCreatorAddress = "0xE82F72200f54968Dcc3b6900d4B33701dA62A48C";
+positionManager_address = "0x7c5f5a4bbd8fd63184577525326123b519429bdc";
+contractAddress_PositionFinderPro = '0x6be8BAFFC70696404Cdc191129e832238d242C34'; // Replace with actual contract address
+contractAddress_Swapper = '0x7efA6a3B86B630013a1541c1DEe4Abf729a3a775'; // Replace with actual contract address
+contractAddressLPRewardsStaking = '0xe66EA3fe7659310d3392363673aFB39fd1019AdA';
+hookAddress = '0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000';
+ProofOfWorkAddresss = '0x97bBa9F710DE42536843Bd1061514b5104D7DE50';
+```
+*/
+
+
 const UnsiwapV4PoolCreatorAddress = "0xE82F72200f54968Dcc3b6900d4B33701dA62A48C";
-const USDCToken = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+const USDCToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const positionManager_address = "0x7c5f5a4bbd8fd63184577525326123b519429bdc";
 const contractAddress_PositionFinderPro = '0x6be8BAFFC70696404Cdc191129e832238d242C34'; // Replace with actual contract address
 const contractAddress_Swapper = '0x7efA6a3B86B630013a1541c1DEe4Abf729a3a775'; // Replace with actual contract address
@@ -17882,6 +17918,21 @@ function initializeTabFromURL() {
     var poolsfee = await getAllPoolFees();
     console.log("pools Fee: ", poolsfee);
     
+    // B0x/ETH Pool
+    var feeValueSpanR0xBTC0xBTC = document.querySelector('.fee-valueR0xBTC0xBTC');
+    console.log("Found .fee-valueR0xBTC0xBTC", feeValueSpanR0xBTC0xBTC);
+    if (feeValueSpanR0xBTC0xBTC) {
+        var listItem = feeValueSpanR0xBTC0xBTC.closest('li');
+        var curFeeR0xBTC0xBTC = poolsfee.b0xEth / 10000;
+        feeValueSpanR0xBTC0xBTC.textContent = curFeeR0xBTC0xBTC + '%';
+        if (listItem) {
+            listItem.dataset.feeStart = curFeeR0xBTC0xBTC + '%';
+        }
+        console.log("Set R0xBTC/0xBTC fee to:", curFeeR0xBTC0xBTC + '%');
+    } else {
+        console.error("Could not find .fee-valueB0xETH element");
+    }
+
     // B0x/ETH Pool
     var feeValueSpanB0xETH = document.querySelector('.fee-valueB0xETH');
     console.log("Found .fee-valueB0xETH:", feeValueSpanB0xETH);
