@@ -15707,6 +15707,112 @@ async function getCurrentPoolFeeB0xETH() {
     }
 }
 
+
+async function getCurrentPoolFeeR0xBTC0xBTC() {
+
+    if (!walletConnected) {
+        await connectWallet();
+    }
+
+
+    var hookABI = [
+        {
+            "type": "function",
+            "name": "getCurrentPoolFee",
+            "inputs": [
+                {
+                    "name": "poolKey",
+                    "type": "tuple",
+                    "components": [
+                        {
+                            "name": "currency0",
+                            "type": "address"
+                        },
+                        {
+                            "name": "currency1",
+                            "type": "address"
+                        },
+                        {
+                            "name": "fee",
+                            "type": "uint24"
+                        },
+                        {
+                            "name": "tickSpacing",
+                            "type": "int24"
+                        },
+                        {
+                            "name": "hooks",
+                            "type": "address"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "currentFee",
+                    "type": "uint24"
+                }
+            ],
+            "stateMutability": "view"
+        }
+    ];
+
+
+    var HookContract = new ethers.Contract(
+        HookAddress, // your tokenSwapper contract address
+        hookABI,
+        signer // Use signer since the function isn't view/pure
+    );
+
+    var tokencheck = tokenAddresses['0xBTC'];
+    var tokencheck2 = tokenAddresses['RightsTo0xBTC'];
+    console.log("tokenCheck: ", tokencheck);
+    console.log("tokencheck2: ", tokencheck2);
+    // Simple string comparison (addresses as hex strings)
+    let currency0, currency1;
+
+    if (tokencheck.toLowerCase() < tokencheck2.toLowerCase()) {
+        currency0 = tokencheck;
+        currency1 = tokencheck2;
+    } else {
+        currency0 = tokencheck2;
+        currency1 = tokencheck;
+    }
+
+    console.log("currency0: ", currency0);
+    console.log("currency1: ", currency1);
+    // Define the PoolKey_Hook struct
+    const poolKey = {
+        currency0: currency0,
+        currency1: currency1,
+        fee: 0x800000,        // uint24
+        tickSpacing: 60,   // int24
+        hooks: hookAddress
+    };
+
+
+
+    try {
+        const result = await HookContract.getCurrentPoolFee(poolKey);
+        const infoCard = document.querySelector('#admin-functions .info-card2');
+        infoCard.innerHTML = `
+                    <h3>RightsTo0xBTC / 0xBTC Pool</h3>
+                    <p>Current Fee: ${result / 10000} %</p>
+                `;
+
+                return result;
+    } catch (error) {
+        console.error('Error fetching current fee:', error);
+        const infoCard = document.querySelector('.info-card2');
+        infoCard.innerHTML = `
+                    <h3>Current Selected Position</h3>
+                    <p>Error loading fee data</p>
+                `;
+
+                return 0;
+    }
+}
+
 async function getCurrentPoolFee0xBTCETH() {
 
 
@@ -16240,6 +16346,110 @@ async function updateAdminFeeForPoolB0xETH() {
     const receipt = await tx.wait();
     console.log("Confirmed forceUpdateLPFee Token")
 }
+
+
+async function updateAdminFeeForPoolR0xBTC0xBTC() {
+
+    if (!walletConnected) {
+        await connectWallet();
+    }
+
+
+    var feeValue = document.getElementById('UpdateAdminFee').value;
+    feeValue = Math.floor(feeValue * 10000)
+    var hookABI = [{
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "currency0",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "currency1",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint24",
+                        "name": "fee",
+                        "type": "uint24"
+                    },
+                    {
+                        "internalType": "int24",
+                        "name": "tickSpacing",
+                        "type": "int24"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "hooks",
+                        "type": "address"
+                    }
+                ],
+                "internalType": "struct PoolKey_Hook",
+                "name": "key",
+                "type": "tuple"
+            },
+            {
+                "internalType": "uint24",
+                "name": "newFee",
+                "type": "uint24"
+            }
+        ],
+        "name": "forceUpdateLPFee",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }];
+
+
+    var HookContract = new ethers.Contract(
+        HookAddress, // your tokenSwapper contract address
+        hookABI,
+        signer // Use signer since the function isn't view/pure
+    );
+
+
+    var tokencheck = tokenAddresses['0xBTC'];
+    var tokencheck2 = tokenAddresses['RightsTo0xBTC'];
+    console.log("tokenCheck: ", tokencheck);
+    console.log("tokencheck2: ", tokencheck2);
+    // Simple string comparison (addresses as hex strings)
+    let currency0, currency1;
+
+    if (tokencheck.toLowerCase() < tokencheck2.toLowerCase()) {
+        currency0 = tokencheck;
+        currency1 = tokencheck2;
+    } else {
+        currency0 = tokencheck2;
+        currency1 = tokencheck;
+    }
+
+    console.log("currency0: ", currency0);
+    console.log("currency1: ", currency1);
+    // Define the PoolKey_Hook struct
+    const poolKey = {
+        currency0: currency0,
+        currency1: currency1,
+        fee: 0x800000,        // uint24
+        tickSpacing: 60,   // int24
+        hooks: hookAddress
+    };
+
+
+
+    const tx = await HookContract.forceUpdateLPFee(poolKey, feeValue);
+
+
+    console.log("forceUpdateLPFee transaction sent:", tx.hash);
+    console.log("Waiting for transaction confirmation...");
+
+    // Wait for the transaction to be mined
+    const receipt = await tx.wait();
+    console.log("Confirmed forceUpdateLPFee Token")
+}
+
 
 
 
