@@ -904,11 +904,15 @@ var mockActivePeriods = [
 
 var wethTo0xBTCRate = 0;
 var lastWETHto0xBTCRateUpdate = 0;
+var lastWETHto0xBTCRateUpdate2 = 0;
 var APYFINAL = 0;
 var ratioB0xTo0xBTC = 0;
 var usdCostB0x = 0;
 var oxbtcPriceUSD = 0;
 let wethPriceUSD = 0;
+
+let amountOut_Saved =0;
+
 var firstRewardsAPYRun =0;
 async function GetRewardAPY(_tokenAddresses, _rewardRate, zeroXBTC_In_Staking) {
     var total_rewardRate_WETH = 0;
@@ -936,7 +940,6 @@ async function GetRewardAPY(_tokenAddresses, _rewardRate, zeroXBTC_In_Staking) {
 
 
 
-    let amountOut = 0;
     const tokenSwapperABI = [
         // Your existing getOutput function
         {
@@ -994,42 +997,48 @@ console.log("Custom RPC2: ", customRPC);
     // Call the view function
     var result = 0;
 
-    try {
-
-        result = await tokenSwapperContract.callStatic.getOutput(
-            Address_ZEROXBTC_TESTNETCONTRACT,
-            tokenAddress,
-            tokenInputAddress,
-            HookAddress,
-            amountToSwap
-        );
+    if (lastWETHto0xBTCRateUpdate2 < Date.now() - 120000) { // 120000ms = 120 seconds.
 
 
-    } catch (error) {
-        console.error('Error calling getOutput in rewardAPY:', error);
+            try {
+
+                result = await tokenSwapperContract.callStatic.getOutput(
+                    Address_ZEROXBTC_TESTNETCONTRACT,
+                    tokenAddress,
+                    tokenInputAddress,
+                    HookAddress,
+                    amountToSwap
+                );
+
+
+            lastWETHto0xBTCRateUpdate2 = Date.now();
+            } catch (error) {
+                console.error('Error calling getOutput in rewardAPY:', error);
+
+            lastWETHto0xBTCRateUpdate2 = Date.now();
+            }
+
+            // First debug what we're getting back
+            console.log("Raw result type:", typeof result);
+            console.log("Raw result structure:", Object.keys(result).join(", "));
+
+            if (typeof result === 'bigint' || typeof result === 'number') {
+                // If it's already a primitive value
+                amountOut_Saved = result;
+            } else if (result._isBigNumber || result instanceof ethers.BigNumber) {
+                // For ethers v5 BigNumber
+                amountOut_Saved = result;
+            } else if (typeof result === 'object' && result !== null) {
+                // For objects, try to extract the value
+                // With ethers v6, we might get the value directly
+                if (typeof result.toString === 'function' && result.toString().match(/^[0-9]+$/)) {
+                    amountOut_Saved = result;
+                } else {
+                    // Attempt to extract value based on common patterns
+                    amountOut_Saved = result[0] || result.amountOut || result._hex || result.value || result;
+                }
+            }
     }
-
-    // First debug what we're getting back
-    console.log("Raw result type:", typeof result);
-    console.log("Raw result structure:", Object.keys(result).join(", "));
-
-    if (typeof result === 'bigint' || typeof result === 'number') {
-        // If it's already a primitive value
-        amountOut = result;
-    } else if (result._isBigNumber || result instanceof ethers.BigNumber) {
-        // For ethers v5 BigNumber
-        amountOut = result;
-    } else if (typeof result === 'object' && result !== null) {
-        // For objects, try to extract the value
-        // With ethers v6, we might get the value directly
-        if (typeof result.toString === 'function' && result.toString().match(/^[0-9]+$/)) {
-            amountOut = result;
-        } else {
-            // Attempt to extract value based on common patterns
-            amountOut = result[0] || result.amountOut || result._hex || result.value || result;
-        }
-    }
-
 
 
 
@@ -1037,7 +1046,7 @@ console.log("Custom RPC2: ", customRPC);
 
 
     // Convert BigInts to numbers with proper decimal handling
-    var amountOutNumber = Number(amountOut) / (10 ** 8); // 0xBTC has 8 decimals
+    var amountOutNumber = Number(amountOut_Saved) / (10 ** 8); // 0xBTC has 8 decimals
     var amountToSwapNumber = Number(amountToSwap) / (10 ** 18); // B0x has 18 decimals
     var exchangeRate = amountOutNumber / amountToSwapNumber; // This gives 0xBTC per B0x
     console.log("exchange rate = ", exchangeRate);
@@ -8848,6 +8857,8 @@ await sleep(300);
             output: decoded[0]
         };
     } catch (error) {
+
+await sleep(500);
         console.error(`Failed to estimate route ${route.name}:`, error);
         console.error(`Failed to estimate route ${route.name}: ${route}`);
         throw error;
@@ -8883,8 +8894,9 @@ console.log("Custom RPC2: ", customRPC);
     }
 }
     // Execute in batches of 16
-    const batchSizeRoutestwo = 50;
+    const batchSizeRoutestwo = 110;
 async function optimizeTwoRoutes(routes, totalAmountIn, contractInterface, multicallContract, fromToken, toToken) {
+    console.log("THIS THIS THIS");
     const tokenInAddress = tokenAddresses[fromToken];
     const tokenOutAddress = tokenAddresses[toToken];
     
@@ -8958,6 +8970,8 @@ async function optimizeTwoRoutes(routes, totalAmountIn, contractInterface, multi
     const allResults = [];
     
     for (let i = 0; i < allCalls.length; i += batchSize) {
+
+    console.log("THIS THIS THIS123123555");
         const batch = allCalls.slice(i, Math.min(i + batchSize, allCalls.length));
         try {
             const results = await multicallContract.callStatic.aggregate3(batch);
@@ -9097,6 +9111,8 @@ async function optimizeMultiRoutes(routes, totalAmountIn, contractInterface, mul
         }
         
         try {
+
+await sleep(300);
             const results = await multicallContract.aggregate3(calls);
             
             for (let splitIdx = 0; splitIdx < testSplits.length; splitIdx++) {
@@ -9476,15 +9492,27 @@ document.getElementById("estOutput").value = formattedOutput;
     }
 }
 
+
 function showErrorDisplay(message) {
     const estimateDisplay = document.getElementById('estimateDisplay');
     if (estimateDisplay) {
-        estimateDisplay.innerHTML = `
-            <div style="color: #dc3545; padding: 10px; border: 1px solid #dc3545; border-radius: 5px;">
-                <strong>⚠️ Error</strong>
-                <p>${message}</p>
-            </div>
-        `;
+          if (message.includes("allResults[metadata.resultIndices[0]] is undefined")) {
+           estimateDisplay.innerHTML = `
+                <div style="color: #dc3545; padding: 10px; border: 1px solid #dc3545; border-radius: 5px;">
+                    <strong>⚠️ Error Too much Inputted amount</strong>
+                    <p>Your inputted amount was TOO much for our liquidity, lower the amount and try again</p>
+                </div>
+            `;
+
+        }else{
+
+            estimateDisplay.innerHTML = `
+                <div style="color: #dc3545; padding: 10px; border: 1px solid #dc3545; border-radius: 5px;">
+                    <strong>⚠️ Error</strong>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
     }
 }
 
