@@ -21759,11 +21759,11 @@ async function GetContractStatsWithMultiCall() {
         // Get current block number and price (these don't need multicall)
         const lastBaseBlock2 = await provids.getBlockNumber();
         const price = await getCurrentPrice(); // This returns 1.00
-
+        var resultsTobe = await getTokenStats();
         // Static values for functions that return hardcoded values
-        const TokenHolders = 1000;
-        const Transfers = 330;
-        const TotalOperations = 123123;
+        var TokenHolders = resultsTobe.TokenHolders;
+       var  Transfers = resultsTobe.Transfers;
+        
 
         lastBaseBlock = lastBaseBlock2;
 
@@ -21818,6 +21818,7 @@ async function GetContractStatsWithMultiCall() {
         var timestampLastDiffStart = await getTimestampFromBlock(lastDiffStartBlock.toString(), provids);
 await sleep(500);
     await GetRewardAPY();
+    await sleep(500);
     await calculateAndDisplayHashrate();
     updateWidget();
         // Update the HTML elements with the retrieved values
@@ -21835,11 +21836,11 @@ await sleep(500);
         document.querySelector('.stat-value-remainingSupply').innerHTML = `${remainingSupplyINERA.toLocaleString()} <span class="unit">B0x <span class="detail">(~${avgBlocksRemainingInEra} blocks or ~${timeBeforeEra} ${timeBeforeEraUnits} @ ${avgReardTime1} ${avgReardTimeUnits} per block)</span></span>`;
         document.querySelector('.stat-value-tokenHolders').innerHTML = `${TokenHolders.toLocaleString()} <span class="unit">holders</span>`;
         document.querySelector('.stat-value-tokenTransfers').innerHTML = `${Transfers.toLocaleString()} <span class="unit">transfers</span>`;
-        document.querySelector('.stat-value-contractOps').innerHTML = `${TotalOperations.toLocaleString()} <span class="unit">txs</span>`;
         document.querySelector('.stat-value-lastBaseBlock').textContent = lastBaseBlock;
         document.querySelector('.stat-value-distMining').innerHTML = `${parseFloat(totalDistributedMining).toLocaleString()}  <span class="unit">B0x</span></span>`;
         document.querySelector('.stat-value-MAxSupply').innerHTML = `${parseFloat(maxperEra).toLocaleString()}  <span class="unit">B0x</span></span>`;
-
+        document.querySelector('.stat-value-AbsoluteMaxSupply').innerHTML = `${parseFloat(31165100.000).toLocaleString()}  <span class="unit">B0x</span></span>`;
+        
         // Update difficulty inputs
         var difficultyInput = document.getElementById("difficulty-input");
         if (difficultyInput) {
@@ -21861,7 +21862,44 @@ await sleep(500);
     }
 }
 
-
+async function getTokenStats() {
+    const primaryUrl = customDataSource + 'RichList_B0x_testnet.json';
+    const backupUrl = customBACKUPDataSource + 'RichList_B0x_testnet.json';
+    
+    try {
+        // Try primary URL first
+        let response = await fetch(primaryUrl);
+        
+        // If primary fails, try backup URL
+        if (!response.ok) {
+            console.warn('Primary URL failed, trying backup...');
+            response = await fetch(backupUrl);  // <-- This switches to backup
+        }
+        
+        // If backup also fails, throw error
+        if (!response.ok) {
+            throw new Error('Both primary and backup URLs failed');
+        }
+        
+        const data = await response.json();
+        
+        const TokenHolders = data.totalHolders;
+        const Transfers = data.totalTransfers - data.totalMints;
+        
+        return {
+            TokenHolders,
+            Transfers
+        };
+        
+    } catch (error) {
+        console.error('Error fetching token stats:', error);
+        // Fallback to hardcoded values if both URLs fail
+        return {
+            TokenHolders: "Unable To Load APY",
+            Transfers: "Unable To Load APY"
+        };
+    }
+}
 
 
 async function GetContractStats() {
@@ -21902,11 +21940,9 @@ async function GetContractStats() {
     lastBaseBlock = lastBaseBlock2;
 
     // Batch 3: Supply & social stats (5 calls)
-    const [totalDistributedMining, maxperEra, TokenHolders, Transfers, TotalOperations] = await Promise.all([
+    const [totalDistributedMining, maxperEra, TotalOperations] = await Promise.all([
         getTokensMinted(provids),
         getMaxSupplyForEra(provids),
-        getTokenHolders(provids),
-        getTransfers(provids),
         getTotalOperations(provids)
     ]);
 
@@ -21920,7 +21956,9 @@ async function GetContractStats() {
   
   */
 
-
+     var resulterz =  await getTokenStats();
+    TokenHolders = resulterz.TokenHolders;
+    Transfers = resulterz.Transfers;
 
     // var avgRewardTimeTotals =  await getAvgRewardTime(provids);
 
@@ -21990,7 +22028,9 @@ async function GetContractStats() {
 
 
     // Update the HTML elements with the retrieved values
+    await sleep(500);
     await GetRewardAPY();
+    await sleep(500);
     await calculateAndDisplayHashrate();
     updateWidget();
     document.querySelector('.stat-value-price').innerHTML = `${usdCostB0x} <span class="unit">$</span>`;
@@ -22007,7 +22047,6 @@ async function GetContractStats() {
     document.querySelector('.stat-value-remainingSupply').innerHTML = `${remainingSupplyINERA.toLocaleString()} <span class="unit">B0x <span class="detail">(~${avgBlocksRemainingInEra} blocks or ~${timeBeforeEra} ${timeBeforeEraUnits} @ ${avgReardTime1} ${avgReardTimeUnits} per block)</span></span>`;
     document.querySelector('.stat-value-tokenHolders').innerHTML = `${TokenHolders.toLocaleString()} <span class="unit">holders</span>`;
     document.querySelector('.stat-value-tokenTransfers').innerHTML = `${Transfers.toLocaleString()} <span class="unit">transfers</span>`;
-    document.querySelector('.stat-value-contractOps').innerHTML = `${TotalOperations.toLocaleString()} <span class="unit">txs</span>`;
     document.querySelector('.stat-value-lastBaseBlock').textContent = lastBaseBlock;
 
     document.querySelector('.stat-value-distMining').innerHTML = `${parseFloat(totalDistributedMining).toLocaleString()}  <span class="unit">B0x</span></span>`;
