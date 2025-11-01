@@ -5813,8 +5813,8 @@ async function increaseLiquidityStaking() {
         amountBtoCreate = ethers.utils.parseUnits(tokenBAmount, 18);  // Correctly represents 12 * 10^8
 
     } else {
-        amountBtoCreate = ethers.utils.parseUnits(tokenAAmount, 8);  // Correctly represents 12 * 10^8
-        amountAtoCreate = ethers.utils.parseUnits(tokenBAmount, 18);  // Correctly represents 12 * 10^8
+        amountBtoCreate = ethers.utils.parseUnits(tokenBAmount, 8);  // Correctly represents 12 * 10^8
+        amountAtoCreate = ethers.utils.parseUnits(tokenAAmount, 18);  // Correctly represents 12 * 10^8
 
 
     }
