@@ -623,12 +623,12 @@ async function initializeChart() {
                     ticks: {
                         color: 'white', // Make y-axis labels white
                         callback: function (value) {
-                            if(0.01 < minPrice){
+                            if(0.025 < minPrice){
                                 return '$' + value.toFixed(2);
-                            }else if(0.001 < minPrice)
+                            }else if(0.0025 < minPrice)
                             {
                                 return '$' + value.toFixed(3);
-                            }else if(0.0001 < minPrice)
+                            }else if(0.00025 < minPrice)
                             {
                                 return '$' + value.toFixed(4);
                             }
