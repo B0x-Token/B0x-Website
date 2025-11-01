@@ -20811,7 +20811,10 @@ async function updateAllMinerInfo(provider) {
             index2 = index2 + 1;
 
             var epochsMined = epchCount;
-
+            if(epochsMined <0){
+                epochsMined = 0;
+            }
+            console.log("Epoch Mined: ", epochsMined);
             //  console.log("\n\n\n\n\nEpochs Mined : ", epochsMined);
             allepochs = allepochs + epochsMined;
             //   console.log("Epochs Mined allepochs: ", allepochs);
@@ -21149,6 +21152,8 @@ async function updateAllMinerInfo(provider) {
                         mined_blocks.unshift([block_number, tx_hash, miner_address, dataAmt, previousEpochCount]);
 
 
+                        if(block_number > 37615331)
+                        {
                         if (dataAmt != 0 && block_number > last_difficulty_start_block) {
                             total_TOTAL_mint_count_HASH += epochsMined;
                             if (miner_block_countHASH[miner_address] === undefined) {
@@ -21189,7 +21194,6 @@ async function updateAllMinerInfo(provider) {
                             }
                             console.log("miner_block_count[miner_address]", miner_block_count[miner_address], "vs epochsMined", epochsMined);
                         }
-                        if(block_number > 37615331)
                         if (miner_block_count[miner_address] === undefined) {
                             miner_block_count[miner_address] = epochsMined;
                             if (dataAmt != -1) {
@@ -21223,7 +21227,8 @@ async function updateAllMinerInfo(provider) {
                         if (index % 10 === 0 && index > 0) {
                             await new Promise(resolve => setTimeout(resolve, 0)); // Yield to event loop
                         }
-                    };
+                    }
+                };
 
                     success = true; // Mark as successful
                 } else {
@@ -21509,7 +21514,10 @@ async function updateAllMinerInfo(provider) {
         var TotalBlocksPerReward = miner_info[3].toFixed(0);
 
         var miner_name_link = getMinerNameLinkHTML(addr, known_miners);
+        console.log("t1000: blocks: ",blocks);
+        console.log("t1000: total_TOTAL_mint_count_HASH: ",total_TOTAL_mint_count_HASH);
         var percent_of_total_blocks = blocks / total_TOTAL_mint_count_HASH;
+        console.log("t1000 percent_of_total_blocks: ",percent_of_total_blocks);
         var test = getMinerColor(addr, known_miners);
 
         piechart_dataset2.data.push(blocks);
@@ -21593,10 +21601,13 @@ async function updateAllMinerInfo(provider) {
         totalSpentINUSD += totalCostForUser;
 
         var blocks = miner_info[1];
+        console.log("t2000: blocks: ",blocks);
         var RewardAmount = miner_info[2].toFixed(0);
         var TotalBlocksPerReward = (miner_info[3] || 0).toFixed(0);  // Safe default with toFixed
         var miner_name_link = getMinerNameLinkHTML(addr, known_miners);
+        console.log("t2000: total_block_count: ",total_block_count);
         var percent_of_total_blocks = blocks / total_block_count;
+        console.log("t2000: percent_of_total_blocks: ",percent_of_total_blocks);
 
         piechart_dataset.data.push(blocks);
         piechart_dataset.backgroundColor.push(getMinerColor(addr, known_miners));
