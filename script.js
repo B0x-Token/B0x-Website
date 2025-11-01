@@ -20786,7 +20786,7 @@ async function updateAllMinerInfo(provider) {
             //  console.log("Mint data stuff mintData: ",mintData);
             // console.log("Mint data stuff mined_blocks[index + 1][4]: ",mined_blocks[index2 + 1][4]);
 
-                if (mintData[0] > 37615339) {
+                if (mintData[0] < 37615331) {
                     
                             return; // This skips to the next iteration in forEach
 
@@ -21189,7 +21189,7 @@ async function updateAllMinerInfo(provider) {
                             }
                             console.log("miner_block_count[miner_address]", miner_block_count[miner_address], "vs epochsMined", epochsMined);
                         }
-                        if(block_number < 37615339)
+                        if(block_number > 37615331)
                         if (miner_block_count[miner_address] === undefined) {
                             miner_block_count[miner_address] = epochsMined;
                             if (dataAmt != -1) {
