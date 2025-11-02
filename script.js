@@ -20782,6 +20782,25 @@ async function updateAllMinerInfo(provider) {
         var index2 = 0;
         var allepochs = 0;
         var maxMinedBlocksEpoch = 0;
+        // Remove duplicates based on mintData[1], but only if mintData[3] != -1
+const seen = new Set();
+mined_blocks = mined_blocks.filter(mintData => {
+    // If mintData[3] is -1, always keep it (don't check for duplicates)
+    //console.log("mintData[3]: ",mintData[3] );
+    if (mintData[3] == -1) {
+        return true;
+    }
+    
+    // For non -1 entries, check if it's a duplicate
+    if (seen.has(mintData[1])) {
+     //   console.log("removed dup ", mintData[1]);
+        return false; // Remove this duplicate
+    }
+    
+    seen.add(mintData[1]);
+    return true; // Keep this item
+});
+
         mined_blocks.forEach(function (mintData) {
             //  console.log("Mint data stuff mintData: ",mintData);
             // console.log("Mint data stuff mined_blocks[index + 1][4]: ",mined_blocks[index2 + 1][4]);
@@ -20832,65 +20851,6 @@ async function updateAllMinerInfo(provider) {
             // Replace the localStorage processing section (around line where you handle mintData[3] == -1):
 
             if (mintData[3] == -1) {
-                // Challenge change block - handle epoch mining
-                if (miner_block_count[mintData[2]] === undefined) {
-                    miner_block_count[mintData[2]] = epochsMined;
-                    if (miner_block_count2[mintData[2]] === undefined && mintData[3] != 0) {
-                        miner_block_count2[mintData[2]] = 1;
-                    } else if (mintData[3] != 0) {
-                        miner_block_count2[mintData[2]] += 1;
-                    }
-                } else {
-                    miner_block_count[mintData[2]] += epochsMined;
-                    if (miner_block_count2[mintData[2]] === undefined && mintData[3] != 0) {
-                        miner_block_count2[mintData[2]] = 1;
-                    } else if (mintData[3] != 0) {
-                        miner_block_count2[mintData[2]] += 1;
-                    }
-                }
-                if (mintData[3] != -1) {
-                    total_tx_count += 1;
-                }
-
-                if (total_block_count == 0) {
-                    total_block_count = epochsMined;
-                } else {
-                    total_block_count += epochsMined;
-                }
-
-                console.log("mint data3 = -1");
-
-                // FIX: Always handle HASH objects for challenge changes, regardless of mintData[3] value
-                if (mintData[0] > last_difficulty_start_block) {
-                    // Always initialize/update total_mint_count_HASH for challenge changes
-                    if (total_mint_count_HASH[mintData[2]] === undefined) {
-                        total_mint_count_HASH[mintData[2]] = 1;
-                    } else {
-                        total_mint_count_HASH[mintData[2]] += 1;
-                    }
-
-                    // Always initialize/update totalZKBTC_Mined_HASH for challenge changes  
-                    if (totalZKBTC_Mined_HASH[mintData[2]] === undefined) {
-                        totalZKBTC_Mined_HASH[mintData[2]] = epochsMined;
-                    } else {
-                        totalZKBTC_Mined_HASH[mintData[2]] += epochsMined;
-                    }
-
-                    // For miner_block_countHASH, handle based on mintData[3] value
-                    if (mintData[3] != 0) {
-                        total_TOTAL_mint_count_HASH += epochsMined;
-                        if (miner_block_countHASH[mintData[2]] === undefined) {
-                            miner_block_countHASH[mintData[2]] = mintData[3];
-                        } else {
-                            miner_block_countHASH[mintData[2]] += mintData[3];
-                        }
-                    } else {
-                        // Challenge change with zero reward - still initialize miner_block_countHASH
-                        if (miner_block_countHASH[mintData[2]] === undefined) {
-                            miner_block_countHASH[mintData[2]] = 0;
-                        }
-                    }
-                }
 
             } else {
                 // Regular mining transaction
@@ -23137,14 +23097,32 @@ function filterData() {
     renderTable2();
     renderPagination2();
 }
-
 // Render table
 function renderTable2() {
+    // Sort filteredData by B0xStaked from largest to smallest
+    const sortedData = [...filteredData].sort((a, b) => {
+        return parseFloat(b.B0xStaked) - parseFloat(a.B0xStaked);
+    });
+    
     const start = (currentPage - 1) * pageSize;
     const end = start + pageSize;
-    const pageData = filteredData.slice(start, end);
+    const pageData = sortedData.slice(start, end);
 
     let tableHTML = `
+                <style>
+                    .address-link {
+                        color: white !important;
+                        text-decoration: none;
+                    }
+                    .address-link:visited,
+                    .address-link:hover,
+                    .address-link:active {
+                        color: white !important;
+                    }
+                    .address-link:hover {
+                        text-decoration: underline;
+                    }
+                </style>
                 <table>
                     <thead>
                         <tr>
@@ -23156,15 +23134,95 @@ function renderTable2() {
                     </thead>
                     <tbody>
             `;
-    var numspot = 0;
-    pageData.forEach(user => {
-        numspot = numspot + 1;
+    
+    const globalStart = (currentPage - 1) * pageSize;
+    pageData.forEach((user, index) => {
+        const rank = globalStart + index + 1;
+        
+
+
+
+        var b0xStakedFormatted = 0;
+        if(user.B0xStaked / 1e18 > 999.999){
+
+        // Format B0xStaked and 0xBTCStaked with locale formatting
+         b0xStakedFormatted = parseFloat(user.B0xStaked / 1e18).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+
+        }else if(user.B0xStaked / 1e18 > 19.999){
+
+        // Format B0xStaked and 0xBTCStaked with locale formatting
+         b0xStakedFormatted = parseFloat(user.B0xStaked / 1e18).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 1
+        });
+
+        }else if(user.B0xStaked / 1e18 > 1.999){
+        // Format B0xStaked and 0xBTCStaked with locale formatting
+         b0xStakedFormatted = parseFloat(user.B0xStaked / 1e18).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        });
+
+        }else{
+             // Format B0xStaked and 0xBTCStaked with locale formatting
+         b0xStakedFormatted = parseFloat(user.B0xStaked / 1e18).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 3
+        });
+        }
+
+
+
+
+
+
+        var btcStakedFormatted = 0;
+        if(user['0xBTCStaked'] / 1e8 > 99.999){
+
+         btcStakedFormatted = (user['0xBTCStaked'] / 1e8).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+            // Remove trailing zeros
+        });
+        }else if(user['0xBTCStaked'] / 1e8 > 9.999){
+
+         btcStakedFormatted = (user['0xBTCStaked'] / 1e8).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 1,
+            // Remove trailing zeros
+        });
+        }else if(user['0xBTCStaked'] / 1e8 > 1.999){
+
+         btcStakedFormatted = (user['0xBTCStaked'] / 1e8).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+            // Remove trailing zeros
+        });
+        }else {
+
+         btcStakedFormatted = (user['0xBTCStaked'] / 1e8).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 3,
+            // Remove trailing zeros
+        });
+        }
+        
         tableHTML += `
                     <tr>
-                        <td class="rank55">${numspot}</td>
-                        <td><span class="address55" title="${user.address}">${user.address}</span></td>
-                        <td class="balance55">${formatBalance(user.B0xStaked)}</td>
-                        <td class="balance55">${formatNumber(user['0xBTCStaked'] / 1e8)}</td>
+                        <td class="rank55">${rank}</td>
+                        <td>
+                            <a href="https://basescan.org/address/${user.address}" 
+                               target="_blank" 
+                               class="address55 address-link" 
+                               title="${user.address}">
+                                ${user.address}
+                            </a>
+                        </td>
+                        <td class="balance55">${b0xStakedFormatted}</td>
+                        <td class="balance55">${btcStakedFormatted}</td>
                     </tr>
                 `;
     });
@@ -23172,10 +23230,8 @@ function renderTable2() {
     tableHTML += '</tbody></table>';
     document.getElementById('tableContent55').innerHTML = tableHTML;
 
-
     // Apply responsive styles
     adjustTableForScreenSize();
-
 }
 
 // Function to get responsive styles based on screen width
