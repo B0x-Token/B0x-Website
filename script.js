@@ -20833,12 +20833,14 @@ mined_blocks = mined_blocks.filter(mintData => {
             } else {
                 epchCount = epochCount;
             }
+            
             index2 = index2 + 1;
 
             var epochsMined = epchCount;
             if(epochsMined <0){
-                epochsMined = 0;
+                epochsMined = 1;
             }
+           // console.log("EPOCHS MINED:  epochsMined: ", epochsMined);
             //console.log("Epoch Mined: ", epochsMined);
             //  console.log("\n\n\n\n\nEpochs Mined : ", epochsMined);
             allepochs = allepochs + epochsMined;
@@ -21080,6 +21082,7 @@ mined_blocks = mined_blocks.filter(mintData => {
                             var prevEpochCount = parseInt(prevData.substring(66, 130), 16);
                             epochsMined = epochCount - prevEpochCount;
                         }
+                     //   console.log("EPOK MINED: epochsMined: ", epochsMined);
 
                         if (epochsMined < 0) {
                             console.log("THIS HASH:", tx_hash);
@@ -22985,8 +22988,8 @@ function truncateAddress(address) {
 
 // Load data from API// Load data from API with failover
 async function loadData2() {
-    const primaryUrl = customDataSource + 'B0x_Staking_Rich_List_logs_testnet.json';
-    const backupUrl = customBACKUPDataSource + 'B0x_Staking_Rich_List_logs_testnet.json';
+    const primaryUrl = customDataSource + 'B0x_Staking_Rich_List_logs_mainnet.json';
+    const backupUrl = customBACKUPDataSource + 'B0x_Staking_Rich_List_logs_mainnet.json';
 
     try {
         document.getElementById('tableContent55').innerHTML = '<div class="loading55">Loading staking data...</div>';
