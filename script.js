@@ -47,91 +47,6 @@ const tokenIconsETH = {
 /*
 
 
-const UnsiwapV4PoolCreatorAddress = "0x398395C860EcaaF9B58FEBd0b91118c129DbcBe7";
-const USDCToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
-const positionManager_address = "0x7c5f5a4bbd8fd63184577525326123b519429bdc";
-const contractAddress_PositionFinderPro = '0xb46CAfc364868105FfE7dFF8ea0c2d25c5b80eCa'; // Replace with actual contract address
-const contractAddress_Swapper = '0x75592460034f1fBB54cd32a0FA0AeD9aB426DE21'; // Replace with actual contract address 0xeD5BE21bcc9479a29ED0E2f356829801396a6668
-const contractAddressLPRewardsStaking = '0x2C0B7f3542e06b81334A10B3ece8De98884449c8';
-const hookAddress = '0xA54CbcF7449421E5842C483CC30d992ced301000';
-const ProofOfWorkAddresss = '0xE377d143a472EB0b255264f22af858075b6b9529';
-
-// Token addresses mapping
-const tokenAddresses = {
-    'ETH': '0x0000000000000000000000000000000000000000', // addresses
-    'B0x': '0x30456A1da01117Ab06044665854BCCd29640585d',
-    '0xBTC': '0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B',
-    'WETH': '0x4200000000000000000000000000000000000006',
-    'RightsTo0xBTC': '0x0000000000000000000000000000000000000000', //temp until mainnet fill in with actual token on launch
-    'USDC': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', //mainnet base USDC
-};
-
-
-
-const tokenMap = {
-    "0x4200000000000000000000000000000000000006": "WETH",
-    "0x0000000000000000000000000000000000000000": "ETH",
-    "0x30456A1da01117Ab06044665854BCCd29640585d": "B0x",
-    "0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B": "0xBTC",
-    "0x0000000000000000000000000000000000000000": "RightsTo0xBTC",  //temp until mainnet fill in with actual token on launch
-    "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": "USDC", //mainnet base USDC
-    // Add more token mappings as needed
-};
-
-
-
-
-
-// Token addresses mapping FOR ETHEREUM MAINNET ONLY but using testnet base sepolia instead of mainnet ETH
-const tokenAddressesETH = {
-    'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
-    'B0x': '0x2a7D818C7F997e28Ab2Bd3a199aEc88e922C76Ed', //TEMP UNTIL MAINNET FILL IN WITH ACTUAL TOKEN ON LAUNCH
-    '0xBTC': '0xB6eD7644C69416d67B522e20bC294A9a9B405B31',
-    'RightsTo0xBTC': '0xCD62959Dc839410f62cD95b3c2A2aF5ae4c535ae', //TEMP UNTIL MAINNET FILL IN WITH ACTUAL TOKEN ON LAUNCH
-};
-
-
-
-*/
-
-
-
-
-/*
-
-
-Token Addresses Base Network
-```
-'ETH on Base': 0x0000000000000000000000000000000000000000
-'B0x on Base': 0xa9520FC8c54691af586544aD13Db954AfC345cd4
-'0xBTC on Base': 0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B
-'WETH on Base': '0x4200000000000000000000000000000000000006
-'RightsTo0xBTC on Base': 0x004DCEb20712EaBA0606e83c2E43BF2CDdfa0388
-'USDC on Base': 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
-```
-
-Token Addresses Ethereum Network
-```
-'ETH on ETH': 0x0000000000000000000000000000000000000000
-'B0x on ETH': 0x313cD1962Cb6fA0A53900586C19373939F781909
-'0xBTC on ETH': 0xB6eD7644C69416d67B522e20bC294A9a9B405B31
-'RightsTo0xBTC on ETH': 0xE3A582b3588c9BB73027e5C0531912d880e76E1E 
-```
-
-
-//OTHER BASE Network Contracts
-```
-UnsiwapV4PoolCreatorAddress = 0xE82F72200f54968Dcc3b6900d4B33701dA62A48C
-positionManager_address = 0x7c5f5a4bbd8fd63184577525326123b519429bdc
-contractAddress_PositionFinderPro = 0x6be8BAFFC70696404Cdc191129e832238d242C34
-contractAddress_Swapper = 0x7efA6a3B86B630013a1541c1DEe4Abf729a3a775
-contractAddressLPRewardsStaking = 0xe66EA3fe7659310d3392363673aFB39fd1019AdA
-hookAddress = 0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000
-ProofOfWorkAddresss = 0x97bBa9F710DE42536843Bd1061514b5104D7DE50
-```
-*/
-
-
 const UnsiwapV4PoolCreatorAddress = "0xE82F72200f54968Dcc3b6900d4B33701dA62A48C";
 const USDCToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const positionManager_address = "0x7c5f5a4bbd8fd63184577525326123b519429bdc";
@@ -183,6 +98,54 @@ const tokenAddresses = {
 
 
 
+const UnsiwapV4PoolCreatorAddress = "0xe11DF7D2Dc811C500624A1F65cD2245076Fc5FB0";
+const USDCToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const positionManager_address = "0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80";
+const contractAddress_PositionFinderPro = '0xe0B65A81414CD02cAAa52a92B0A84e9e8876B38e'; // Replace with actual contract address
+const contractAddress_Swapper = '0x3E7325ecdFCa6FC189B2F5839099c7E8E5d5e2Cb'; // Replace with actual contract address
+const contractAddressLPRewardsStaking = '0x48b0aD88053649829F90CD7dC9F464c112Bf71A6';
+const hookAddress = '0x76Db52918cD01e26459e251c1ab576793a859000';
+const ProofOfWorkAddresss = '0x6b52c360BA2e5d182bC94BE97dd7A2FD89987001';
+
+// Token addresses mapping
+const tokenAddresses = {
+'ETH': '0x0000000000000000000000000000000000000000', // addresses
+'B0x': '0x126149771d1b44298bde251cc144fa389cff0b9c',
+'0xBTC': '0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B',
+'WETH': '0x4200000000000000000000000000000000000006',
+'RightsTo0xBTC': '0x0000000000000000000000000000000000000000', //temp until mainnet fill in with actual token on launch
+'USDC': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', //mainnet base USDC
+};
+
+
+
+    const tokenMap = {
+        "0x4200000000000000000000000000000000000006": "WETH",
+        "0x0000000000000000000000000000000000000000": "ETH",
+        "0x126149771d1b44298bde251cc144fa389cff0b9c": "B0x",
+        "0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B": "0xBTC",
+        "0x0000000000000000000000000000000000000000": "RightsTo0xBTC",  //temp until mainnet fill in with actual token on launch
+        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": "USDC", //mainnet base USDC
+        // Add more token mappings as needed
+    };
+
+
+   
+
+
+// Token addresses mapping FOR ETHEREUM MAINNET ONLY but using testnet base sepolia instead of mainnet ETH
+  const tokenAddressesETH = {
+      'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
+      'B0x': '0x7C71acD822429F769f7E676131456B13F58eE48C', //TEMP UNTIL MAINNET FILL IN WITH ACTUAL TOKEN ON LAUNCH
+      '0xBTC': '0xB6eD7644C69416d67B522e20bC294A9a9B405B31',
+      'RightsTo0xBTC': '0x9C5A577d00c8F04d5cA1554ad5489bFbff2c2ECB', //TEMP UNTIL MAINNET FILL IN WITH ACTUAL TOKEN ON LAUNCH
+      };
+
+
+
+
+
+*/
 
 
 
@@ -198,7 +161,48 @@ const tokenAddresses = {
 
 
 
+const UnsiwapV4PoolCreatorAddress = "0x80D68014E12C76B60DbA69c4d33E0ceD06f602EF";
+const USDCToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const positionManager_address = "0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80";
+const contractAddress_PositionFinderPro = '0x09faDBe933dfF4C7217E7d88C551E9EA6d49eE0f'; // Replace with actual contract address
+const contractAddress_Swapper = '0x6c6B14B49Cb4E9771c555689C2D11aF9A7500a6f'; // Replace with actual contract address
+const contractAddressLPRewardsStaking = '0x08f489C5017942d3b7c82C1c178877C80492c948';
+const hookAddress = '0x785319f8fCE23Cd733DE94Fd7f34b74A5cAa1000';
+const ProofOfWorkAddresss = '0xd44Ee7dAdbF50214cA7009a29D9F88BCcD0E9Ff4';
 
+// Token addresses mapping
+const tokenAddresses = {
+'ETH': '0x0000000000000000000000000000000000000000', // addresses
+'B0x': '0x6B19E31C1813cD00b0d47d798601414b79A3e8AD',
+'0xBTC': '0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B',
+'WETH': '0x4200000000000000000000000000000000000006',
+'RightsTo0xBTC': '0x2ffa14b113b0a598b07af6714f42dd75bddffd3e', //temp until mainnet fill in with actual token on launch
+'USDC': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', //mainnet base USDC
+};
+
+
+
+    const tokenMap = {
+        "0x4200000000000000000000000000000000000006": "WETH",
+        "0x0000000000000000000000000000000000000000": "ETH",
+        "0x6B19E31C1813cD00b0d47d798601414b79A3e8AD": "B0x",
+        "0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B": "0xBTC",
+        "0x2ffa14b113b0a598b07af6714f42dd75bddffd3e": "RightsTo0xBTC",  //temp until mainnet fill in with actual token on launch
+        "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": "USDC", //mainnet base USDC
+        // Add more token mappings as needed
+    };
+
+
+   
+
+
+// Token addresses mapping FOR ETHEREUM MAINNET ONLY but using testnet base sepolia instead of mainnet ETH
+  const tokenAddressesETH = {
+      'ETH': '0x0000000000000000000000000000000000000000', // Example addresses
+      'B0x': '0x1F8f212540B31b37f40D8C57b5c7d8b55bf25919', //TEMP UNTIL MAINNET FILL IN WITH ACTUAL TOKEN ON LAUNCH
+      '0xBTC': '0xB6eD7644C69416d67B522e20bC294A9a9B405B31',
+      'RightsTo0xBTC': '0xbCEaA05d2C153C3E961Fbae0640f58d968d9DDaD', //TEMP UNTIL MAINNET FILL IN WITH ACTUAL TOKEN ON LAUNCH
+      };
 
 
 
@@ -234,8 +238,8 @@ var pricesLoaded = false;
 var latestSearch = false;
 async function fetchPriceData() {
     console.log("customDataSource customDataSource: ", customDataSource);
-    const primaryUrl = customDataSource + 'price_data_bwork.json';
-    const backupUrl = customBACKUPDataSource + 'price_data_bwork.json';
+    const primaryUrl = customDataSource + 'price_data_bwork_mainnet.json';
+    const backupUrl = customBACKUPDataSource + 'price_data_bwork_mainnet.json';
 
     try {
         console.log('Fetching price data from primary source...');
@@ -1496,7 +1500,7 @@ async function connectWallet(resumeFromStep = null) {
       // Retry from the last known step
       return connectWallet(connectionState.lastStep);
     }
-    
+    console.log("Error25: ",error);
     handleWalletError(error);
     connectionState.isRecovering = false;
     return null;
@@ -1728,7 +1732,10 @@ async function getRewardStats() {
     }];
 
     const getRewardStatsABI = [{
-        "inputs": [],
+        
+        "inputs": [
+        { "internalType": "address", "name": "user", "type": "address" }
+        ],
         "name": "getRewardOwedStats",
         "outputs": [
             { "internalType": "address[]", "name": "rewardTokenAddresses", "type": "address[]" },
@@ -1767,7 +1774,7 @@ async function getRewardStats() {
 
     // Create interface for encoding
     const iface = new ethers.utils.Interface(getRewardStatsABI);
-    
+    console.log("userAddress== ", userAddress);
     // Prepare multicall data
     const calls = [
         {
@@ -1778,7 +1785,7 @@ async function getRewardStats() {
         {
             target: contractAddressLPRewardsStaking,
             allowFailure: false,
-            callData: iface.encodeFunctionData("getRewardOwedStats")
+            callData: iface.encodeFunctionData("getRewardOwedStats", [userAddress])
         },
         {
             target: contractAddressLPRewardsStaking,
@@ -1793,7 +1800,8 @@ async function getRewardStats() {
     ];
 
     // Execute multicall
-    const multicallContract = new ethers.Contract(MULTICALL3_ADDRESS, MULTICALL3_ABI, signer);
+    console.log("provider22222", provider);
+    const multicallContract = new ethers.Contract(MULTICALL3_ADDRESS, MULTICALL3_ABI, provider);
     const results = await multicallContract.aggregate3(calls);
 
     // Decode results
@@ -1870,6 +1878,7 @@ async function getRewardStats() {
         console.log("Symbol of Reward = ", rewardSymbol);
         
         var rewardsOwedNow = rewardsOwed[x];
+        console.log("Ted: ",rewardsOwedNow);
         var tknDecimals = rewardtokenDecimals[x];
         
         var humanReadableAmount = ethers.utils.formatUnits(rewardsFor45Days, tknDecimals);
@@ -1882,7 +1891,7 @@ async function getRewardStats() {
         if (x == 0 && addressIndex != -1) {
             rewardsAmount.innerHTML = totRewardsString2;
         } else if (addressIndex != -1) {
-            rewardsAmount.innerHTML = rewardsAmount.innerHTML + "<br>" + totRewardsString2;
+            rewardsAmount.innerHTML = rewardsAmount.innerHTML + "1<br>" + totRewardsString2;
         }
 
         const timestampEND = parseFloat(rewardtokenPeriodEndsAt[x].toString());
@@ -18217,15 +18226,15 @@ function initializeTabFromURL() {
     }
 
    // poolsfee.R0xBTC0xBTC
-
+0x6B19E31C1813cD00b0d47d798601414b79A3e8AD
    // poolsfee.b0xOxbtc
-    var linkB0x0xBTCz= "https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=0xa9520fc8c54691af586544ad13db954afc345cd4&chain=base&hook=0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" +poolsfee.b0xOxbtc+",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
-      var linkB0xETHz = "https://app.uniswap.org/positions/create/v4?currencyA=0xa9520FC8c54691af586544aD13Db954AfC345cd4&currencyB=NATIVE&chain=base&hook=0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22isDynamic%22:true,%22feeAmount%22:"+ poolsfee.b0xEth +",%22tickSpacing%22:60}&step=1";
+    var linkB0x0xBTCz= "https://app.uniswap.org/positions/create/v4?currencyA=0x6B19E31C1813cD00b0d47d798601414b79A3e8AD&currencyB=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&chain=base&hook=0x785319f8fCE23Cd733DE94Fd7f34b74A5cAa1000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" +poolsfee.b0xOxbtc+",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
+      var linkB0xETHz = "https://app.uniswap.org/positions/create/v4?currencyA=0x6B19E31C1813cD00b0d47d798601414b79A3e8AD&currencyB=NATIVE&chain=base&hook=0x785319f8fCE23Cd733DE94Fd7f34b74A5cAa1000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22isDynamic%22:true,%22feeAmount%22:"+ poolsfee.b0xEth +",%22tickSpacing%22:60}&step=1";
 
 
-        var link0xBTCETHz = "https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=NATIVE&chain=base&hook=0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" + poolsfee.oxbtcEth +",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
+        var link0xBTCETHz = "https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=NATIVE&chain=base&hook=0x785319f8fCE23Cd733DE94Fd7f34b74A5cAa1000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" + poolsfee.oxbtcEth +",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
 
-        var linkR0xBTC0xBTCz = "https://app.uniswap.org/positions/create?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=0x004dceb20712eaba0606e83c2e43bf2cddfa0388&chain=base&hook=0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:false,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22,%22inputMode%22:%22price%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" + poolsfee.R0xBTC0xBTC +",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
+        var linkR0xBTC0xBTCz = "https://app.uniswap.org/positions/create?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=0x29cEFeeEDbb8448c8B483A3A036bc563345efc69&chain=base&hook=0x785319f8fCE23Cd733DE94Fd7f34b74A5cAa1000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:false,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22,%22inputMode%22:%22price%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" + poolsfee.R0xBTC0xBTC +",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
 
 
         const linkB0xETH = document.getElementById('uniswap-linkB0xETH');
@@ -20703,8 +20712,8 @@ async function updateAllMinerInfo(provider) {
 
 
         // Primary and backup URLs
-        const primaryUrl = customDataSource + 'uu_mined_blocks_testnet.json';
-        const backupUrl = customBACKUPDataSource + 'uu_mined_blocks_testnet.json';
+        const primaryUrl = customDataSource + 'mined_blocks_mainnet.json';
+        const backupUrl = customBACKUPDataSource + 'mined_blocks_mainnet.json';
 
         try {
             console.log('Attempting to fetch from primary source...');
@@ -20833,7 +20842,7 @@ mined_blocks = mined_blocks.filter(mintData => {
             if(epochsMined <0){
                 epochsMined = 0;
             }
-            console.log("Epoch Mined: ", epochsMined);
+            //console.log("Epoch Mined: ", epochsMined);
             //  console.log("\n\n\n\n\nEpochs Mined : ", epochsMined);
             allepochs = allepochs + epochsMined;
             //   console.log("Epochs Mined allepochs: ", allepochs);
@@ -22049,8 +22058,8 @@ await sleep(500);
 }
 
 async function getTokenStats() {
-    const primaryUrl = customDataSource + 'RichList_B0x_testnet.json';
-    const backupUrl = customBACKUPDataSource + 'RichList_B0x_testnet.json';
+    const primaryUrl = customDataSource + 'RichList_B0x_mainnet.json';
+    const backupUrl = customBACKUPDataSource + 'RichList_B0x_mainnet.json';
     
     try {
         // Try primary URL first
@@ -23573,13 +23582,13 @@ let currentSort = 'b0x';
 
 async function loadData() {
     const primaryUrls = {
-        base: customDataSource + 'RichList_B0x_testnet.json',
-        eth: customDataSource + 'RichList__MainnetETH_holders.json' // Will be different when you have separate file
+        base: customDataSource + 'RichList_B0x_mainnet.json',
+        eth: customDataSource + 'RichList__Mainnet_ETH_holders.json' // Will be different when you have separate file
     };
 
     const backupUrls = {
-        base: customBACKUPDataSource + 'RichList_B0x_testnet.json',
-        eth: customBACKUPDataSource + 'RichList__MainnetETH_holders.json' // Will be different when you have separate file
+        base: customBACKUPDataSource + 'RichList_B0x_mainnet.json',
+        eth: customBACKUPDataSource + 'RichList__Mainnet_ETH_holders.json'// Will be different when you have separate file
     };
 
     try {
@@ -24411,7 +24420,7 @@ console.log("Using customDataSource: ", customDataSource);
 // Configuration
 const CONFIG = {
     RPC_URL: customRPC,
-    DATA_URL: customDataSource + "testnet_uniswap_v4_data.json",
+    DATA_URL: customDataSource + "mainnet_uniswap_v4_data.json",
     START_BLOCK: 35937447,
     MAX_LOGS_PER_REQUEST: 499,
     MAX_BLOCKS_PER_REQUEST: 499,
@@ -24429,11 +24438,11 @@ const CONFIG = {
 
     // Target pool key
     TARGET_POOL_KEY: {
-        currency0: "0xa9520FC8c54691af586544aD13Db954AfC345cd4",
+        currency0: "0x6B19E31C1813cD00b0d47d798601414b79A3e8AD",
         currency1: "0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B",
         fee: 8388608,
         tickSpacing: 60,
-        hooks: "0x983dD6eF6A9360331ba80Ed6322ea47fEb9AD000"
+        hooks: "0x785319f8fCE23Cd733DE94Fd7f34b74A5cAa1000"
     }
 };
 
@@ -25645,7 +25654,7 @@ async function mainRPCStarterForPositions() {
     await loadSettings();
     CONFIG.RPC_URL = customRPC;
 
-    CONFIG.DATA_URL = customDataSource + "testnet_uniswap_v4_data.json",
+    CONFIG.DATA_URL = customDataSource + "mainnet_uniswap_v4_data.json",
         console.log("Config URL : ", CONFIG.RPC_URL);
     // Fetch existing data first
     await fetchDataFromUrl();
