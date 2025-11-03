@@ -159,11 +159,9 @@ const tokenAddresses = {
 
 
 
-
-
 const UnsiwapV4PoolCreatorAddress = "0x80D68014E12C76B60DbA69c4d33E0ceD06f602EF";
 const USDCToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
-const positionManager_address = "0x4B2C77d209D3405F41a037Ec6c77F7F5b8e2ca80";
+const positionManager_address = "0x7c5f5a4bbd8fd63184577525326123b519429bdc";
 const contractAddress_PositionFinderPro = '0x09faDBe933dfF4C7217E7d88C551E9EA6d49eE0f'; // Replace with actual contract address
 const contractAddress_Swapper = '0x6c6B14B49Cb4E9771c555689C2D11aF9A7500a6f'; // Replace with actual contract address
 const contractAddressLPRewardsStaking = '0x08f489C5017942d3b7c82C1c178877C80492c948';
@@ -1019,7 +1017,6 @@ console.log("Custom RPC2: ", customRPC);
             } catch (error) {
                 console.error('Error calling getOutput in rewardAPY:', error);
 
-            lastWETHto0xBTCRateUpdate2 = Date.now();
             }
 
             // First debug what we're getting back
