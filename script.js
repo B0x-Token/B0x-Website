@@ -1888,7 +1888,7 @@ async function getRewardStats() {
         if (x == 0 && addressIndex != -1) {
             rewardsAmount.innerHTML = totRewardsString2;
         } else if (addressIndex != -1) {
-            rewardsAmount.innerHTML = rewardsAmount.innerHTML + "1<br>" + totRewardsString2;
+            rewardsAmount.innerHTML = rewardsAmount.innerHTML + "<br>" + totRewardsString2;
         }
 
         const timestampEND = parseFloat(rewardtokenPeriodEndsAt[x].toString());
