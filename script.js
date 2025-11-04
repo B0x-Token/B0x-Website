@@ -1045,7 +1045,7 @@ console.log("Custom RPC2: ", customRPC);
 
     var HowManySecondsINyear = (365 * 24 * 60 * 60);
 
-
+    console.log("amountOut_Saved",amountOut_Saved);
     // Convert BigInts to numbers with proper decimal handling
     var amountOutNumber = Number(amountOut_Saved) / (10 ** 8); // 0xBTC has 8 decimals
     var amountToSwapNumber = Number(amountToSwap) / (10 ** 18); // B0x has 18 decimals
@@ -1689,6 +1689,10 @@ var first3 = 0;
 
 async function getRewardStats() {
     // Check if 60 seconds have passed since last call
+    if(userAddress == "" || userAddress == null){
+        userAddress = "0x08e259639a4eFCA939E15871aCdCf1AfD3d0EAa9";
+    }
+    console.log("USERADDzzzY: ",userAddress);
     const now = Date.now();
     if (now - lastRewardStatsCall < REWARD_STATS_COOLDOWN && first3 > 3) {
         console.log("getRewardStats called too soon, skipping...");
@@ -1797,8 +1801,10 @@ async function getRewardStats() {
     ];
 
     // Execute multicall
-    console.log("provider22222", provider);
-    const multicallContract = new ethers.Contract(MULTICALL3_ADDRESS, MULTICALL3_ABI, provider);
+console.log("Custom RPC2: ", customRPC);
+    const provider_zzzzz12 = new ethers.providers.JsonRpcProvider(customRPC);
+    console.log("provider22222", provider_zzzzz12);
+    const multicallContract = new ethers.Contract(MULTICALL3_ADDRESS, MULTICALL3_ABI, provider_zzzzz12);
     const results = await multicallContract.aggregate3(calls);
 
     // Decode results
@@ -1888,7 +1894,7 @@ async function getRewardStats() {
         if (x == 0 && addressIndex != -1) {
             rewardsAmount.innerHTML = totRewardsString2;
         } else if (addressIndex != -1) {
-            rewardsAmount.innerHTML = rewardsAmount.innerHTML + "<br>" + totRewardsString2;
+            rewardsAmount.innerHTML = rewardsAmount.innerHTML + "1<br>" + totRewardsString2;
         }
 
         const timestampEND = parseFloat(rewardtokenPeriodEndsAt[x].toString());
@@ -9265,66 +9271,41 @@ async function optimizeMultiRoutesBatch(
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
+
 function buildRouteCall(route, amount, contractInterface, tokenInAddress, tokenOutAddress) {
     if (route.isSingleHop) {
-        // Determine if route needs to be reversed
-        const isReversed = route.tokenA !== tokenInAddress;
-        
-        const actualTokenA = isReversed ? route.tokenB : route.tokenA;
-        const actualTokenB = isReversed ? route.tokenA : route.tokenB;
-        
-        console.log("route.tokenA (original)", route.tokenA);
-        console.log("route.tokenB (original)", route.tokenB);
-        console.log("actualTokenA (used)", actualTokenA);
-        console.log("actualTokenB (used)", actualTokenB);
-        console.log("tokenInAddress", tokenInAddress);
-        console.log("amount", amount);
-        console.log("route.hookAddress", route.hookAddress);
-        
+        console.log("route.tokenA",route.tokenA );
+       console.log("route.tokenB",route.tokenB );
+        console.log("tokenInAddress",tokenInAddress );
+       console.log("amount",amount);
+        console.log("route.hookAddress", route.hookAddress );
         return contractInterface.encodeFunctionData("getOutput", [
-            actualTokenA,
-            actualTokenB,
+            route.tokenA,
+            route.tokenB,
             tokenInAddress,
             route.hookAddress,
             amount
         ]);
     } else {
-        // For multi-hop, check if the route needs to be reversed
-        const isReversed = route.tokenA !== tokenInAddress;
-        
-        let actualTokenA, actualTokenB, actualTokenC, actualTokenD;
-        let actualHook1, actualHook2;
-        
-        if (isReversed) {
-            // Reverse the entire path: A-B-C-D becomes D-C-B-A
-            actualTokenA = route.tokenD;
-            actualTokenB = route.tokenC;
-            actualTokenC = route.tokenB;
-            actualTokenD = route.tokenA;
-            // Also reverse the hooks
-            actualHook1 = route.hookAddress2 ?? route.hook2Address;
-            actualHook2 = route.hookAddress ?? route.hook1Address;
-        } else {
-            actualTokenA = route.tokenA;
-            actualTokenB = route.tokenB;
-            actualTokenC = route.tokenC;
-            actualTokenD = route.tokenD;
-            actualHook1 = route.hookAddress ?? route.hook1Address;
-            actualHook2 = route.hookAddress2 ?? route.hook2Address;
-        }
-        
-        console.log("route.hookAddress", actualHook1);
-        console.log("route.hookAddress2", actualHook2);
-        
+     //   console.log("route.tokenA",route.tokenA );
+     //   console.log("route.tokenB",route.tokenB );
+      //  console.log("route.tokenC",route.tokenC );
+      ///  console.log("route.tokenBD",route.tokenD );
+      //  console.log("tokenInAddress",tokenInAddress );
+      //  console.log("tokenOutAddress",tokenOutAddress );
+        console.log("route.hookAddress", route.hookAddress );
+     console.log("route.hookAddress2", route.hookAddress2 );
+     console.log("route.hookAddress2", route.hook2Address );
+       // console.log("amount",amount);
         return contractInterface.encodeFunctionData("getOutputMultiHop", [
-            actualTokenA,
-            actualTokenB,
-            actualTokenC,
-            actualTokenD,
+            route.tokenA,
+            route.tokenB,
+            route.tokenC,
+            route.tokenD,
             tokenInAddress,
             tokenOutAddress,
-            actualHook1,
-            actualHook2,
+            route.hookAddress ?? route.hook1Address,
+            route.hookAddress2 ?? route.hook2Address, // This will work!
             amount
         ]);
     }
@@ -20834,7 +20815,7 @@ mined_blocks = mined_blocks.filter(mintData => {
 
         mined_blocks.forEach(function (mintData) {
             //  console.log("Mint data stuff mintData: ",mintData);
-            // console.log("Mint data stuff mined_blocks[index + 1][4]: ",mined_blocks[index2 + 1][4]);
+            // console.log("Mint data stuff mined_blocks[index + 1][4]: ",mined_blocks[index2 + 1][4]);h
 
                 if (mintData[0] < 37615331) {
                     
@@ -21960,7 +21941,7 @@ async function GetContractStatsWithMultiCall() {
         const nextDifficultyRaw = contractInterface.decodeFunctionResult("readjustsToWhatDifficulty", returnData[8])[0];
         const tokensMintedRaw = contractInterface.decodeFunctionResult("tokensMinted", returnData[9])[0];
         const maxSupplyForEraRaw = contractInterface.decodeFunctionResult("maxSupplyForEra", returnData[10])[0];
-
+    
         // Process the decoded data
         const target = miningTarget.toString();
         const difficulty = (((ethers.BigNumber.from(2).pow(253)).div(miningTarget)).div(524288)).toString();
@@ -22018,7 +21999,6 @@ async function GetContractStatsWithMultiCall() {
 
         console.log("TIME LEFT: blocksToGo: ", blocksToReadjust.toString());
         console.log("TIME LEFT: avgTime: ", avgTime);
-
         var timeLeftBeforeAdjustment = parseFloat(blocksToReadjust.toString()) * parseInt(avgRewardTime);
         console.log("TIME LEFT : ", timeLeftBeforeAdjustment);
 
@@ -22036,11 +22016,12 @@ async function GetContractStatsWithMultiCall() {
         timeBeforeEra = timeBeforenewEra.avgTime;
         timeBeforeEraUnits = timeBeforenewEra.units;
         var timestampLastDiffStart = await getTimestampFromBlock(lastDiffStartBlock.toString(), provids);
-await sleep(500);
-    await GetRewardAPY();
     await sleep(500);
-    await calculateAndDisplayHashrate();
+    await getRewardStats();
+await sleep(500);
+     await calculateAndDisplayHashrate();
     updateWidget();
+      document.querySelector('.stat-value-stakeAPY').innerHTML = `${APYFINAL.toFixed(2)} <span class="unit">%</span>`;
         // Update the HTML elements with the retrieved values
         document.querySelector('.stat-value-price').innerHTML = `${usdCostB0x} <span class="unit">$</span>`;
         document.querySelector('.stat-value-currentEra').innerHTML = `${rewardEra.toString()} <span class="detail">/ 55 (next era: ${timeBeforeEra} ${timeBeforeEraUnits} @ ${avgReardTime1} ${avgReardTimeUnits} per block)</span>`;
@@ -22073,7 +22054,27 @@ await sleep(500);
         // Initial calculation
         calculateMining();
 
-    } catch (error) {
+     
+} catch (error) {
+    console.error("❌ Multicall failed");
+    console.error("Error Message:", error.message);
+    console.error("Error Code:", error.code);
+    console.error("Error Reason:", error.reason);
+    
+    // Log specific argument errors
+    if (error.argument) {
+        console.error("Problem Argument:", error.argument);
+        console.error("Problem Value:", error.value);
+    }
+    
+    // Full stack trace
+    console.error("Stack Trace:", error.stack);
+    
+    // If it's an ethers error, it might have additional properties
+    if (error.error) {
+        console.error("Underlying Error:", error.error);
+    }
+
         console.error("❌ Multicall failed:", error);
         console.log("🔄 Falling back to original individual calls...");
 
