@@ -9265,41 +9265,66 @@ async function optimizeMultiRoutesBatch(
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
-
 function buildRouteCall(route, amount, contractInterface, tokenInAddress, tokenOutAddress) {
     if (route.isSingleHop) {
-        console.log("route.tokenA",route.tokenA );
-       console.log("route.tokenB",route.tokenB );
-        console.log("tokenInAddress",tokenInAddress );
-       console.log("amount",amount);
-        console.log("route.hookAddress", route.hookAddress );
+        // Determine if route needs to be reversed
+        const isReversed = route.tokenA !== tokenInAddress;
+        
+        const actualTokenA = isReversed ? route.tokenB : route.tokenA;
+        const actualTokenB = isReversed ? route.tokenA : route.tokenB;
+        
+        console.log("route.tokenA (original)", route.tokenA);
+        console.log("route.tokenB (original)", route.tokenB);
+        console.log("actualTokenA (used)", actualTokenA);
+        console.log("actualTokenB (used)", actualTokenB);
+        console.log("tokenInAddress", tokenInAddress);
+        console.log("amount", amount);
+        console.log("route.hookAddress", route.hookAddress);
+        
         return contractInterface.encodeFunctionData("getOutput", [
-            route.tokenA,
-            route.tokenB,
+            actualTokenA,
+            actualTokenB,
             tokenInAddress,
             route.hookAddress,
             amount
         ]);
     } else {
-     //   console.log("route.tokenA",route.tokenA );
-     //   console.log("route.tokenB",route.tokenB );
-      //  console.log("route.tokenC",route.tokenC );
-      ///  console.log("route.tokenBD",route.tokenD );
-      //  console.log("tokenInAddress",tokenInAddress );
-      //  console.log("tokenOutAddress",tokenOutAddress );
-        console.log("route.hookAddress", route.hookAddress );
-     console.log("route.hookAddress2", route.hookAddress2 );
-     console.log("route.hookAddress2", route.hook2Address );
-       // console.log("amount",amount);
+        // For multi-hop, check if the route needs to be reversed
+        const isReversed = route.tokenA !== tokenInAddress;
+        
+        let actualTokenA, actualTokenB, actualTokenC, actualTokenD;
+        let actualHook1, actualHook2;
+        
+        if (isReversed) {
+            // Reverse the entire path: A-B-C-D becomes D-C-B-A
+            actualTokenA = route.tokenD;
+            actualTokenB = route.tokenC;
+            actualTokenC = route.tokenB;
+            actualTokenD = route.tokenA;
+            // Also reverse the hooks
+            actualHook1 = route.hookAddress2 ?? route.hook2Address;
+            actualHook2 = route.hookAddress ?? route.hook1Address;
+        } else {
+            actualTokenA = route.tokenA;
+            actualTokenB = route.tokenB;
+            actualTokenC = route.tokenC;
+            actualTokenD = route.tokenD;
+            actualHook1 = route.hookAddress ?? route.hook1Address;
+            actualHook2 = route.hookAddress2 ?? route.hook2Address;
+        }
+        
+        console.log("route.hookAddress", actualHook1);
+        console.log("route.hookAddress2", actualHook2);
+        
         return contractInterface.encodeFunctionData("getOutputMultiHop", [
-            route.tokenA,
-            route.tokenB,
-            route.tokenC,
-            route.tokenD,
+            actualTokenA,
+            actualTokenB,
+            actualTokenC,
+            actualTokenD,
             tokenInAddress,
             tokenOutAddress,
-            route.hookAddress ?? route.hook1Address,
-            route.hookAddress2 ?? route.hook2Address, // This will work!
+            actualHook1,
+            actualHook2,
             amount
         ]);
     }
