@@ -17259,10 +17259,10 @@ function addMaxButtonToField(inputElement, tokenSymbol) {
             console.log("0xbtc max: ", maxAmount);
         }
         // Format based on token type
-        const formattedValue = ['ETH', 'WBTC'].includes(selectedToken)
-            ? parseFloat(maxAmount).toFixed(6)
-            : parseFloat(maxAmount).toFixed(2);
 
+        const decimals = ['ETH', 'WBTC'].includes(selectedToken) ? 6 : 3;
+        const formattedValue = truncateDecimals(parseFloat(maxAmount), decimals).toFixed(decimals);
+    
 
         console.log("Calling setmaxAmount2");
         // Set the max amount in the input field
@@ -17923,11 +17923,12 @@ async function getMax() {
         console.log("0xbtc max: ", maxAmount);
     }
     // Format based on token type
-    const formattedValue = ['ETH', 'WBTC'].includes(selectedToken)
-        ? parseFloat(maxAmount).toFixed(6)
-        : parseFloat(maxAmount).toFixed(2);
 
+        const decimals = ['ETH', 'WBTC'].includes(selectedToken) ? 6 : 3;
+        const formattedValue = truncateDecimals(parseFloat(maxAmount), decimals).toFixed(decimals);
+    
 
+    console.log("THis valuesz: ",formattedValue);
     console.log("Calling setmaxAmount2");
     // Set the max amount in the input field
     setMaxAmount2(inputElement3, selectedToken, formattedValue);
@@ -17937,6 +17938,13 @@ async function getMax() {
     // Set the max amount in the input field
 
 
+}
+
+
+// Helper function to truncate decimals
+function truncateDecimals(num, decimals) {
+    const multiplier = Math.pow(10, decimals);
+    return Math.floor(num * multiplier) / multiplier;
 }
 
 
