@@ -16670,45 +16670,33 @@ async function startRewardPeriod() {
 
 
 
-
-/**
- * Formats hashrate to the most appropriate unit with proper precision
- * @param {number} hashrate - Raw hashrate in H/s
- * @returns {string} Formatted hashrate string (e.g., "5.5 GH/s", "10 MH/s")
- */
 function formatHashrate(hashrate) {
     const units = [
-        { suffix: 'EH/s', divisor: 1e18 },  // Exahash
-        { suffix: 'PH/s', divisor: 1e15 },  // Petahash
-        { suffix: 'TH/s', divisor: 1e12 },  // Terahash
-        { suffix: 'GH/s', divisor: 1e9 },   // Gigahash
-        { suffix: 'MH/s', divisor: 1e6 },   // Megahash
-        { suffix: 'KH/s', divisor: 1e3 },   // Kilohash
-        { suffix: 'H/s', divisor: 1 }       // Hash
+        { suffix: 'EH/s', divisor: 1e18 },
+        { suffix: 'PH/s', divisor: 1e15 },
+        { suffix: 'TH/s', divisor: 1e12 },
+        { suffix: 'GH/s', divisor: 1e9 },
+        { suffix: 'MH/s', divisor: 1e6 },
+        { suffix: 'KH/s', divisor: 1e3 },
+        { suffix: 'H/s', divisor: 1 }
     ];
 
-    // Find the appropriate unit
     for (const unit of units) {
         const value = hashrate / unit.divisor;
         if (value >= 1) {
-            // Format with appropriate decimal places
             let formatted;
             if (value >= 100) {
                 formatted = Math.round(value).toString();
             } else if (value >= 10) {
-                formatted = value.toFixed(1);
+                formatted = value.toFixed(1).replace(/\.0$/, '');
             } else {
-                formatted = value.toFixed(2);
+                formatted = value.toFixed(2).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
             }
-
-            // Remove trailing zeros and decimal point if not needed
-            formatted = formatted.replace(/\.?0+$/, '');
 
             return `${formatted} ${unit.suffix}`;
         }
     }
 
-    // Fallback for very small values
     return `${hashrate.toFixed(6)} H/s`;
 }
 
