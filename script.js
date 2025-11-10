@@ -1692,12 +1692,14 @@ async function getRewardStats() {
     if(userAddress == "" || userAddress == null){
         userAddress = "0x08e259639a4eFCA939E15871aCdCf1AfD3d0EAa9";
     }
+    
     console.log("USERADDzzzY: ",userAddress);
     const now = Date.now();
     if (now - lastRewardStatsCall < REWARD_STATS_COOLDOWN && first3 > 3) {
         console.log("getRewardStats called too soon, skipping...");
         return;
     }
+    first3 = first3 + 1;
     
     // Update the last call timestamp
     lastRewardStatsCall = now;
@@ -1894,7 +1896,7 @@ console.log("Custom RPC2: ", customRPC);
         if (x == 0 && addressIndex != -1) {
             rewardsAmount.innerHTML = totRewardsString2;
         } else if (addressIndex != -1) {
-            rewardsAmount.innerHTML = rewardsAmount.innerHTML + "1<br>" + totRewardsString2;
+            rewardsAmount.innerHTML = rewardsAmount.innerHTML + "<br>" + totRewardsString2;
         }
 
         const timestampEND = parseFloat(rewardtokenPeriodEndsAt[x].toString());
@@ -2495,12 +2497,13 @@ function updatePositionInfoMAIN_UNSTAKING() {
 
     console.log('Found info-car12313213d2:', infoCard);
 
+    var parseFloatz = parseFloat(position.PenaltyForWithdraw).toFixed(3);
     infoCard.innerHTML = `<h3>Current Selected Position</h3>
         <p><strong>Pool:</strong> ${position.pool} (${position.feeTier})</p>
         <p><strong>Current Liquidity:</strong> ${position.currentLiquidity.toFixed(2)}</p>
         <p><strong>Total Liquidity:</strong> ${parseFloat(position.currentTokenA).toFixed(4)} ${position.tokenA} & ${parseFloat(position.currentTokenB).toFixed(4)} ${position.tokenB}</p>
 
-        <p style="font-weight: bold; font-size: 2em; color: red;"><strong>Penalty for Early Stake Withdrawl:</strong> ${position.PenaltyForWithdraw}</p>    
+        <p style="font-weight: bold; font-size: 2em; color: red;"><strong>Penalty for Early Stake Withdrawl:</strong> ${parseFloatz} %</p>    
          <p>It is cheaper if you use Stake Decrease if you are only removing a portion of your funds from staking, cheaper than removing everthing and restaking.</p>
                   
         `;
@@ -2697,7 +2700,10 @@ function updateStakePositionInfo() {
         return;
     }
 
-    // Update current position info card
+    // Update current position info card    
+    
+    var parseFloatz = parseFloat(position.PenaltyForWithdraw).toFixed(3);
+
     const infoCard = document.querySelector('#stake-increase .info-card:nth-child(5)');
     infoCard.innerHTML = `
         <h3>Current Selected Position</h3>
@@ -2707,7 +2713,7 @@ function updateStakePositionInfo() {
 
         <p><strong>APY:</strong> ${position.apy}</p>
        <p style="font-weight: bold; font-size: 1em; color: red;"><strong>Stake Increase will reset your Early Stake Withdrawal Penalty, usually better to create and stake new seperate NFT.</p>    
-       <p><strong>Penalty for Early Stake Withdrawl:</strong> ${position.PenaltyForWithdraw}</p>
+       <p><strong>Penalty for Early Stake Withdrawl:</strong> ${parseFloatz} %</p>
     `;
 
 
@@ -2926,6 +2932,7 @@ function updateStakeDecreasePositionInfo() {
 
     // Update position details info card
     const infoCard = document.querySelector('#stake-decrease .info-card:nth-child(4)');
+    var parseFloatz = parseFloat(position.PenaltyForWithdraw).toFixed(3);
     infoCard.innerHTML = `
         <h3>Position Details</h3>
         <p><strong>Pool:</strong> ${position.pool} (${position.feeTier})</p>
@@ -2933,7 +2940,7 @@ function updateStakeDecreasePositionInfo() {
         <p><strong>Total Liquidity:</strong> ${parseFloat(position.currentTokenA).toFixed(4)} ${position.tokenA} & ${parseFloat(position.currentTokenB).toFixed(4)} ${position.tokenB}</p>
 
         <p><strong>APY:</strong> ${position.apy}</p>
-        <p style="font-weight: bold; font-size: 2em; color: red;"><strong>Penalty for Early Stake Withdrawl:</strong> ${position.PenaltyForWithdraw}</p>        `;
+        <p style="font-weight: bold; font-size: 2em; color: red;"><strong>Penalty for Early Stake Withdrawl:</strong> ${parseFloatz} %</p>        `;
 
 
 
@@ -14433,7 +14440,7 @@ async function getCreatePosition() {
         console.log("create Position transaction sent:", tx.hash);
         console.log("Transaction confirmed!");
         //alert("Successfully created position!");
-        new Promise(resolve => setTimeout(resolve, 2000));
+        new Promise(resolve => setTimeout(resolve, 5000));
 
         enableButton('getCreatePositionBtn', 'Create Position');
         fetchBalances();
