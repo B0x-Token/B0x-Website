@@ -22019,27 +22019,36 @@ async function GetContractStatsWithMultiCall() {
         timeBeforeEra = timeBeforenewEra.avgTime;
         timeBeforeEraUnits = timeBeforenewEra.units;
         var timestampLastDiffStart = await getTimestampFromBlock(lastDiffStartBlock.toString(), provids);
+
     await sleep(500);
     await getRewardStats();
 await sleep(500);
      await calculateAndDisplayHashrate();
     updateWidget();
-      document.querySelector('.stat-value-stakeAPY').innerHTML = `${APYFINAL.toFixed(2)} <span class="unit">%</span>`;
+
+        avgrewardtimeneedstobesaved = avgReardTime1;
+   variablestatvaluerewardPerSolve = rewardPerSolve;
+    blockstogostats = blocksToReadjust;
+
+CURRENT_DIFFICULTY = difficulty;
+NEXT_DIFFICULTY = nextDiff;
+
+      document.querySelector('.stat-value-stakeAPY').innerHTML = `${APYFINAL.toFixed(2).toLocaleString()} <span class="unit">%</span>`;
         // Update the HTML elements with the retrieved values
         document.querySelector('.stat-value-price').innerHTML = `${usdCostB0x} <span class="unit">$</span>`;
-        document.querySelector('.stat-value-currentEra').innerHTML = `${rewardEra.toString()} <span class="detail">/ 55 (next era: ${timeBeforeEra} ${timeBeforeEraUnits} @ ${avgReardTime1} ${avgReardTimeUnits} per block)</span>`;
-        document.querySelector('.stat-value-epochCount').textContent = epochCount.toString();
-        document.querySelector('.stat-value-difficulty').innerHTML = `${difficulty} <span class="detail">(next: ${nextDiff})</span>`;
-        document.querySelector('.stat-value-hashrate').innerHTML = `${hashRates} <span class="detail eestHashRateUnit">${hashrateunit}</span>`;
-        document.querySelector('.stat-value-averageRewardTime').innerHTML = `${avgReardTime1} <span class="detail avgRewardUnit">${avgReardTimeUnits}</span>`;
-        document.querySelector('.stat-value-rewardPerSolve').innerHTML = `${rewardPerSolve} <span class="detail rewardPerSolveUnit">B0x per solve</span>`;
-        document.querySelector('.stat-value-blocksToGo').innerHTML = `${blocksToReadjust.toString()} <span class="detail blocksToGoUnit">(~${timeBeforeAdjust} ${timeBeforeAdjustUnits})</span>`;
-        document.querySelector('.stat-value-emergency').innerHTML = `${timeEmergencyTime} <span class="detail emergencyUnit">${timeEmergencyTimeUnits}</span>`;
-        document.querySelector('.stat-value-lastDiffBlock').innerHTML = `${lastDiffStartBlock.toString()} <span class="detail lastDiffBlockDetail">(${timestampLastDiffStart})</span>`;
-        document.querySelector('.stat-value-lastDiffTime').innerHTML = `${lastDiffStartTime.toString()} <span class="detail lastDiffBlockDetail2">(${timestampLastDiffStart})</span>`;
-        document.querySelector('.stat-value-remainingSupply').innerHTML = `${remainingSupplyINERA.toLocaleString()} <span class="unit">B0x <span class="detail">(~${avgBlocksRemainingInEra} blocks or ~${timeBeforeEra} ${timeBeforeEraUnits} @ ${avgReardTime1} ${avgReardTimeUnits} per block)</span></span>`;
-        document.querySelector('.stat-value-tokenHolders').innerHTML = `${TokenHolders.toLocaleString()} <span class="unit">holders</span>`;
-        document.querySelector('.stat-value-tokenTransfers').innerHTML = `${Transfers.toLocaleString()} <span class="unit">transfers</span>`;
+        document.querySelector('.stat-value-currentEra').innerHTML = `${rewardEra.toLocaleString()} <span class="detail">/ 55 (next era: ${parseFloat(timeBeforeEra).toLocaleString()} ${timeBeforeEraUnits} @ ${parseFloat(avgReardTime1).toLocaleString()} ${avgReardTimeUnits} per block)</span>`;
+        document.querySelector('.stat-value-epochCount').textContent = epochCount.toLocaleString();
+        document.querySelector('.stat-value-difficulty').innerHTML = `${parseFloat(difficulty).toLocaleString()} <span class="detail">(next: ${parseFloat(nextDiff).toLocaleString()})</span>`;
+        document.querySelector('.stat-value-hashrate').innerHTML = `${hashRates.toLocaleString()} <span class="detail eestHashRateUnit">${hashrateunit}</span>`;
+        document.querySelector('.stat-value-averageRewardTime').innerHTML = `${parseFloat(avgReardTime1).toLocaleString()} <span class="detail avgRewardUnit">${avgReardTimeUnits}</span>`;
+        document.querySelector('.stat-value-rewardPerSolve').innerHTML = `${parseFloat(rewardPerSolve).toLocaleString()} <span class="detail rewardPerSolveUnit">B0x per solve</span>`;
+        document.querySelector('.stat-value-blocksToGo').innerHTML = `${parseFloat(blocksToReadjust).toLocaleString()} <span class="detail blocksToGoUnit">(~${timeBeforeAdjust} ${timeBeforeAdjustUnits})</span>`;
+        document.querySelector('.stat-value-emergency').innerHTML = `${parseFloat(timeEmergencyTime).toLocaleString()} <span class="detail emergencyUnit">${timeEmergencyTimeUnits}</span>`;
+        document.querySelector('.stat-value-lastDiffBlock').innerHTML = `${lastDiffStartBlock.toLocaleString()} <span class="detail lastDiffBlockDetail">(${timestampLastDiffStart})</span>`;
+        document.querySelector('.stat-value-lastDiffTime').innerHTML = `${lastDiffStartTime.toLocaleString()} <span class="detail lastDiffBlockDetail2">(${timestampLastDiffStart})</span>`;
+        document.querySelector('.stat-value-remainingSupply').innerHTML = `${parseFloat(remainingSupplyINERA).toLocaleString()} <span class="unit">B0x <span class="detail">(~${parseFloat(avgBlocksRemainingInEra).toFixed(0).toLocaleString()} blocks or ~${parseFloat(timeBeforeEra).toLocaleString()} ${timeBeforeEraUnits} @ ${avgReardTime1} ${avgReardTimeUnits} per block)</span></span>`;
+        document.querySelector('.stat-value-tokenHolders').innerHTML = `${parseFloat(TokenHolders).toLocaleString()} <span class="unit">holders</span>`;
+        document.querySelector('.stat-value-tokenTransfers').innerHTML = `${parseFloat(Transfers).toLocaleString()} <span class="unit">transfers</span>`;
         document.querySelector('.stat-value-lastBaseBlock').textContent = lastBaseBlock;
         document.querySelector('.stat-value-distMining').innerHTML = `${parseFloat(totalDistributedMining).toLocaleString()}  <span class="unit">B0x</span></span>`;
         document.querySelector('.stat-value-MAxSupply').innerHTML = `${parseFloat(maxperEra).toLocaleString()}  <span class="unit">B0x</span></span>`;
@@ -22257,18 +22266,24 @@ async function GetContractStats() {
     await sleep(500);
     await calculateAndDisplayHashrate();
     updateWidget();
-    document.querySelector('.stat-value-price').innerHTML = `${usdCostB0x} <span class="unit">$</span>`;
-    document.querySelector('.stat-value-currentEra').innerHTML = `${Era} <span class="detail">/ 55 (next era: ${timeBeforeEra} ${timeBeforeEraUnits} @ ${avgReardTime1} ${avgReardTimeUnits} per block)</span>`;
-    document.querySelector('.stat-value-epochCount').textContent = EpochCount;
-    document.querySelector('.stat-value-difficulty').innerHTML = `${diff} <span class="detail">(next: ${nextDiff})</span>`;
-    document.querySelector('.stat-value-hashrate').innerHTML = `${hashRates} <span class="detail eestHashRateUnit">${hashrateunit}</span>`;
-    document.querySelector('.stat-value-averageRewardTime').innerHTML = `${avgReardTime1} <span class="detail avgRewardUnit">${avgReardTimeUnits}</span>`;
-    document.querySelector('.stat-value-rewardPerSolve').innerHTML = `${rewardPerSolve} <span class="detail rewardPerSolveUnit">B0x per solve</span>`;
-    document.querySelector('.stat-value-blocksToGo').innerHTML = `${blocksToGo} <span class="detail blocksToGoUnit">(~${timeBeforeAdjust} ${timeBeforeAdjustUnits})</span>`;
-    document.querySelector('.stat-value-emergency').innerHTML = `${timeEmergencyTime} <span class="detail emergencyUnit">${timeEmergencyTimeUnits}</span>`;
+
+CURRENT_DIFFICULTY = diff;
+NEXT_DIFFICULTY = nextDiff;
+    document.querySelector('.stat-value-price').innerHTML = `${usdCostB0x.toLocaleString()} <span class="unit">$</span>`;
+    document.querySelector('.stat-value-currentEra').innerHTML = `${Era.toLocaleString()} <span class="detail">/ 55 (next era: ${timeBeforeEra.toLocaleString()} ${timeBeforeEraUnits} @ ${avgReardTime1.toLocaleString()} ${avgReardTimeUnits} per block)</span>`;
+    document.querySelector('.stat-value-epochCount').textContent = EpochCount.toLocaleString();
+    document.querySelector('.stat-value-difficulty').innerHTML = `${parseFloat(diff).toLocaleString()} <span class="detail">(next: ${parseFloat(nextDiff).toLocaleString()})</span>`;
+    document.querySelector('.stat-value-hashrate').innerHTML = `${hashRates.toLocaleString()} <span class="detail eestHashRateUnit">${hashrateunit}</span>`;
+    avgrewardtimeneedstobesaved = avgReardTime1;
+    document.querySelector('.stat-value-averageRewardTime').innerHTML = `${avgReardTime1.toLocaleString()} <span class="detail avgRewardUnit">${avgReardTimeUnits}</span>`;
+   variablestatvaluerewardPerSolve = rewardPerSolve;
+    document.querySelector('.stat-value-rewardPerSolve').innerHTML = `${rewardPerSolve.toLocaleString()} <span class="detail rewardPerSolveUnit">B0x per solve</span>`;
+    blockstogostats = blocksToGo;
+    document.querySelector('.stat-value-blocksToGo').innerHTML = `${blocksToGo.toLocaleString()} <span class="detail blocksToGoUnit">(~${timeBeforeAdjust.toLocaleString()} ${timeBeforeAdjustUnits})</span>`;
+    document.querySelector('.stat-value-emergency').innerHTML = `${timeEmergencyTime.toLocaleString()} <span class="detail emergencyUnit">${timeEmergencyTimeUnits}</span>`;
     document.querySelector('.stat-value-lastDiffBlock').innerHTML = `${lastDiffStartBlock} <span class="detail lastDiffBlockDetail">(${timestampLastDiffStart})</span>`;
     document.querySelector('.stat-value-lastDiffTime').innerHTML = `${lastDiffStartTime} <span class="detail lastDiffBlockDetail2">(${timestampLastDiffStart})</span>`;
-    document.querySelector('.stat-value-remainingSupply').innerHTML = `${remainingSupplyINERA.toLocaleString()} <span class="unit">B0x <span class="detail">(~${avgBlocksRemainingInEra} blocks or ~${timeBeforeEra} ${timeBeforeEraUnits} @ ${avgReardTime1} ${avgReardTimeUnits} per block)</span></span>`;
+    document.querySelector('.stat-value-remainingSupply').innerHTML = `${remainingSupplyINERA.toLocaleString()} <span class="unit">B0x <span class="detail">(~${avgBlocksRemainingInEra.toLocaleString()} blocks or ~${timeBeforeEra.toLocaleString()} ${timeBeforeEraUnits} @ ${avgReardTime1.toLocaleString()} ${avgReardTimeUnits} per block)</span></span>`;
     document.querySelector('.stat-value-tokenHolders').innerHTML = `${TokenHolders.toLocaleString()} <span class="unit">holders</span>`;
     document.querySelector('.stat-value-tokenTransfers').innerHTML = `${Transfers.toLocaleString()} <span class="unit">transfers</span>`;
     document.querySelector('.stat-value-lastBaseBlock').textContent = lastBaseBlock;
@@ -22351,8 +22366,8 @@ const MIN_REWARD = 6.25; // tokens per block
 const MAX_REWARD = 25; // tokens per block
 
 // Sample difficulty values for demo
-const CURRENT_DIFFICULTY = 0.24995304;
-const NEXT_DIFFICULTY = 0.28234567;
+var CURRENT_DIFFICULTY = 0.24995304;
+var NEXT_DIFFICULTY = 0.28234567;
 
 // Get DOM elements
 const hashrateInput = document.getElementById('hashrate-input');
@@ -22367,7 +22382,7 @@ const realisticBlockTimeEl = document.getElementById('realistic-block-time');
 const maxTokensEl = document.getElementById('max-tokens');
 
 
-
+var variablestatvaluerewardPerSolve = 0;
 // Calculate mining results based on the formula in HTML
 function calculateMining() {
     // Get input values
@@ -22409,7 +22424,7 @@ function calculateMining() {
     // Slow blocks (≥ 10 min): reward = 25 tokens
     //  let rewardPerBlock;
 
-    let rewardPerBlock = parseInt(document.querySelector('.stat-value-rewardPerSolve').textContent.trim());
+     let rewardPerBlock = variablestatvaluerewardPerSolve;
     // This gets "0.060 minutes" as a string
 
 
@@ -22461,16 +22476,16 @@ function calculateMining() {
 }
 
 
+var blockstogostats =0;
+
 function calculateTheoreticalRewards(addINInputedAvergeMineInSeconds, currentAvgReward) {
     // Get current average reward
     const currentAverageReward = currentAvgReward;
 
-    // Get current average reward time in seconds (using your previous conversion function)
-    const timeElement = document.querySelector('.stat-value-averageRewardTime');
-    const timeValue = parseFloat(timeElement.textContent.trim());
-    const blkToGo = document.querySelector('.stat-value-blocksToGo');
-    const BlksToGo = parseFloat(blkToGo.textContent.trim());
-    const timeUnit = timeElement.querySelector('.avgRewardUnit').textContent.trim().toLowerCase();
+    const timeValue = avgrewardtimeneedstobesaved;
+    const blkToGo = blockstogostats;
+    const BlksToGo = blkToGo;
+    const timeUnit = document.querySelector('.avgRewardUnit').textContent.trim().toLowerCase();
 
     const timeConversions = {
         'second': 1, 'seconds': 1,
@@ -22552,10 +22567,10 @@ function calculateTheoreticalRewards(addINInputedAvergeMineInSeconds, currentAvg
     return totalRewards;
 }
 
-
+var avgrewardtimeneedstobesaved = 0;
 function convertToSeconds() {
     const element = document.querySelector('.stat-value-averageRewardTime');
-    const fullText = element.textContent.trim(); // "0.060 minutes"
+    const fullText = avgrewardtimeneedstobesaved;
     const unitElement = element.querySelector('.avgRewardUnit');
     const unit = unitElement.textContent.trim().toLowerCase(); // "minutes"
     const value = parseFloat(fullText); // 0.060
