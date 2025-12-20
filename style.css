@@ -4244,6 +4244,13 @@ body::before {
     overflow-x: auto !important;      /* Enable horizontal scroll */
 }
 
+#stats .chart-containerf2 {
+    width: 100% !important;           /* Make it fill the parent */
+    max-width: 100% !important;       /* Don't exceed parent */
+    min-width: 0 !important;          /* Allow shrinking */
+    overflow-x: auto !important;      /* Enable horizontal scroll */
+}
+
 
 
 .scroll-wrapper {
@@ -4601,6 +4608,15 @@ body::before {
     }
 
     .chart-containerf {
+        width: 1200px;
+        flex: 1;
+        min-width: 0;
+        margin: 10px 0;
+        /* Minimal vertical spacing */
+        padding: 0;
+        position: relative;
+    }
+    .chart-containerf2 {
         width: 1200px;
         flex: 1;
         min-width: 0;
