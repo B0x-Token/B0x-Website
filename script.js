@@ -19196,8 +19196,8 @@ function generateHashrateAndBlocktimeGraph(ethersProviderInstance, target_cv_obj
             if (eth_blocks_passed == 0) {
                 continue;
             }
-
-            var eras_per_eth_block = eras_passed / eth_blocks_passed * 7;
+            //THIS DETERMINES THE AMOUNT OF TOKENS FROM THE ERA, if its Era 1 = 3.5 if its era 2 = 1.75 fix th is in the futu8re
+            var eras_per_eth_block = eras_passed / eth_blocks_passed * 3.5;
 
             chart_data.push({
                 x: era_values[step][0],
@@ -19222,7 +19222,7 @@ function generateHashrateAndBlocktimeGraph(ethersProviderInstance, target_cv_obj
 
 console.log("tokens_price_values: ", total_price_data);
 console.log("total_price_data3: ", total_price_data3);
-    const scaleFactor = 10000000;
+    const scaleFactor = 1;
     let resultGraph = total_price_data.map((item, index) => {
         if (total_price_data[index].y === 0) {
             console.error("Division by zero at index " + index);
@@ -19443,20 +19443,35 @@ console.log("total_price_data3: ", total_price_data3);
                         color: '#f2f2f2',
                         usePointStyle: true
                     }
-                },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#f2f2f2',
-                    bodyColor: '#f2f2f2',
-                    borderColor: 'rgba(255, 255, 255, 0.3)',
-                    borderWidth: 1,
-                    callbacks: {
-                        title: function (context) {
-                            return 'Block: ' + Math.floor(context[0].parsed.x);
-                        }
-                    }
+                },tooltip: {
+    mode: 'index',
+    intersect: false,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    titleColor: '#f2f2f2',
+    bodyColor: '#f2f2f2',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderWidth: 1,
+    callbacks: {
+        title: function (context) {
+            return 'Block: ' + Math.floor(context[0].parsed.x);
+        },
+        label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+                label += ': ';
+            }
+            if (context.parsed.y !== null) {
+                if (context.dataset.label === "B0x Token Hashrate") {
+                    label += toReadableHashrate(context.parsed.y);
+                } else if (context.dataset.label === "Difficulty") {
+                    label += toReadableThousandsLong(context.parsed.y);
+                } else {
+                    label += context.parsed.y;
+                }
+            }
+            return label;
+        }
+    }
                 }
             }
         }
@@ -19617,8 +19632,7 @@ console.log("total_price_data3: ", total_price_data3);
                         color: '#f2f2f2',
                         usePointStyle: true
                     }
-                },
-                tooltip: {
+                },tooltip: {
                     mode: 'index',
                     intersect: false,
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -19629,6 +19643,33 @@ console.log("total_price_data3: ", total_price_data3);
                     callbacks: {
                         title: function (context) {
                             return 'Block: ' + Math.floor(context[0].parsed.x);
+                        },
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                if (context.dataset.label === "Average Reward Time" || 
+                                    context.dataset.label === "Target Reward Time") {
+                                    // Convert minutes to readable format
+                                    let minutes = context.parsed.y;
+                                    if (minutes < 1) {
+                                        label += (minutes * 60).toFixed(1) + ' sec';
+                                    } else if (minutes < 60) {
+                                        label += minutes.toFixed(1) + ' min';
+                                    } else {
+                                        let hours = Math.floor(minutes / 60);
+                                        let mins = minutes % 60;
+                                        label += hours + 'h ' + mins.toFixed(0) + 'm';
+                                    }
+                                } else if (context.dataset.label === "Total Supply") {
+                                    label += parseInt(context.parsed.y).toLocaleString();
+                                } else {
+                                    label += context.parsed.y;
+                                }
+                            }
+                            return label;
                         }
                     }
                 }
@@ -19772,20 +19813,50 @@ console.log("total_price_data3: ", total_price_data3);
                         usePointStyle: true
                     }
                 },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#f2f2f2',
-                    bodyColor: '#f2f2f2',
-                    borderColor: 'rgba(255, 255, 255, 0.3)',
-                    borderWidth: 1,
-                    callbacks: {
-                        title: function (context) {
-                            return 'Block: ' + Math.floor(context[0].parsed.x);
-                        }
+ tooltip: {
+    mode: 'index',
+    intersect: false,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    titleColor: '#f2f2f2',
+    bodyColor: '#f2f2f2',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderWidth: 1,
+    callbacks: {
+        title: function (context) {
+            return 'Block: ' + Math.floor(context[0].parsed.x);
+        },
+        label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+                label += ': ';
+            }
+            if (context.parsed.y !== null) {
+                if (context.dataset.label === "USD Price of 1 BWORK") {
+                    // For USD, use more decimal places if very small
+                    let value = context.parsed.y;
+                    if (value < 0.0001 && value > 0) {
+                        label += '$' + value.toExponential(3);
+                    } else {
+                        label += '$' + value.toFixed(6);
                     }
+                } else if (context.dataset.label === "ETH Price of 1 BWORK") {
+                    // Apply scaling and handle very small ETH values
+                    let value = context.parsed.y / scaleFactor;
+                    if (value < 0.00000001 && value > 0) {
+                        label += value.toExponential(3) + ' ETH';
+                    } else if (value < 0.00001) {
+                        label += value.toFixed(10) + ' ETH';
+                    } else {
+                        label += value.toFixed(8) + ' ETH';
+                    }
+                } else {
+                    label += context.parsed.y;
                 }
+            }
+            return label;
+        }
+    }
+}
             }
         }
     });
