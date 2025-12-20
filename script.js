@@ -344,8 +344,8 @@ pricesLoaded = true;
     }
 }
 
-var customDataSource = "";
-var customBACKUPDataSource = "";
+var customDataSource = "https://data.bzerox.org/mainnet/";
+var customBACKUPDataSource = "https://data.github.bzerox.org/";
 // Settings object to hold our values
 const appSettings = {
     minStaking: 0,
@@ -18683,11 +18683,11 @@ async function initializeDApp() {
 // Configuration constants
 const _MAXIMUM_TARGET_STR_OLD = "27606985387162255149739023449108101809804435888681546220650096895197184";  // 2**234
 const BWORK_RPC = 'https://gateway.tenderly.co/public/base';
-const BWORK_CONTRACT_ADDRESS = '0x2f38B1a516239739CdCD2C228D1Eb96E29800975';
-const BWORK_LAST_DIFF_START_BLOCK_INDEX = '4';
-const BWORK_ERA_INDEX = '5';
-const BWORK_TOKENS_MINTED_INDEX = '11';
-const BWORK_MINING_TARGET_INDEX = '6';
+const BWORK_CONTRACT_ADDRESS = '0xd44Ee7dAdbF50214cA7009a29D9F88BCcD0E9Ff4';
+const BWORK_LAST_DIFF_START_BLOCK_INDEX = '6';
+const BWORK_ERA_INDEX = '7';
+const BWORK_TOKENS_MINTED_INDEX = '12';
+const BWORK_MINING_TARGET_INDEX = '4';
 
 const _SECONDS_PER_ETH_BLOCK = 2;
 const _IDEAL_BLOCK_TIME_SECONDS = 600;
@@ -18761,9 +18761,10 @@ function ethBlockNumberToTimestamp(blockNumber) {
 }
 
 function ethBlockNumberToTimestamp2(blockNumber) {
+    // Block 34966000 was mined on Sep-01-2025 10:09:07 AM +UTC
     const referenceBlock = 34966000;
-    const referenceTimestamp = Date.now() / 1000;
-    const avgBlockTime = 2;
+    const referenceTimestamp = 1756717747; // Unix timestamp for Sep 1, 2025 10:09:07 UTC
+    const avgBlockTime = 2; // Bases's avg block time is ~2 seconds
 
     const blockDifference = blockNumber - referenceBlock;
     const timeDifference = blockDifference * avgBlockTime;
@@ -18771,7 +18772,6 @@ function ethBlockNumberToTimestamp2(blockNumber) {
 
     return new Date(blockTimestamp * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
-
 function BWORKethBlockNumberToDateStr(blockNumber) {
     return ethBlockNumberToTimestamp2(blockNumber);
 }
@@ -19212,15 +19212,16 @@ function generateHashrateAndBlocktimeGraph(ethersProviderInstance, target_cv_obj
 
     // Set Chart.js defaults for dark theme
     Chart.defaults.color = '#f2f2f2';
-
     var era_data = convertValuesToChartData(era_values);
     var total_supply_data = convertValuesToChartData(tokens_minted_values,
         (x) => { return parseFloat(ethers.utils.formatEther(x)) });
     var total_price_data = convertValuesToChartData(tokens_price_values,
-        (x) => { return 1 / parseFloat(x.toString()) });
+        (x) => { return  1 /( parseFloat(x.toString()) / 10**12 ) });
     var total_price_data3 = convertValuesToChartData(tokens_price_values3,
         (x) => { return parseFloat(x.toString()) });
 
+console.log("tokens_price_values: ", total_price_data);
+console.log("total_price_data3: ", total_price_data3);
     const scaleFactor = 10000000;
     let resultGraph = total_price_data.map((item, index) => {
         if (total_price_data[index].y === 0) {
@@ -19300,7 +19301,7 @@ function generateHashrateAndBlocktimeGraph(ethersProviderInstance, target_cv_obj
             if (avgPriceAtTime[i] && difficulty_data[i] && difficulty_data[i].y) {
                 let difficultyValue = difficulty_data[i].y;
 
-                let revenue = (31000000000 * 4320000 * 8 / (10 * difficultyValue * 2 ** 22)) * avgPriceAtTime[i].y;
+                let revenue = (31000000000 * 4320000/2* 5 / (10 * difficultyValue * 2 ** 22)) * avgPriceAtTime[i].y;
                 avgRevenue.push({
                     x: difficulty_data[i].x,
                     y: revenue
@@ -19929,7 +19930,7 @@ async function updateHashrateAndBlocktimeGraph(ethersProviderInstance, start_eth
     var last_diff_start_blocks = new contractValueOverTime(ethersProviderInstance, BWORK_CONTRACT_ADDRESS, BWORK_LAST_DIFF_START_BLOCK_INDEX, 'diffStartBlocks2');
     var era_values = new contractValueOverTime(ethersProviderInstance, BWORK_CONTRACT_ADDRESS, BWORK_ERA_INDEX, 'eraValues2');
     var tokens_minted_values = new contractValueOverTime(ethersProviderInstance, BWORK_CONTRACT_ADDRESS, BWORK_TOKENS_MINTED_INDEX, 'tokensMinted2');
-    var tokens_price_values = new contractValueOverTime(ethersProviderInstance, '0x498581fF718922c3f8e6A244956aF099B2652b2b', '0xd66bf39be2869094cf8d2d31edffab51dc8326eadf3c7611d397d156993996da', 'BWORKETHPrice');
+    var tokens_price_values = new contractValueOverTime(ethersProviderInstance, '0x498581fF718922c3f8e6A244956aF099B2652b2b', '0x995aee68e7c5c17c86d355406ddd29c7cc6c5e6fa9086d304eb932cc98ae7af5', 'BWORKETHPrice');
     var tokens_price_values3 = new contractValueOverTime(ethersProviderInstance, '0x498581fF718922c3f8e6A244956aF099B2652b2b', '0xe570f6e770bf85faa3d1dbee2fa168b56036a048a7939edbcd02d7ebddf3f948', 'USDCETHPrice');
     var mining_target_values = new contractValueOverTime(ethersProviderInstance, BWORK_CONTRACT_ADDRESS, BWORK_MINING_TARGET_INDEX, 'miningTargets2');
 
@@ -19981,6 +19982,7 @@ async function updateHashrateAndBlocktimeGraph(ethersProviderInstance, start_eth
     tokens_price_values.sortValues();
     tokens_price_values3.sortValues();
 
+    console.log("TOKENSPRICEVALUES: ",tokens_price_values);
     generateHashrateAndBlocktimeGraph(ethersProviderInstance, mining_target_values, era_values, tokens_price_values, tokens_price_values3, tokens_minted_values);
 
     document.getElementById('topText').style.display = 'none';
@@ -22124,12 +22126,18 @@ async function getTokenStats() {
     const backupUrl = customBACKUPDataSource + 'RichList_B0x_mainnet.json';
     
     try {
+        let response;
+        try{
         // Try primary URL first
-        let response = await fetch(primaryUrl);
-        
+        response = await fetch(primaryUrl);
         // If primary fails, try backup URL
         if (!response.ok) {
             console.warn('Primary URL failed, trying backup...');
+            response = await fetch(backupUrl);  // <-- This switches to backup
+        }
+        
+        }catch(error){
+            console.log("First failed to fetch priamryUrl in getTokenStats going to backup url");
             response = await fetch(backupUrl);  // <-- This switches to backup
         }
         
@@ -22149,7 +22157,7 @@ async function getTokenStats() {
         };
         
     } catch (error) {
-        console.error('Error fetching token stats:', error);
+        console.error('Error fetching token stats from both URLS failed:', error);
         // Fallback to hardcoded values if both URLs fail
         return {
             TokenHolders: "Unable To Load APY",
