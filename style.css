@@ -4245,12 +4245,19 @@ body::before {
 }
 
 #stats .chart-containerf2 {
-    width: 100% !important;           /* Make it fill the parent */
-    max-width: 100% !important;       /* Don't exceed parent */
+    width: 93% !important;           /* Make it fill the parent */
+    max-width: 93% !important;       /* Don't exceed parent */
     min-width: 0 !important;          /* Allow shrinking */
     overflow-x: auto !important;      /* Enable horizontal scroll */
+    
 }
-
+#stats .chart-containerf2 {
+    width: 95% !important;
+    max-width: 95% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    margin: 50px auto !important;  /* This centers it horizontally */
+}
 
 
 .scroll-wrapper {
