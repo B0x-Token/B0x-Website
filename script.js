@@ -20313,21 +20313,45 @@ async function getAvgBlocksRemainingInEra(providera) {
 }
 
 
-async function getTimestampFromBlock(blockNumber, providera) {
-    console.log("Block Number = ", blockNumber);
+async function getTimestampFromBlock(blockNumberToFind, currentBlock, providera) {
+    try {
+        console.log("Block Number to2 Find = ", blockNumberToFind);
 
-    // Convert to number if it's a string, or ensure it's an integer
-    const blockNum = parseInt(blockNumber);
-
-    const block = await providera.getBlock(blockNum);
-    const timestamp = block.timestamp;
-
-    // Convert to milliseconds and create Date object
-    const date = new Date(timestamp * 1000);
-
-    // Return formatted timestamp
-    return date.toLocaleString();
+        // Convert to number if it's a string, or ensure it's an integer
+        const blockNum = parseInt(blockNumberToFind);
+        
+        // Calculate the difference in blocks
+        const blocksDifference = currentBlock - blockNum;
+        
+        // Get current timestamp and subtract blockdifference * 2 seconds
+        const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
+        const SECONDS_PER_BLOCK = 2; // Base chain has 2 second blocks
+        
+        // Calculate the timestamp of the target block
+        const targetTimestamp = currentTimestamp - (blocksDifference * SECONDS_PER_BLOCK);
+        
+        // Convert to Date object and return formatted string
+        const date = new Date(targetTimestamp * 1000); // Convert back to milliseconds for Date
+        
+        // Return formatted timestamp
+        return date.toLocaleString();
+        
+    } catch(error) {  // Fixed: should be (error) not (error e)
+        console.log("Error in getTimestampFromBlock. Making it 21 days ago for safety:", error);  // Fixed syntax
+        
+        // Fallback to 21 days ago
+        const currentTimestamp2 = Math.floor(Date.now() / 1000) - (60 * 60 * 24 * 21);
+        
+        // Convert to Date object and return formatted string
+        const date2 = new Date(currentTimestamp2 * 1000); // Need to multiply by 1000 for milliseconds
+        
+        return date2.toLocaleString();
+    }
 }
+
+
+
+
 async function getDaysUntilNextEra(providera) {
 
     return {
@@ -22018,7 +22042,7 @@ async function GetContractStatsWithMultiCall() {
         var timeBeforenewEra = await getTimeUnits(avgRewardTime * avgBlocksRemainingInEra);
         timeBeforeEra = timeBeforenewEra.avgTime;
         timeBeforeEraUnits = timeBeforenewEra.units;
-        var timestampLastDiffStart = await getTimestampFromBlock(lastDiffStartBlock.toString(), provids);
+        var timestampLastDiffStart = await getTimestampFromBlock(lastDiffStartBlock.toString(), currentBlock, provids);
 
     await sleep(500);
     await getRewardStats();
@@ -22257,7 +22281,7 @@ async function GetContractStats() {
     var timeBeforenewEra = await getTimeUnits(avgRewardTime * avgBlocksRemainingInEra);
     timeBeforeEra = timeBeforenewEra.avgTime;
     timeBeforeEraUnits = timeBeforenewEra.units;
-    var timestampLastDiffStart = await getTimestampFromBlock(lastDiffStartBlock, provids);
+    var timestampLastDiffStart = await getTimestampFromBlock(lastDiffStartTime.toString(), currentBlock, provids);
 
 
     // Update the HTML elements with the retrieved values
