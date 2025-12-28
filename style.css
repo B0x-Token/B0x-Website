@@ -4239,11 +4239,10 @@ body::before {
 
 #stats .chart-containerf {
     width: 100% !important;           /* Make it fill the parent */
-    max-width: 100% !important;       /* Don't exceed parent */
-    min-width: 0 !important;          /* Allow shrinking */
+    min-height: 85vh !important; /* Prevent collapse */
+    min-width: 100% !important;
     overflow-x: auto !important;      /* Enable horizontal scroll */
 }
-
 
 
 .scroll-wrapper {
@@ -4737,18 +4736,18 @@ body::before {
         /* Prevent horizontal scroll */
     }
 
-#chart-hashrate-difficulty,
-#chart-rewardtime,
-#chart-pricetime,
-#chart-AvgRevenue {
-    width: 50% !important; /* halve width to compensate for 2x scale */
-    height: 42.5% !important; /* halve height to compensate */
-    aspect-ratio: unset !important;
-    display: block !important;
-    box-sizing: border-box !important;
-    transform: scale(2);
-    transform-origin: top left;
-}
+    /* Override any existing chart styles */
+    #chart-hashrate-difficulty,
+    #chart-rewardtime,
+    #chart-pricetime,
+    #chart-AvgRevenue {
+        width: 100% !important;
+        height: 80% !important;
+        aspect-ratio: unset !important;
+        display: block !important;
+        box-sizing: border-box !important;
+    }
+
 
     #controlsGraph {
         margin-bottom: 20px;
@@ -4959,7 +4958,6 @@ body::before {
 
     /* CHART CONTAINER */
     #stats .chart-containerf {
-        display: flex;
         gap: clamp(15px, 3vw, 30px);
         align-items: flex-start;
     }
@@ -6730,4 +6728,11 @@ body::before {
 .periods-table td:nth-child(1) {
     max-width: 50px;
     word-break: break-word;
+}
+
+#stats .chart-containerf {
+    width: 100% !important;           /* Make it fill the parent */
+    min-height: 85vh !important; /* Prevent collapse */
+    min-width: 80% !important;
+    overflow-x: auto !important;      /* Enable horizontal scroll */
 }

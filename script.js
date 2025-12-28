@@ -12561,7 +12561,15 @@ console.log("THIS123123123213ffff DONE");
 }
 
 
-
+// Add this FIRST, before creating any charts
+function getResponsiveFontSize(baseSize) {
+    const width = window.innerWidth;
+    if (width >= 1920) return baseSize * 2.5;      // Large screens: 150%
+    if (width >= 1440) return baseSize * 2;     // Desktop: 125%
+    if (width >= 1024) return baseSize * 1.75;        // Tablet landscape: 100%
+    if (width >= 768) return baseSize * 1.5;       // Tablet: 90%
+    return baseSize * 1;                         // Mobile: 80%
+}
 
 
 async function throttledGetSqrtRtAndPriceRatio(NameOfFunction = "General") {
@@ -19388,93 +19396,105 @@ console.log("total_price_data3: ", total_price_data3);
                 intersect: false,
                 mode: 'index'
             },
-            scales: {
-                x: {
-                    type: 'linear',
-                    display: true,
-                    position: 'bottom',
-                    grid: {
+           scales: {
+                    x: {
+                        type: 'linear',
                         display: true,
-                        color: 'rgba(255, 255, 255, 0.1)',
-                        drawOnChartArea: true
-                    },
-                    ticks: {
-                        color: '#f2f2f2',
-                        maxRotation: 45,
-                        maxTicksLimit: 8,
-                        callback: function (value, index, values) {
-                            return BWORKethBlockNumberToDateStr(Math.floor(value));
+                        position: 'bottom',
+                        grid: {
+                            display: true,
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            drawOnChartArea: true
+                        },
+                        ticks: {
+                            color: '#f2f2f2',
+                            maxRotation: 45,
+                            maxTicksLimit: 8,
+                            font: {
+                                size: getResponsiveFontSize(12)
+                            },
+                            callback: function (value, index, values) {
+                                return BWORKethBlockNumberToDateStr(Math.floor(value));
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date',
+                            color: '#f2f2f2',
+                            font: {
+                                size: getResponsiveFontSize(11),
+                                weight: 'normal'
+                            }
                         }
                     },
-                    title: {
+                    y: {
+                        type: 'linear',
+                        position: 'left',
                         display: true,
-                        text: 'Block Number',
-                        color: '#f2f2f2',
-                        font: {
-                            size: 11,
-                            weight: 'normal'
+                        beginAtZero: true,
+                        grace: '5%',
+                        grid: {
+                            display: true,
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            drawOnChartArea: true
+                        },
+                        title: {
+                            display: true,
+                            text: 'Difficulty',
+                            color: 'rgb(255, 99, 132)',
+                            font: {
+                                size: getResponsiveFontSize(11),
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            color: '#f2f2f2',
+                            maxTicksLimit: 6,
+                            font: {
+                                size: getResponsiveFontSize(12)
+                            },
+                            callback: function (value, index, values) {
+                                return toReadableThousandsLong(value);
+                            }
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        display: true,
+                        beginAtZero: true,
+                        grace: '5%',
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Hashrate',
+                            color: 'rgb(156, 204, 101)',
+                            font: {
+                                size: getResponsiveFontSize(11),
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            color: '#f2f2f2',
+                            maxTicksLimit: 6,
+                            font: {
+                                size: getResponsiveFontSize(12)
+                            },
+                            callback: function (value, index, values) {
+                                return toReadableHashrate(value);
+                            }
                         }
                     }
                 },
-                y: {
-                    type: 'linear',
-                    position: 'left',
-                    display: true,
-                    beginAtZero: true,
-                    grace: '5%',
-                    grid: {
-                        display: true,
-                        color: 'rgba(255, 255, 255, 0.1)',
-                        drawOnChartArea: true
-                    },
-                    title: {
-                        display: true,
-                        text: 'Difficulty',
-                        color: 'rgb(255, 99, 132)',
-                        font: {
-                            size: 11,
-                            weight: 'bold'
-                        }
-                    },
-                    ticks: {
-                        color: '#f2f2f2',
-                        maxTicksLimit: 6,
-                        callback: function (value, index, values) {
-                            return toReadableThousandsLong(value);
-                        }
-                    }
-                },
-                y1: {
-                    type: 'linear',
-                    position: 'right',
-                    display: true,
-                    beginAtZero: true,
-                    grace: '5%',
-                    grid: {
-                        drawOnChartArea: false
-                    },
-                    title: {
-                        display: true,
-                        text: 'Hashrate (MH/s)',
-                        color: 'rgb(156, 204, 101)',
-                        font: {
-                            size: 11,
-                            weight: 'bold'
-                        }
-                    },
-                    ticks: {
-                        color: '#f2f2f2',
-                        maxTicksLimit: 6,
-                        callback: function (value, index, values) {
-                            return toReadableHashrate(value);
-                        }
-                    }
-                }
-            },
             plugins: {
                 legend: {
                     display: true,
                     labels: {
+                        font: {
+                            size: getResponsiveFontSize(12)
+                        },
                         color: '#f2f2f2',
                         usePointStyle: true
                     }
@@ -19511,18 +19531,6 @@ console.log("total_price_data3: ", total_price_data3);
             }
         }
     });
-    // Solution 1: Set canvas size before creating chart
-    const rewardTimeCanvas = document.getElementById('chart-rewardtime');
-    const container = rewardTimeCanvas.parentElement;
-
-    // Calculate the actual size you want
-    const containerHeight = window.innerHeight * 0.35; // 35vh in pixels
-    const containerWidth = container.offsetWidth;
-
-    // Set canvas size explicitly
-    rewardTimeCanvas.style.width = containerWidth + 'px';
-    rewardTimeCanvas.style.height = containerHeight + 'px';
-
 
 
     // Create Block Time & Supply Chart
@@ -19591,16 +19599,19 @@ console.log("total_price_data3: ", total_price_data3);
                         color: '#f2f2f2',
                         maxRotation: 45,
                         maxTicksLimit: 8,
+                        font: {
+                            size: getResponsiveFontSize(12)
+                        },
                         callback: function (value, index, values) {
                             return BWORKethBlockNumberToDateStr(Math.floor(value));
                         }
                     },
                     title: {
                         display: true,
-                        text: 'Block Number',
+                        text: 'Date',
                         color: '#f2f2f2',
                         font: {
-                            size: 11,
+                            size: getResponsiveFontSize(12),
                             weight: 'normal'
                         }
                     }
@@ -19621,13 +19632,16 @@ console.log("total_price_data3: ", total_price_data3);
                         text: 'Reward Time (Minutes)',
                         color: 'rgb(79, 195, 247)',
                         font: {
-                            size: 11,
+                            size: getResponsiveFontSize(11),
                             weight: 'bold'
                         }
                     },
                     ticks: {
                         color: '#f2f2f2',
                         maxTicksLimit: 6,
+                        font: {
+                            size: getResponsiveFontSize(12)
+                        },
                         callback: function (value, index, values) {
                             return value.toFixed(1) + ' min';
                         }
@@ -19647,13 +19661,16 @@ console.log("total_price_data3: ", total_price_data3);
                         text: 'Total Supply (BWORK)',
                         color: 'rgb(255, 152, 0)',
                         font: {
-                            size: 11,
+                            size: getResponsiveFontSize(11),
                             weight: 'bold'
                         }
                     },
                     ticks: {
                         color: '#f2f2f2',
                         maxTicksLimit: 6,
+                        font: {
+                            size: getResponsiveFontSize(12)
+                        },
                         callback: function (value, index, values) {
                             return toReadableThousands(value);
                         }
@@ -19665,9 +19682,13 @@ console.log("total_price_data3: ", total_price_data3);
                     display: true,
                     labels: {
                         color: '#f2f2f2',
-                        usePointStyle: true
+                        usePointStyle: true,
+                        font: {
+                            size: getResponsiveFontSize(12)
+                        }
                     }
-                },tooltip: {
+                },
+                tooltip: {
                     mode: 'index',
                     intersect: false,
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -19675,6 +19696,12 @@ console.log("total_price_data3: ", total_price_data3);
                     bodyColor: '#f2f2f2',
                     borderColor: 'rgba(255, 255, 255, 0.3)',
                     borderWidth: 1,
+                    titleFont: {
+                        size: getResponsiveFontSize(13)
+                    },
+                    bodyFont: {
+                        size: getResponsiveFontSize(12)
+                    },
                     callbacks: {
                         title: function (context) {
                             return 'Block: ' + Math.floor(context[0].parsed.x);
@@ -19771,16 +19798,19 @@ console.log("total_price_data3: ", total_price_data3);
                         color: '#f2f2f2',
                         maxRotation: 45,
                         maxTicksLimit: 8,
+                        font: {
+                            size: getResponsiveFontSize(12)
+                        },
                         callback: function (value, index, values) {
                             return BWORKethBlockNumberToDateStr(Math.floor(value));
                         }
                     },
                     title: {
                         display: true,
-                        text: 'Block Number',
+                        text: 'Date',
                         color: '#f2f2f2',
                         font: {
-                            size: 11,
+                            size: getResponsiveFontSize(12),
                             weight: 'normal'
                         }
                     }
@@ -19801,13 +19831,16 @@ console.log("total_price_data3: ", total_price_data3);
                         text: 'USD Price',
                         color: 'rgb(50, 205, 50)',
                         font: {
-                            size: 11,
+                            size: getResponsiveFontSize(11),
                             weight: 'bold'
                         }
                     },
                     ticks: {
                         color: '#f2f2f2',
                         maxTicksLimit: 6,
+                        font: {
+                            size: getResponsiveFontSize(12)
+                        },
                         callback: function (value, index, values) {
                             return '$' + value.toFixed(4);
                         }
@@ -19827,13 +19860,16 @@ console.log("total_price_data3: ", total_price_data3);
                         text: 'ETH Price',
                         color: 'rgb(158, 168, 219)',
                         font: {
-                            size: 11,
+                            size: getResponsiveFontSize(11),
                             weight: 'bold'
                         }
                     },
                     ticks: {
                         color: '#f2f2f2',
                         maxTicksLimit: 6,
+                        font: {
+                            size: getResponsiveFontSize(12)
+                        },
                         callback: function (value, index, values) {
                             return (value / scaleFactor).toFixed(8) + ' ETH';
                         }
@@ -19845,53 +19881,62 @@ console.log("total_price_data3: ", total_price_data3);
                     display: true,
                     labels: {
                         color: '#f2f2f2',
-                        usePointStyle: true
+                        usePointStyle: true,
+                        font: {
+                            size: getResponsiveFontSize(12)
+                        }
                     }
                 },
- tooltip: {
-    mode: 'index',
-    intersect: false,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    titleColor: '#f2f2f2',
-    bodyColor: '#f2f2f2',
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    borderWidth: 1,
-    callbacks: {
-        title: function (context) {
-            return 'Block: ' + Math.floor(context[0].parsed.x);
-        },
-        label: function(context) {
-            let label = context.dataset.label || '';
-            if (label) {
-                label += ': ';
-            }
-            if (context.parsed.y !== null) {
-                if (context.dataset.label === "USD Price of 1 BWORK") {
-                    // For USD, use more decimal places if very small
-                    let value = context.parsed.y;
-                    if (value < 0.0001 && value > 0) {
-                        label += '$' + value.toExponential(3);
-                    } else {
-                        label += '$' + value.toFixed(6);
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#f2f2f2',
+                    bodyColor: '#f2f2f2',
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                    borderWidth: 1,
+                    titleFont: {
+                        size: getResponsiveFontSize(13)
+                    },
+                    bodyFont: {
+                        size: getResponsiveFontSize(12)
+                    },
+                    callbacks: {
+                        title: function (context) {
+                            return 'Block: ' + Math.floor(context[0].parsed.x);
+                        },
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                if (context.dataset.label === "USD Price of 1 BWORK") {
+                                    // For USD, use more decimal places if very small
+                                    let value = context.parsed.y;
+                                    if (value < 0.0001 && value > 0) {
+                                        label += '$' + value.toExponential(3);
+                                    } else {
+                                        label += '$' + value.toFixed(6);
+                                    }
+                                } else if (context.dataset.label === "ETH Price of 1 BWORK") {
+                                    // Apply scaling and handle very small ETH values
+                                    let value = context.parsed.y / scaleFactor;
+                                    if (value < 0.00000001 && value > 0) {
+                                        label += value.toExponential(3) + ' ETH';
+                                    } else if (value < 0.00001) {
+                                        label += value.toFixed(10) + ' ETH';
+                                    } else {
+                                        label += value.toFixed(8) + ' ETH';
+                                    }
+                                } else {
+                                    label += context.parsed.y;
+                                }
+                            }
+                            return label;
+                        }
                     }
-                } else if (context.dataset.label === "ETH Price of 1 BWORK") {
-                    // Apply scaling and handle very small ETH values
-                    let value = context.parsed.y / scaleFactor;
-                    if (value < 0.00000001 && value > 0) {
-                        label += value.toExponential(3) + ' ETH';
-                    } else if (value < 0.00001) {
-                        label += value.toFixed(10) + ' ETH';
-                    } else {
-                        label += value.toFixed(8) + ' ETH';
-                    }
-                } else {
-                    label += context.parsed.y;
                 }
-            }
-            return label;
-        }
-    }
-}
             }
         }
     });
@@ -19944,16 +19989,19 @@ console.log("total_price_data3: ", total_price_data3);
                         color: '#f2f2f2',
                         maxRotation: 45,
                         maxTicksLimit: 8,
+                        font: {
+                            size: getResponsiveFontSize(13)
+                        },
                         callback: function (value, index, values) {
                             return BWORKethBlockNumberToDateStr(Math.floor(value));
                         }
                     },
                     title: {
                         display: true,
-                        text: 'Block Number',
+                        text: 'Date',
                         color: '#f2f2f2',
                         font: {
-                            size: 11,
+                            size: getResponsiveFontSize(13),
                             weight: 'normal'
                         }
                     }
@@ -19974,13 +20022,16 @@ console.log("total_price_data3: ", total_price_data3);
                         text: 'Daily Revenue (USD)',
                         color: 'rgb(50, 205, 50)',
                         font: {
-                            size: 11,
+                            size: getResponsiveFontSize(18),
                             weight: 'bold'
                         }
                     },
                     ticks: {
                         color: '#f2f2f2',
                         maxTicksLimit: 6,
+                        font: {
+                            size: getResponsiveFontSize(18)
+                        },
                         callback: function (value, index, values) {
                             return '$' + value.toFixed(2);
                         }
@@ -19992,7 +20043,10 @@ console.log("total_price_data3: ", total_price_data3);
                     display: true,
                     labels: {
                         color: '#f2f2f2',
-                        usePointStyle: true
+                        usePointStyle: true,
+                        font: {
+                            size: getResponsiveFontSize(14)
+                        }
                     }
                 },
                 tooltip: {
@@ -20003,6 +20057,12 @@ console.log("total_price_data3: ", total_price_data3);
                     bodyColor: '#f2f2f2',
                     borderColor: 'rgba(255, 255, 255, 0.3)',
                     borderWidth: 1,
+                    titleFont: {
+                        size: getResponsiveFontSize(13)
+                    },
+                    bodyFont: {
+                        size: getResponsiveFontSize(12)
+                    },
                     callbacks: {
                         title: function (context) {
                             return 'Block: ' + Math.floor(context[0].parsed.x);
@@ -20012,7 +20072,6 @@ console.log("total_price_data3: ", total_price_data3);
             }
         }
     });
-
 
 
 
