@@ -4244,20 +4244,6 @@ body::before {
     overflow-x: auto !important;      /* Enable horizontal scroll */
 }
 
-#stats .chart-containerf2 {
-    width: 93% !important;           /* Make it fill the parent */
-    max-width: 93% !important;       /* Don't exceed parent */
-    min-width: 0 !important;          /* Allow shrinking */
-    overflow-x: auto !important;      /* Enable horizontal scroll */
-    
-}
-#stats .chart-containerf2 {
-    width: 95% !important;
-    max-width: 95% !important;
-    min-width: 0 !important;
-    overflow-x: auto !important;
-    margin: 50px auto !important;  /* This centers it horizontally */
-}
 
 
 .scroll-wrapper {
@@ -4615,15 +4601,6 @@ body::before {
     }
 
     .chart-containerf {
-        width: 1200px;
-        flex: 1;
-        min-width: 0;
-        margin: 10px 0;
-        /* Minimal vertical spacing */
-        padding: 0;
-        position: relative;
-    }
-    .chart-containerf2 {
         width: 1200px;
         flex: 1;
         min-width: 0;
@@ -6668,3 +6645,89 @@ body::before {
 
 
 
+/* Add a wrapper div around your table */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.periods-table {
+    width: 100%;
+    min-width: 600px; /* Minimum width before scrolling */
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid #dee2e6;
+    border-radius: 2px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.periods-table thead {
+    background: #f8f9fa;
+}
+
+.periods-table th {
+    padding: 4x 5px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+
+    word-break: break-word;
+}
+
+.periods-table td {
+    padding: 3px 4px;
+    text-align: left;
+    color: #212529;
+    border-bottom: 1px solid #e9ecef;
+
+    word-break: break-word;
+}
+
+.periods-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.periods-table tbody tr:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+
+/* Optional: Add scroll indicator shadow */
+.table-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+
+.periods-table th:nth-child(3),
+.periods-table td:nth-child(3) {
+    max-width: 120px;
+    word-break: break-word;
+}
+.periods-table th:nth-child(2),
+.periods-table td:nth-child(2) {
+    max-width: 70px;
+    word-break: break-word;
+}
+.periods-table th:nth-child(1),
+.periods-table td:nth-child(1) {
+    max-width: 50px;
+    word-break: break-word;
+}

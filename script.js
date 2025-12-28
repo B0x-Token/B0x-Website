@@ -1197,27 +1197,31 @@ function populateStakingManagementData() {
     if (mockActivePeriods.length === 0) {
         activePeriodsContainer.innerHTML = '<p style="color: #6c757d; font-style: italic;">No active reward periods.</p>';
     } else {
-        activePeriodsContainer.innerHTML = `
-                <table class="periods-table">
-                    <thead>
-                        <tr>
-                            <th>Token</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Total Rewards</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${mockActivePeriods.map(period => `
+                activePeriodsContainer.innerHTML = `
+                <div class="table-wrapper">
+                    <table class="periods-table">
+                        <thead>
                             <tr>
-                                <td>${period.token}</td>
-                                <td>${period.startTime}</td>
-                                <td>${period.endTime}</td>
-                                <td>${period.totalRewards}</td>
+                                <th>Token</th>
+                                <th>Total Rewards</th>
+                                <th>Time Left</th>
+                                <th>End Date</th>
+                                <th>Start Date</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            ${mockActivePeriods.map(period => `
+                                <tr>
+                                    <td>${period.token}</td>
+                                    <td>${period.totalRewards.toLocaleString()}</td>
+                                    <td>${period.endTimeSeconds}</td>
+                                    <td>${period.endTime}</td>
+                                    <td>${period.startTime}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
             `;
     }
 }
@@ -1892,7 +1896,10 @@ console.log("Custom RPC2: ", customRPC);
 
         var humanReadableAmount2 = ethers.utils.formatUnits(rewardsOwedNow, tknDecimals);
         var totRewardsString2 = parseFloat(humanReadableAmount2).toFixed(6) + " " + rewardSymbol;
-        
+        if(humanReadableAmount>50){
+            
+        var totRewardsString = parseFloat(humanReadableAmount).toFixed(0) + " " + rewardSymbol;
+        }
         if (x == 0 && addressIndex != -1) {
             rewardsAmount.innerHTML = totRewardsString2;
         } else if (addressIndex != -1) {
@@ -1901,6 +1908,33 @@ console.log("Custom RPC2: ", customRPC);
 
         const timestampEND = parseFloat(rewardtokenPeriodEndsAt[x].toString());
         const endDateTimestamp = timestampEND * 1000;
+const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+var totalSecondsLeft = timestampEND - currentTime;
+
+
+if (totalSecondsLeft < 0) {
+    totalSecondsLeft = "Ready to Start New Reward Period for Asset";
+} else {
+    // Convert to appropriate time unit
+    const minutes = totalSecondsLeft / 60;
+    const hours = minutes / 60;
+    const days = hours / 24;
+    
+    if (minutes < 5) {
+        // Less than 5 minutes: show seconds
+        totalSecondsLeft = `${Math.floor(totalSecondsLeft)} seconds`;
+    } else if (hours < 5) {
+        // Less than 5 hours: show minutes
+        totalSecondsLeft = `${Math.floor(minutes)} minutes`;
+    } else if (days < 5) {
+        // Less than 5 days: show hours
+        totalSecondsLeft = `${Math.floor(hours)} hours`;
+    } else {
+        // 5 days or more: show days
+        totalSecondsLeft = `${Math.floor(days)} days`;
+    }
+}
+
 
         if (endDateTimestamp < Date.now()) {
             console.log("PERIOD ENDED FOR : ", rewardSymbol, " ", rewardAddress);
@@ -1914,7 +1948,8 @@ console.log("Custom RPC2: ", customRPC);
             token: rewardSymbol,
             startTime: rewardtokenPeriodStartsAtDate,
             endTime: rewardtokenPeriodEndsAtDate,
-            totalRewards: totRewardsString
+            totalRewards: totRewardsString,
+            endTimeSeconds: totalSecondsLeft
         });
     }
 
