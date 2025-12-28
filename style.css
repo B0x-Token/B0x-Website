@@ -4743,7 +4743,7 @@ body::before {
     #chart-pricetime,
     #chart-AvgRevenue {
         width: 100% !important;
-        height: 100% !important;
+        height: 85% !important;
         aspect-ratio: unset !important;
         display: block !important;
         box-sizing: border-box !important;
