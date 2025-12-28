@@ -4737,18 +4737,18 @@ body::before {
         /* Prevent horizontal scroll */
     }
 
-    /* Override any existing chart styles */
-    #chart-hashrate-difficulty,
-    #chart-rewardtime,
-    #chart-pricetime,
-    #chart-AvgRevenue {
-        width: 100% !important;
-        height: 85% !important;
-        aspect-ratio: unset !important;
-        display: block !important;
-        box-sizing: border-box !important;
-    }
-
+#chart-hashrate-difficulty,
+#chart-rewardtime,
+#chart-pricetime,
+#chart-AvgRevenue {
+    width: 50% !important; /* halve width to compensate for 2x scale */
+    height: 42.5% !important; /* halve height to compensate */
+    aspect-ratio: unset !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    transform: scale(2);
+    transform-origin: top left;
+}
 
     #controlsGraph {
         margin-bottom: 20px;
