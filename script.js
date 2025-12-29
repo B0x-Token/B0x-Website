@@ -19658,7 +19658,7 @@ console.log("total_price_data3: ", total_price_data3);
                     },
                     title: {
                         display: true,
-                        text: 'Total Supply (BWORK)',
+                        text: 'Total Supply (B0x)',
                         color: 'rgb(255, 152, 0)',
                         font: {
                             size: getResponsiveFontSize(11),
@@ -19750,7 +19750,7 @@ console.log("total_price_data3: ", total_price_data3);
         type: 'line',
         data: {
             datasets: [{
-                label: "USD Price of 1 BWORK",
+                label: "USD Price of 1 B0x",
                 backgroundColor: 'rgb(50, 205, 50)',
                 borderColor: 'rgb(50, 205, 50)',
                 data: avgPriceAtTime,
@@ -19761,7 +19761,7 @@ console.log("total_price_data3: ", total_price_data3);
                 borderWidth: 1,
                 yAxisID: 'y'
             }, {
-                label: "ETH Price of 1 BWORK",
+                label: "ETH Price of 1 B0x",
                 backgroundColor: 'rgb(158, 168, 219)',
                 borderColor: 'rgb(158, 168, 219)',
                 data: resultGraph,
@@ -19911,7 +19911,7 @@ console.log("total_price_data3: ", total_price_data3);
                                 label += ': ';
                             }
                             if (context.parsed.y !== null) {
-                                if (context.dataset.label === "USD Price of 1 BWORK") {
+                                if (context.dataset.label === "USD Price of 1 B0x") {
                                     // For USD, use more decimal places if very small
                                     let value = context.parsed.y;
                                     if (value < 0.0001 && value > 0) {
@@ -19919,7 +19919,7 @@ console.log("total_price_data3: ", total_price_data3);
                                     } else {
                                         label += '$' + value.toFixed(6);
                                     }
-                                } else if (context.dataset.label === "ETH Price of 1 BWORK") {
+                                } else if (context.dataset.label === "ETH Price of 1 B0x") {
                                     // Apply scaling and handle very small ETH values
                                     let value = context.parsed.y / scaleFactor;
                                     if (value < 0.00000001 && value > 0) {
