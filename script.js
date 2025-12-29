@@ -236,8 +236,8 @@ var pricesLoaded = false;
 var latestSearch = false;
 async function fetchPriceData() {
     console.log("customDataSource customDataSource: ", customDataSource);
-    const primaryUrl = customDataSource + 'price_data_bwork_mainnet.json';
-    const backupUrl = customBACKUPDataSource + 'price_data_bwork_mainnet.json';
+    const primaryUrl = customDataSource + 'price_data_bwork_mainnetv2.json';
+    const backupUrl = customBACKUPDataSource + 'price_data_bwork_mainnetv2.json';
 
     try {
         console.log('Fetching price data from primary source...');
