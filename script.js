@@ -10647,6 +10647,43 @@ async function approveIfNeeded(tokenToApprove, spenderAddress, requiredAmount) {
     }
 }
 
+
+async function approveIfNeededUSDC(tokenToApprove, spenderAddress, requiredAmount) {
+    try {
+        // First check if approval is needed
+        const allowanceSufficient = await checkAllowance(tokenToApprove, spenderAddress, requiredAmount);
+
+        if (allowanceSufficient) {
+            console.log("Approval not needed - sufficient allowance exists");
+            return true;
+        }
+
+        showInfoNotification('Approve Token', 'Requesting approval for unlimited amount to avoid future approvals...');
+        // If not sufficient, request approval for max amount
+        const txResponse = await approveToken(tokenToApprove, spenderAddress, requiredAmount);
+        // Only call .wait() if txResponse has it
+        let txReceipt;
+        if (txResponse.wait) {
+            txReceipt = await txResponse.wait(); // wait for mining
+        } else {
+            txReceipt = txResponse; // already a receipt
+        }
+
+        showSuccessNotification(
+            'Approved Tokens!',
+            'Tokens have been approved on the contract successfully',
+            txReceipt.transactionHash
+        );
+
+        return txReceipt;
+
+    } catch (error) {
+        console.error("Approve if needed failed:", error);
+        alert(`Approval process failed: ${error.message}`);
+        return false;
+    }
+}
+
 // Usage examples:
 // Check allowance only:
 // checkAllowance(tokenAddress, POOL_MANAGER_ADDRESS, ethers.utils.parseEther("100"));
@@ -16634,7 +16671,7 @@ async function addRewardToken() {
     ];
 
 
-    await approveIfNeeded(USDCToken, contractAddressLPRewardsStaking, 30 * 10 ** 6);
+    await approveIfNeededUSDC(USDCToken, contractAddressLPRewardsStaking, 20 * 10 ** 6);
 
     var LPRewarsdStakingContract = new ethers.Contract(
         contractAddressLPRewardsStaking, // your tokenSwapper contract address
