@@ -1,10 +1,69 @@
 
 
+// ============================================
+// PERFORMANCE UTILITIES
+// ============================================
 
+/**
+ * Debounce function - limits execution rate by waiting until calls stop
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @returns {Function} Debounced function
+ */
+function debounce(func, wait = 300) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
+/**
+ * Throttle function - limits execution rate by ensuring minimum time between calls
+ * @param {Function} func - Function to throttle
+ * @param {number} limit - Minimum time between calls in milliseconds
+ * @returns {Function} Throttled function
+ */
+function throttle(func, limit = 300) {
+    let inThrottle;
+    return function executedFunction(...args) {
+        if (!inThrottle) {
+            func.apply(this, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    };
+}
 
+/**
+ * RequestAnimationFrame wrapper for smooth UI updates
+ * @param {Function} callback - Function to execute on next frame
+ */
+function smoothUpdate(callback) {
+    if ('requestAnimationFrame' in window) {
+        requestAnimationFrame(callback);
+    } else {
+        setTimeout(callback, 16); // Fallback to ~60fps
+    }
+}
 
+/**
+ * Batch DOM updates for better performance
+ * @param {Function} updateFn - Function containing DOM updates
+ */
+function batchDOMUpdate(updateFn) {
+    smoothUpdate(() => {
+        updateFn();
+    });
+}
 
+// ============================================
+// APPLICATION CODE
+// ============================================
 
 var bbaseurlBASE = "https://raw.githubusercontent.com/B0x-Token/B0x-Website/refs/heads/main/images/";
 var ethbase = bbaseurlBASE + "ETHonBase.png";
@@ -380,20 +439,28 @@ var defaultBACKUPDataSource_Testnet = "https://data.github.bzerox.org/";
 
 
 var graphData, prices, timestamps;
-async function initializeChart() {
-    
+
+// PERFORMANCE: Separate data loading from chart rendering
+async function loadPriceData() {
     console.log("Loading setting: customDataSource: ", customDataSource);
     await loadSettings();
     console.log("AFTER setting: customDataSource: ", customDataSource);
-    // Fetch both price and timestamp data from GitHub
 
     // Fetch price data from GitHub
     graphData = await fetchPriceData();
 
-
     // Generate corresponding timestamps
     prices = graphData.prices;
     timestamps = graphData.timestamps;
+
+    console.log("Price data loaded, pricesLoaded =", pricesLoaded);
+}
+
+async function initializeChart() {
+    // Make sure data is loaded first
+    if (!pricesLoaded) {
+        await loadPriceData();
+    }
 
 
     // Your data
@@ -18454,29 +18521,46 @@ async function switchTab(tabName) {
 
     var name = '#' + tabName;
     notificationWidget.positionInContainer(name);
-    // Hide all pages
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(page => {
-        page.classList.remove('active');
-        // Remove inline styles to let CSS classes control display
-        page.style.display = '';
-    });
 
-    // Remove active class from all tabs
-    const tabs = document.querySelectorAll('.nav-tab');
-    tabs.forEach(tab => tab.classList.remove('active'));
+    // CRITICAL: Apply stats-active class IMMEDIATELY before any async operations
+    // This prevents diamond bleed-through flash when switching to stats
+    const contentElement = document.querySelector('.content');
+    const bodyElement = document.body;
 
-    // Show selected page
-    const selectedPage = document.getElementById(tabName);
-    const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
-
-    if (selectedTab) selectedTab.classList.add('active');
-    if (selectedPage) {
-        selectedPage.classList.add('active');
-        // Don't set inline display style - let CSS handle it
+    if (tabName === 'stats') {
+        // Apply immediately - no delay, no batching
+        if (contentElement) contentElement.style.padding = '0px';
+        bodyElement.classList.add('stats-active');
+    } else {
+        // Remove immediately - no delay, no batching
+        if (contentElement) contentElement.style.padding = '';
+        bodyElement.classList.remove('stats-active');
     }
 
+    // PERFORMANCE: Batch DOM updates in requestAnimationFrame for smooth transitions
+    batchDOMUpdate(() => {
+        // Hide all pages
+        const pages = document.querySelectorAll('.page');
+        pages.forEach(page => {
+            page.classList.remove('active');
+            // Remove inline styles to let CSS classes control display
+            page.style.display = '';
+        });
 
+        // Remove active class from all tabs
+        const tabs = document.querySelectorAll('.nav-tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+
+        // Show selected page
+        const selectedPage = document.getElementById(tabName);
+        const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+
+        if (selectedTab) selectedTab.classList.add('active');
+        if (selectedPage) {
+            selectedPage.classList.add('active');
+            // Don't set inline display style - let CSS handle it
+        }
+    });
 
     console.log("tabanem: ", tabName);
     updateURL(tabName);
@@ -18486,11 +18570,11 @@ async function switchTab(tabName) {
         tabName == "staking-main-page";
     }
     if (tabName == 'miner') {
-        console.log("Scrooll to top");
-        setTimeout(() => {
-            document.body.scrollTop = 0;
-            document.documentElement.scrollTop = 0;
-        }, 100);
+        console.log("Scroll to top");
+        // PERFORMANCE: Use smoothUpdate instead of setTimeout for better frame timing
+        smoothUpdate(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     }
     if (tabName == 'stats' && PreviousTabName != 'stats') {
         switchTab2('stats-home');
@@ -18511,10 +18595,11 @@ async function switchTab(tabName) {
     }
     PreviousTabName = tabName;
     console.log("PREVIOUS TAB NAME: ", PreviousTabName);
+
+    // Note: stats-active class already applied at top of function for instant visual response
+
     if (tabName === 'side-pools') {
-        // Remove padding when switching to stats
-     await getAllFees();
-    } else {
+        await getAllFees();
     }
 
 }
@@ -18559,6 +18644,13 @@ window.addEventListener('resize', setPadding);
 
 async function switchTabForStats() {
     var tabName = 'stats';
+
+    // CRITICAL: Apply stats-active class IMMEDIATELY before any async operations
+    const contentElement = document.querySelector('.content');
+    const bodyElement = document.body;
+    if (contentElement) contentElement.style.padding = '0px';
+    bodyElement.classList.add('stats-active');
+
     // Hide all pages
     const pages = document.querySelectorAll('.page');
     pages.forEach(page => {
@@ -18604,13 +18696,8 @@ async function switchTabForStats() {
     }
     PreviousTabName = tabName;
     console.log("PREVIOUS TAB NAME: ", PreviousTabName);
-    if (tabName === 'stats') {
-        // Remove padding when switching to stats
-        document.querySelector('.content').style.padding = '0px';
-    } else {
-        // Restore padding for other tabs
-        document.querySelector('.content').style.padding = '40px';
-    }
+
+    // Note: stats-active class already applied at top of function for instant visual response
 
 
 
@@ -18700,29 +18787,29 @@ async function initializeDApp() {
     try {
         showLoadingScreen();
         updateLoadingStatus('Connecting to blockchain...');
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         updateLoadingStatus('Loading smart contracts...');
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         updateLoadingStatus('Fetching data...');
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         updateLoadingStatus('Initializing interface...');
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-        var x=0
-       while(!pricesLoaded && x < 120){
-        x++;
-                if(x > 12){
-                    updateLoadingStatus('Loading price graphs... takes up to 30-60 seconds if main server is down');
-
-                }else{
-
-                    updateLoadingStatus('Loading price graphs...');
-                }
-                
-            await new Promise(resolve => setTimeout(resolve, 500));
+        // PERFORMANCE FIX: Actively load price data instead of waiting
+        if (!pricesLoaded) {
+            updateLoadingStatus('Loading price data...');
+            try {
+                await loadPriceData();
+                console.log('✅ Price data loaded, pricesLoaded =', pricesLoaded);
+            } catch (error) {
+                console.error('Failed to load price data:', error);
+                updateLoadingStatus('Warning: Price data failed to load');
+            }
+        } else {
+            console.log('✅ Price data already loaded');
         }
 
 
@@ -18740,7 +18827,8 @@ async function initializeDApp() {
             await new Promise(resolve => setTimeout(resolve, 500));
         }
 
-        if(xx<180 && x<120){
+        // Check if data loaded successfully
+        if(xx < 180 && pricesLoaded){
             updateLoadingStatus('Absolutely Ready!');
             await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -18752,7 +18840,12 @@ async function initializeDApp() {
         hideLoadingScreen();
     } catch (error) {
         console.error('Failed to initialize dApp:', error);
-        updateLoadingStatus('Error loading dApp. Please refresh.');
+        console.error('Error details:', error.message, error.stack);
+        updateLoadingStatus('Error loading dApp: ' + error.message + '. Please refresh or check console.');
+        // Don't hide loading screen on error so user can see the message
+        setTimeout(() => {
+            hideLoadingScreen();
+        }, 5000);
     }
 }
 
@@ -25956,18 +26049,113 @@ async function mainRPCStarterForPositions() {
 }
 
 
-// Option 2: Using DOMContentLoaded (fires earlier)
-document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(async () => {
-        await mainRPCStarterForPositions();
-    }, 500);
+// PERFORMANCE OPTIMIZED: Defer heavy operations until needed
+let chartInitialized = false;
+let rpcInitialized = false;
+let priceDataLoaded = false;
 
-    
-// Initialize the chart when the page loads
-initializeChart().catch(error => {
-    console.error('Failed to initialize chart:', error);
-});
+// Load price data early (doesn't render chart yet)
+async function earlyLoadPriceData() {
+    if (priceDataLoaded) return;
+    priceDataLoaded = true;
 
-});
+    try {
+        await loadPriceData();
+        console.log("✅ Price data loaded early, pricesLoaded =", pricesLoaded);
+    } catch (error) {
+        console.error('Failed to load price data:', error);
+        priceDataLoaded = false;
+    }
+}
+
+// Lazy load chart rendering only when visible
+function lazyInitChart() {
+    if (chartInitialized) return;
+
+    const chartElement = document.getElementById('priceChart');
+    if (!chartElement) {
+        console.warn('Chart element not found, skipping chart initialization');
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !chartInitialized) {
+                chartInitialized = true;
+                console.log("Chart visible, rendering now...");
+                initializeChart().catch(error => {
+                    console.error('Failed to initialize chart:', error);
+                });
+                observer.disconnect();
+            }
+        });
+    }, { rootMargin: '50px' });
+
+    observer.observe(chartElement);
+}
+
+// Lazy load RPC operations - defer until user interaction or idle time
+function lazyInitRPC() {
+    if (rpcInitialized) return;
+    rpcInitialized = true;
+
+    // Use requestIdleCallback for better performance, fallback to setTimeout
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(async () => {
+            await mainRPCStarterForPositions();
+        }, { timeout: 2000 });
+    } else {
+        setTimeout(async () => {
+            await mainRPCStarterForPositions();
+        }, 1000);
+    }
+}
+
+// PERFORMANCE: Setup lazy-loading behaviors
+// Note: Main initialization happens in initializeDApp() (line ~18768)
+(function setupLazyLoading() {
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function init() {
+        // Setup lazy chart RENDERING (data loads in initializeDApp)
+        lazyInitChart();
+
+        // Defer RPC calls until user interacts or browser is idle
+        const deferRPC = () => {
+            lazyInitRPC();
+        };
+
+        // Initialize on first user interaction
+        document.addEventListener('click', deferRPC, { once: true, passive: true });
+        document.addEventListener('scroll', deferRPC, { once: true, passive: true });
+        document.addEventListener('keydown', deferRPC, { once: true, passive: true });
+
+        // Fallback: initialize after 3 seconds if no interaction
+        setTimeout(() => {
+            if (!rpcInitialized) lazyInitRPC();
+        }, 3000);
+    }
+})();
 
 //reload button javascript above
+
+// ============================================
+// PERFORMANCE OPTIMIZATIONS SUMMARY
+// ============================================
+// 1. Price data loads during initializeDApp() (no waiting loop!)
+// 2. Loading delays reduced from 7s to 1.3s for faster startup
+// 3. Chart rendering defers until visible (Intersection Observer)
+// 4. RPC operations lazy load on user interaction or idle time
+// 5. requestIdleCallback: Heavy operations defer to browser idle time
+// 6. Event listeners with passive flag for better scroll performance
+// 7. Debounce/Throttle utilities available for expensive operations
+// 8. RequestAnimationFrame for smooth UI updates
+// 9. Batched DOM updates to minimize reflows
+// 10. INSTANT stats-active class application (no flash/delay)
+// 11. CSS transitions for smooth background changes (0.15s)
+// ============================================

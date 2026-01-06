@@ -319,6 +319,21 @@ body::before {
     background-size: 50px 50px;
     pointer-events: none;
     z-index: -1;
+    transition: opacity 0.3s ease;
+}
+
+/* Keep diamonds visible as background behind the dApp */
+/* But prevent them from bleeding INTO the stats content */
+body.stats-active .container {
+    background: #2c2b44 !important;
+    /* Solid background blocks diamonds from bleeding into content */
+    backdrop-filter: none;
+    /* Remove blur to ensure solid blocking */
+}
+
+/* Make stats content area completely opaque */
+body.stats-active .content {
+    background: #2c2b44 !important;
 }
 .container {
         max-width: 1200px;
@@ -332,6 +347,7 @@ body::before {
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
         overflow: hidden;
         position: relative;
+        transition: background 0.15s ease-out, backdrop-filter 0.15s ease-out;
     }
 
     .container::before {
@@ -730,6 +746,7 @@ body::before {
         padding: 10px;
         min-height: 500px;
         background: rgba(0, 0, 0, 0.1);
+        transition: background 0.15s ease-out, padding 0.15s ease-out;
     }
 
     /* Override for stats only */
@@ -3482,6 +3499,16 @@ body::before {
 
     .stats-page {
         display: none;
+        padding: 0;
+    }
+
+    .stats-page.active {
+        display: block;
+    }
+
+    /* Stats pages get solid background when parent is stats-active */
+    body.stats-active .stats-page {
+        background: #2c2b44;
     }
 
     @media (max-width: 768px) {
