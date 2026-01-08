@@ -6759,7 +6759,7 @@ body.stats-active .content {
 
 #stats .chart-containerf {
     width: 100% !important;           /* Make it fill the parent */
-    min-height: 85vh !important; /* Prevent collapse */
+    min-height: 45vh !important; /* Prevent collapse */
     min-width: 80% !important;
     overflow-x: auto !important;      /* Enable horizontal scroll */
 }
