@@ -6763,3 +6763,8 @@ body.stats-active .content {
     min-width: 80% !important;
     overflow-x: auto !important;      /* Enable horizontal scroll */
 }
+
+
+#main-content {
+  background-color: #2d2c43;
+}
