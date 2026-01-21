@@ -61,6 +61,12 @@ let connectionState = {
  */
 let isConnecting = false;
 
+/**
+ * Disconnecting flag to prevent ethereum calls during disconnect
+ * This prevents Rabby's "blocked from automatically opening external application" warning
+ */
+export let isDisconnecting = false;
+
 
 
 /**
@@ -259,6 +265,10 @@ export async function checkWalletConnection() {
 export async function quickconnectWallet() {
     console.log("Quick Connect Wallet");
 
+    // Reset disconnecting flag when user initiates new connection
+    isDisconnecting = false;
+    window.isPageVisible = true;
+
     if (walletConnected) {
         console.log('Wallet already connected');
         return userAddress;
@@ -359,6 +369,10 @@ async function withNetworkRetry(fn, maxRetries = 3, stepName = '') {
  */
 export async function connectWallet(resumeFromStep = null) {
     console.log("Connect Wallet", resumeFromStep ? `(resuming from: ${resumeFromStep})` : '');
+
+    // Reset disconnecting flag when user initiates new connection
+    isDisconnecting = false;
+    window.isPageVisible = true;
 
     // Check if already connected
     if (walletConnected && !resumeFromStep) {
@@ -854,10 +868,14 @@ export function handleWalletError(error) {
  * Disconnect wallet and clear all state
  */
 export function disconnectWallet() {
+    // Set disconnecting flag FIRST to prevent any further ethereum calls
+    isDisconnecting = true;
+    window.isPageVisible = false;
+
     walletConnected = false;
     userAddress = null;
-window.positionsLoaded = false;
-        isConnecting = false;
+    window.positionsLoaded = false;
+    isConnecting = false;
     localStorage.removeItem('walletConnected');
     localStorage.removeItem('walletAddress');
 
@@ -1068,6 +1086,10 @@ export async function setupWalletListeners() {
     // Handle wallet disconnect (e.g., when user clicks X in Rabby dApp browser)
     window.ethereum.on('disconnect', (error) => {
         console.log('Wallet disconnect event:', error);
+        // Set flags IMMEDIATELY to prevent any further ethereum calls
+        // This prevents Rabby's "blocked from automatically opening external application" warning
+        isDisconnecting = true;
+        window.isPageVisible = false;
         disconnectWallet();
     });
 
