@@ -875,6 +875,8 @@ let listenersSetup = false;
 
 /**
  * Set up wallet event listeners for account and network changes
+ * Only sets up listeners if wallet was previously connected to prevent
+ * Rabby's "blocked from automatically opening external application" warning
  */
 export async function setupWalletListeners() {
     if (!window.ethereum) return;
@@ -882,6 +884,13 @@ export async function setupWalletListeners() {
     // Prevent duplicate listener attachment
     if (listenersSetup) {
         console.log('Wallet listeners already set up, skipping...');
+        return;
+    }
+
+    // Only set up listeners if user has previously connected their wallet
+    // This prevents Rabby's warning when closing the browser without connecting
+    if (!localStorage.getItem('walletConnected')) {
+        console.log('Wallet not previously connected, skipping listener setup');
         return;
     }
 

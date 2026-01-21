@@ -898,7 +898,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 let windowListenersSetup = false;
 
 // Listen for network changes (if MetaMask is available)
-if (window.ethereum && !windowListenersSetup) {
+// Only set up listeners if user has previously connected their wallet to this dApp
+// This prevents Rabby's "blocked from automatically opening external application" warning
+if (window.ethereum && !windowListenersSetup && localStorage.getItem('walletConnected')) {
     window.ethereum.on('chainChanged', (chainId) => {
         console.log('Chain changed to:', chainId);
         // Don't make requests if page is hidden (prevents warning when closing Rabby browser)
