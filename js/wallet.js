@@ -412,17 +412,10 @@ export async function connectWallet(resumeFromStep = null) {
         } catch (e) {
             console.log('eth_accounts check failed:', e.message);
         }
-        // If no existing accounts, request new authorization
         if (!accounts || accounts.length === 0) {
             console.log('No existing accounts, requesting authorization...');
-            const accountsPromise = window.ethereum.request({ method: 'eth_requestAccounts' });
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Account request timed out - wallet may still be loading')), 10000)
-            );
-
-            accounts = await Promise.race([accountsPromise, timeoutPromise]);
+            accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         }
-
         console.log('Accounts received:', accounts?.length || 0);
 
         if (!accounts || accounts.length === 0) {
