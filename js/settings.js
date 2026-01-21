@@ -14,6 +14,7 @@
 import {
     defaultRPC_Base,
     defaultRPC_ETH,
+    defaultRPC_Graph,
     defaultDataSource_Testnet,
     defaultBACKUPDataSource_Testnet,
     defaultAddresses,
@@ -38,6 +39,12 @@ export let customRPC = defaultRPC_Base;
  * @type {string}
  */
 export let customRPC_ETH = defaultRPC_ETH;
+
+/**
+ * Custom RPC URL for charts/graphs (Tenderly)
+ * @type {string}
+ */
+export let customRPC_Graph = defaultRPC_Graph;
 
 /**
  * Primary data source URL for leaderboard/position data
@@ -127,6 +134,7 @@ export const CONFIG = {
 
 export function setCustomRPC(value) { customRPC = value; CONFIG.RPC_URL = value; }
 export function setCustomRPC_ETH(value) { customRPC_ETH = value; }
+export function setCustomRPC_Graph(value) { customRPC_Graph = value; }
 export function setCustomDataSource(value) { customDataSource = value; CONFIG.DATA_URL = value; }
 export function setCustomBACKUPDataSource(value) { customBACKUPDataSource = value; }
 export function setUserSelectedPosition(value) { userSelectedPosition = value; }
@@ -302,6 +310,53 @@ export function restoreDefaultRPC_ETH() {
 
     console.log('Ethereum RPC restored to defaults');
     saveCustomRPC_ETH();
+}
+
+// ============================================
+// RPC URL MANAGEMENT - GRAPHS/CHARTS
+// ============================================
+
+/**
+ * Saves custom RPC URL for charts/graphs to localStorage
+ * @async
+ * @returns {Promise<void>}
+ */
+export async function saveCustomRPC_Graph() {
+    const customRPCElement = document.getElementById('customRPC_Graph');
+
+    if (!customRPCElement || !customRPCElement.value.trim()) {
+        showToast('Please enter a valid RPC URL', true);
+        return;
+    }
+
+    try {
+        customRPC_Graph = customRPCElement.value.trim();
+
+        console.log('customRPC_Graph Saved:', customRPC_Graph);
+
+        localStorage.setItem('customRPCValue_Graph', customRPC_Graph);
+        showSuccessMessage('rpcGraphSuccess');
+        showToast('Graph RPC URL saved successfully');
+
+    } catch (error) {
+        console.error('Error saving custom Graph RPC:', error);
+        showToast('Failed to save Graph RPC URL', true);
+    }
+}
+
+/**
+ * Restores default RPC URL for charts/graphs
+ * @returns {void}
+ */
+export function restoreDefaultRPC_Graph() {
+    const customRPCElement = document.getElementById('customRPC_Graph');
+    if (customRPCElement) {
+        customRPCElement.value = defaultRPC_Graph;
+    }
+    customRPC_Graph = defaultRPC_Graph;
+
+    console.log('Graph RPC restored to defaults');
+    saveCustomRPC_Graph();
 }
 
 // ============================================
@@ -925,6 +980,7 @@ export function loadSettings() {
     const dataSourceBACKUP = localStorage.getItem('customDataSource_BACKUP_Testnet');
     const rpcETH = localStorage.getItem('customRPCValue_ETH');
     const rpc = localStorage.getItem('customRPCValue_Base');
+    const rpcGraph = localStorage.getItem('customRPCValue_Graph');
     const savedSettings = localStorage.getItem('stakingSettings');
     const savedSettingsRewards = localStorage.getItem('stakingRewardAddresses');
 
@@ -1001,6 +1057,21 @@ export function loadSettings() {
 
         const rpcElement = document.getElementById('customRPC_ETH');
         if (rpcElement) rpcElement.value = defaultRPC_ETH;
+    }
+
+    // Load Graph RPC (for charts)
+    if (rpcGraph) {
+        customRPC_Graph = rpcGraph;
+
+        const rpcElement = document.getElementById('customRPC_Graph');
+        if (rpcElement) rpcElement.value = customRPC_Graph;
+
+        console.log('Loaded custom Graph RPC:', customRPC_Graph);
+    } else {
+        customRPC_Graph = defaultRPC_Graph;
+
+        const rpcElement = document.getElementById('customRPC_Graph');
+        if (rpcElement) rpcElement.value = defaultRPC_Graph;
     }
 
     // Load data source

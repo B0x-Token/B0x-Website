@@ -8,7 +8,7 @@
 // ============================================================================
 // IMAGE URLS - Token Icons (Base Network)
 // ============================================================================
-export const bbaseurlBASE = "https://raw.githubusercontent.com/B0x-Token/B0x-Website/refs/heads/main/images/";
+export const bbaseurlBASE = "images/";
 export const ethbase = bbaseurlBASE + "ETHonBase.png";
 export const Zeroxbtcbase = bbaseurlBASE + "0xBTConBase.png";
 export const B0xbase = bbaseurlBASE + "B0xonBase.png";
@@ -29,7 +29,7 @@ export const tokenIconsBase = {
 // ============================================================================
 // IMAGE URLS - Token Icons (Ethereum Network)
 // ============================================================================
-export const bbaseurl = "https://raw.githubusercontent.com/B0x-Token/B0x-Website/refs/heads/main/images/";
+export const bbaseurl = "images/";
 export const etheth = bbaseurl + "ETHonETH.png";
 export const Zeroxbtceth = bbaseurl + "0xBTConETH.png";
 export const B0xeth = bbaseurl + "B0xonETH.png";
@@ -98,6 +98,7 @@ export const tokenAddressesETH = {
 // ============================================================================
 export const defaultRPC_ETH = "https://eth.llamarpc.com";
 export const defaultRPC_Base = 'https://mainnet.base.org';
+export const defaultRPC_Graph = 'https://gateway.tenderly.co/public/base'; // RPC for charts/graphs
 
 // Chain configuration with network details
 export const chainConfig = {

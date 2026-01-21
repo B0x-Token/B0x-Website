@@ -4,14 +4,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 
     <!-- Preconnect to external domains for faster resource loading -->
-    <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
     <link rel="preconnect" href="https://data.bzerox.org" crossorigin>
     <link rel="dns-prefetch" href="https://eth.llamarpc.com">
     <link rel="dns-prefetch" href="https://mainnet.base.org">
 
     <!-- Favicon -->
-    <link rel="icon" href="https://raw.githubusercontent.com/B0x-Token/B0x-Website/refs/heads/main/images/favicon.ico"
-        type="image/x-icon">
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
 
 
     <!-- Description for search engines -->
@@ -22,7 +20,7 @@
     <meta property="og:title" content="B0x Token DeFi dAPP">
     <meta property="og:description"
         content="B Zero X Token DeFi dAPP that has Swaps, Create B0x Uniswap V4 positions, Stake your b Univ4 positions to beat IL and collect rewards right along side the miners of B0x Tokens! 100% Decentralized">
-    <meta property="og:image" content="https://b0x-token.github.io/B0x-Website/images/b0x_logo_square.png">
+    <meta property="og:image" content="images/b0x_logo_square.png">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://b0x-token.github.io/B0x-Website/">
 
@@ -31,7 +29,7 @@
     <meta name="twitter:title" content="B0x Token DeFi dAPP">
     <meta name="twitter:description"
         content="B Zero X Token DeFi dApp that has Swaps, Create B0x Uniswap V4 positions, Stake your B0x Univ4 positions to beat IL and collect rewards right along side the miners of B0x Tokens! 100% Decentralized">
-    <meta name="twitter:image" content="https://b0x-token.github.io/B0x-Website/images/b0x_logo_square.png">
+    <meta name="twitter:image" content="images/b0x_logo_square.png">
 
 
     <meta charset="UTF-8">
@@ -128,8 +126,8 @@
                 <span class="boxNameInline">B[]x</span><br>
                 <span class="boxNameInline">B ZERO X</span>
                     <div class="image-container">
-                        <img src="https://raw.githubusercontent.com/B0x-Token/B0x-Token-Media/main/images/3dgiffspinning.gif" 
-                            alt="Spinning 3D GIF" 
+                        <img src="images/3dgiffspinning.gif"
+                            alt="Spinning 3D GIF"
                             class="zoom-image">
                     </div>
             </div>
@@ -895,8 +893,24 @@
     <button class="btn-primary" onclick="restoreDefaultRPC_ETH()">Restore Default ETH RPC</button>
 </div>
     <div id="rpcSuccess" class="success-message" style="display: none;">Custom RPC URL saved successfully!</div>
-</div><br></br><br></br>  
+</div><br></br><br></br>
 
+<div class="settings-form address-config22">
+    <h3>📊 Graph/Charts Custom RPC Configuration</h3>
+    <p>Set a custom RPC endpoint URL for charts and graph data. This is used for fetching historical data for the mining charts.</p>
+    <p>Default: Tenderly public Base RPC</p>
+    <div class="form-group">
+        <label>Custom Graph RPC URL</label>
+        <div class="input-group">
+            <textarea id="customRPC_Graph" class="rpc-textarea" placeholder="https://gateway.tenderly.co/public/base">https://gateway.tenderly.co/public/base</textarea>
+        </div>
+    </div>
+<div style="display: flex; gap: 10px;">
+    <button class="btn-primary" onclick="saveCustomRPC_Graph()">Save Custom Graph RPC</button>
+    <button class="btn-primary" onclick="restoreDefaultRPC_Graph()">Restore Default Graph RPC</button>
+</div>
+    <div id="rpcGraphSuccess" class="success-message" style="display: none;">Custom Graph RPC URL saved successfully!</div>
+</div><br></br><br></br>
 
 <div class="settings-form address-config22">
     <h3> Custom Data Source Configuration</h3>

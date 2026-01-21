@@ -2151,10 +2151,8 @@ body.stats-active .content {
 
     @font-face {
         font-family: 'MegaPunchItalic';
-
-        src: url('https://cdn.jsdelivr.net/gh/b0x-token/B0x-Website/fonts/Megapunch_Italic.ttf') format('truetype'),
-            url('https://cdn.jsdelivr.net/gh/b0x-token/B0x-Website/fonts/Megapunch_Italic.otf') format('opentype');
-
+        src: url('fonts/Megapunch_Italic.ttf') format('truetype'),
+            url('fonts/Megapunch_Italic.otf') format('opentype');
         font-style: normal;
         /* already italic in the font itself */
         font-weight: normal;

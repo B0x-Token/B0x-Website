@@ -357,7 +357,8 @@ window.initMiningCalcEventListeners = MiningCalc.initMiningCalcEventListeners;
 
 // Chart constants (including the best RPC for graphs/stats)
 window.CHART_CONSTANTS = Charts.CHART_CONSTANTS;
-window.BWORK_RPC = Charts.CHART_CONSTANTS.BWORK_RPC;
+window.getGraphRPC = Charts.getGraphRPC;
+window.BWORK_RPC = Charts.getGraphRPC(); // Use the getter for custom RPC support
 window.BWORK_CONTRACT_ADDRESS = Charts.CHART_CONSTANTS.BWORK_CONTRACT_ADDRESS;
 window.BWORK_LAST_DIFF_START_BLOCK_INDEX = Charts.CHART_CONSTANTS.BWORK_LAST_DIFF_START_BLOCK_INDEX;
 window.BWORK_ERA_INDEX = Charts.CHART_CONSTANTS.BWORK_ERA_INDEX;
@@ -394,6 +395,8 @@ window.saveCustomRPC_Base = Settings.saveCustomRPC_Base;
 window.restoreDefaultRPC_Base = Settings.restoreDefaultRPC_Base;
 window.saveCustomRPC_ETH = Settings.saveCustomRPC_ETH;
 window.restoreDefaultRPC_ETH = Settings.restoreDefaultRPC_ETH;
+window.saveCustomRPC_Graph = Settings.saveCustomRPC_Graph;
+window.restoreDefaultRPC_Graph = Settings.restoreDefaultRPC_Graph;
 window.saveCustomDataSource_Testnet = Settings.saveCustomDataSource_Testnet;
 window.restoreDefaultCustomDataSource = Settings.restoreDefaultCustomDataSource;
 window.saveAddresses = Settings.saveAddresses;

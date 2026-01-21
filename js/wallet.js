@@ -71,21 +71,7 @@ let isConnecting = false;
 async function waitForWalletReady(maxWaitMs = 5000) {
     const startTime = Date.now();
 
-    // Listen for ethereum#initialized event (Rabby mobile)
-    const initPromise = new Promise((resolve) => {
-        if (window.ethereum) {
-            resolve(true);
-            return;
-        }
-        
-        const handler = () => resolve(true);
-        window.addEventListener('ethereum#initialized', handler, { once: true });
-        
-        setTimeout(() => {
-            window.removeEventListener('ethereum#initialized', handler);
-            resolve(false);
-        }, maxWaitMs);
-    });
+
 
     // Poll for wallet injection (fallback)
     const pollPromise = (async () => {
@@ -109,7 +95,7 @@ async function waitForWalletReady(maxWaitMs = 5000) {
         return false;
     })();
 
-    return Promise.race([initPromise, pollPromise]);
+    return Promise.race([pollPromise]);
 }
 // ============================================================================
 // WALLET STATE SETTERS
@@ -387,22 +373,67 @@ export async function connectWallet(resumeFromStep = null) {
 
     // Wait for wallet extension to be fully ready (handles fresh Chrome instances)
     console.log('Waiting for wallet to be ready...');
-    const isReady = await waitForWalletReady();
-    
+    const isReady = await waitForWalletReady(2000);
 
     if (!isReady) {
-        alert('Wallet not detected. Please install a Web3 wallet.');
-        return;
+        // Track reload attempts to prevent infinite loops
+        const reloadCount = parseInt(sessionStorage.getItem('walletReloadCount') || '0');
+
+        if (reloadCount < 2) {
+            console.log(`Wallet not ready after 3 seconds, reloading page (attempt ${reloadCount + 1}/2)...`);
+            sessionStorage.setItem('walletReloadCount', String(reloadCount + 1));
+            isConnecting = false;
+            window.location.reload();
+            return null;
+        } else {
+            console.log('Wallet not ready after multiple reloads');
+            sessionStorage.removeItem('walletReloadCount');
+            isConnecting = false;
+            alert('Wallet not detected. Please install a Web3 wallet or refresh manually.');
+            return null;
+        }
     }
 
+    // Clear reload counter on success
+    sessionStorage.removeItem('walletReloadCount');
 
-    console.log('Wallet is ready');
+
+    console.log('Wallet is ready, checking for accounts...');
 
     try {
-        // Request accounts - wallet is ready so this should work
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        // First try eth_accounts (doesn't require approval, won't hang)
+        let accounts = null;
+        try {
+            const existingAccounts = await Promise.race([
+                window.ethereum.request({ method: 'eth_accounts' }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('eth_accounts timeout')), 3000))
+            ]);
+            if (existingAccounts && existingAccounts.length > 0) {
+                console.log('Found existing authorized accounts:', existingAccounts.length);
+                accounts = existingAccounts;
+            }
+        } catch (e) {
+            console.log('eth_accounts check failed:', e.message);
+        }
 
-        if (!accounts || accounts.length === 0) return null;
+        // If no existing accounts, request new authorization
+        if (!accounts || accounts.length === 0) {
+            console.log('No existing accounts, requesting authorization...');
+            const accountsPromise = window.ethereum.request({ method: 'eth_requestAccounts' });
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Account request timed out - wallet may still be loading')), 10000)
+            );
+
+            accounts = await Promise.race([accountsPromise, timeoutPromise]);
+        }
+
+        console.log('Accounts received:', accounts?.length || 0);
+
+        if (!accounts || accounts.length === 0) {
+            console.log('No accounts returned from wallet');
+            isConnecting = false;
+            return null;
+        }
 
         attemptf2f21 = 0;
         userAddress = accounts[0];
@@ -579,6 +610,10 @@ export async function connectWallet(resumeFromStep = null) {
         return userAddress;
 
     } catch (error) {
+        // Release connection lock on error
+        isConnecting = false;
+        connectionState.isRecovering = false;
+
         if (error.code === 'NETWORK_ERROR' && !connectionState.isRecovering) {
             console.log('Network error detected, attempting recovery...');
             connectionState.isRecovering = true;
@@ -586,12 +621,15 @@ export async function connectWallet(resumeFromStep = null) {
             return connectWallet(connectionState.lastStep);
         }
 
-        console.log("Error25: ", error);
-        handleWalletError(error);
-        connectionState.isRecovering = false;
+        // Handle timeout specifically - wallet extension may still be loading
+        if (error.message && error.message.includes('timed out')) {
+            console.log('Wallet request timed out - extension may still be initializing');
+            alert('Wallet is still loading. Please wait a moment and click Connect Wallet again.');
+            return null;
+        }
 
-        // Release connection lock on error
-        isConnecting = false;
+        console.log("Wallet connection error:", error);
+        handleWalletError(error);
 
         return null;
     }

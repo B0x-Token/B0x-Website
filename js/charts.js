@@ -10,15 +10,25 @@
  * @module charts
  */
 
-import { ProofOfWorkAddresss } from './config.js';
+import { ProofOfWorkAddresss, defaultRPC_Graph } from './config.js';
+import { customRPC_Graph } from './settings.js';
 
 // ============================================================================
 // Constants and Configuration
 // ============================================================================
 
+/**
+ * Get the RPC URL to use for charts/graphs
+ * Uses custom RPC from settings if available, otherwise falls back to default
+ * @returns {string} The RPC URL to use
+ */
+export function getGraphRPC() {
+    return customRPC_Graph || defaultRPC_Graph;
+}
+
 export const CHART_CONSTANTS = {
     MAXIMUM_TARGET_STR_OLD: "27606985387162255149739023449108101809804435888681546220650096895197184",  // 2**234
-    BWORK_RPC: 'https://gateway.tenderly.co/public/base',  // Best RPC for graphs/stats
+    BWORK_RPC: 'https://gateway.tenderly.co/public/base',  // Default RPC for graphs/stats (use getGraphRPC() instead)
     BWORK_CONTRACT_ADDRESS: '0xd44Ee7dAdbF50214cA7009a29D9F88BCcD0E9Ff4',
     BWORK_LAST_DIFF_START_BLOCK_INDEX: '6',
     BWORK_ERA_INDEX: '7',
@@ -140,7 +150,7 @@ const _MAXIMUM_TARGET_STR_OLD = CHART_CONSTANTS.MAXIMUM_TARGET_STR_OLD;  // 2**2
 let latest_eth_block = null;
 let BWORK_latest_eth_block = null;
 
-          let  ethersProvider = new ethers.providers.JsonRpcProvider(CHART_CONSTANTS.BWORK_RPC);
+          let  ethersProvider = new ethers.providers.JsonRpcProvider(getGraphRPC());
 let _ZERO_BN;
 let _MAXIMUM_TARGET_BN_OLD;
 
@@ -161,7 +171,7 @@ async function initEthers() {
             // ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
             // ethersSigner = ethersProvider.getSigner();
         } else {
-            ethersProvider = new ethers.providers.JsonRpcProvider(CHART_CONSTANTS.BWORK_RPC);
+            ethersProvider = new ethers.providers.JsonRpcProvider(getGraphRPC());
         }
 
         // Initialize BigNumber constants after ethers is ready
@@ -177,7 +187,7 @@ async function initEthers() {
     } catch (error) {
         console.error('Failed to connect to Ethereum:', error);
         // Initialize fallback values
-        ethersProvider = new ethers.providers.JsonRpcProvider(BWORK_RPC);
+        ethersProvider = new ethers.providers.JsonRpcProvider(getGraphRPC());
         _ZERO_BN = ethers.BigNumber.from(0);
         _MAXIMUM_TARGET_BN_OLD = ethers.BigNumber.from(_MAXIMUM_TARGET_STR_OLD);
         // Use a fallback block number if connection fails
