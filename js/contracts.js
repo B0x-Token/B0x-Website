@@ -520,6 +520,12 @@ export async function switchToChain(chainKey) {
         return false;
     }
 
+    // Check if wallet is actually connected before making requests
+    if (typeof window.ethereum.isConnected === 'function' && !window.ethereum.isConnected()) {
+        showToast("Wallet not connected. Please connect your wallet first.", true);
+        return false;
+    }
+
     const chainData = chainConfig[chainKey];
     if (!chainData) {
         showToast(`Unknown chain: ${chainKey}`, true);
@@ -576,6 +582,12 @@ export async function switchToChain(chainKey) {
  */
 export async function getCurrentChain() {
     if (!window.ethereum) return null;
+
+    // Check if wallet is actually connected before making requests
+    // This prevents triggering wallet popups when user has closed the wallet
+    if (typeof window.ethereum.isConnected === 'function' && !window.ethereum.isConnected()) {
+        return null;
+    }
 
     try {
         // Add timeout to prevent hanging if wallet extension isn't fully loaded

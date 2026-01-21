@@ -191,6 +191,13 @@ function sleep(ms) {
 export async function checkWalletConnection() {
     console.log("Checking wallet connection");
     if (typeof window.ethereum !== 'undefined' && localStorage.getItem('walletConnected') === 'true') {
+        // Check if wallet is actually connected before making requests
+        // This prevents triggering wallet popups when user has closed the wallet
+        if (typeof window.ethereum.isConnected === 'function' && !window.ethereum.isConnected()) {
+            console.log('Wallet provider not connected, skipping auto-reconnect');
+            return;
+        }
+
         try {
             // Add timeout to prevent hanging if wallet extension isn't fully loaded
             const timeoutPromise = new Promise((_, reject) =>
@@ -635,6 +642,13 @@ export async function connectWallet(resumeFromStep = null) {
  * @returns {Promise<void>}
  */
 export async function switchToEthereum(retryCount = 0, maxRetries = 5) {
+    // Check if wallet is actually connected before making requests
+    if (!window.ethereum) return;
+    if (typeof window.ethereum.isConnected === 'function' && !window.ethereum.isConnected()) {
+        console.log('Wallet provider not connected, skipping network switch');
+        return;
+    }
+
     const EthereumConfig = {
         chainId: '0x1', // 1 in hex
         chainName: 'Ethereum',
@@ -711,6 +725,13 @@ export async function switchToEthereum(retryCount = 0, maxRetries = 5) {
  * @returns {Promise<void>}
  */
 export async function switchToBase(retryCount = 0, maxRetries = 5) {
+    // Check if wallet is actually connected before making requests
+    if (!window.ethereum) return;
+    if (typeof window.ethereum.isConnected === 'function' && !window.ethereum.isConnected()) {
+        console.log('Wallet provider not connected, skipping network switch');
+        return;
+    }
+
     const baseConfig = {
         chainId: '0x2105', // 8453 in hex for Base Mainnet
         chainName: 'Base',
