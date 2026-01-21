@@ -163,6 +163,12 @@ async function handleCountdownComplete() {
  * @returns {Promise<void>}
  */
 export async function runReloadFunctions(fromChecker = false, fromReset = true) {
+    // Don't run if page is hidden (prevents warning when closing Rabby browser)
+    if (window.isPageVisible === false) {
+        console.log("Page hidden, skipping reload functions");
+        return;
+    }
+
     // Check wallet connection status from window
     const walletConnected = window.walletConnected || false;
 

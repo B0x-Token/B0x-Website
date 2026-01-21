@@ -901,6 +901,21 @@ let windowListenersSetup = false;
 if (window.ethereum && !windowListenersSetup) {
     window.ethereum.on('chainChanged', (chainId) => {
         console.log('Chain changed to:', chainId);
+        // Don't make requests if page is hidden (prevents warning when closing Rabby browser)
+        if (window.isPageVisible === false) {
+            console.log('Page hidden, skipping network status update');
+            return;
+        }
+        // Only update network status if user has connected their wallet to this dApp
+        if (!localStorage.getItem('walletConnected')) {
+            console.log('Wallet not connected to dApp, skipping network status update');
+            return;
+        }
+        // Also check if wallet provider is still connected
+        if (typeof window.ethereum.isConnected === 'function' && !window.ethereum.isConnected()) {
+            console.log('Wallet provider disconnected, skipping network status update');
+            return;
+        }
         displayNetworkStatus();
         // Optionally reload the page
         // window.location.reload();
@@ -911,5 +926,17 @@ if (window.ethereum && !windowListenersSetup) {
 }
 
 // Note: accountsChanged is handled in wallet.js setupWalletListeners to avoid duplicates
+
+// Track page visibility to prevent ethereum requests when page is hidden
+// This prevents the "external application" warning when closing Rabby's browser
+window.isPageVisible = true;
+document.addEventListener('visibilitychange', () => {
+    window.isPageVisible = !document.hidden;
+    if (document.hidden) {
+        console.log('Page hidden - pausing ethereum requests');
+    } else {
+        console.log('Page visible - resuming ethereum requests');
+    }
+});
 
 console.log('Init module loaded');

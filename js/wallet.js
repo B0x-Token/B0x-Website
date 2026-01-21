@@ -191,6 +191,11 @@ function sleep(ms) {
 export async function checkWalletConnection() {
     console.log("Checking wallet connection");
     if (typeof window.ethereum !== 'undefined' && localStorage.getItem('walletConnected') === 'true') {
+        // Don't make requests if page is hidden (prevents warning when closing Rabby browser)
+        if (window.isPageVisible === false) {
+            console.log('Page hidden, skipping wallet connection check');
+            return;
+        }
         // Check if wallet is actually connected before making requests
         // This prevents triggering wallet popups when user has closed the wallet
         if (typeof window.ethereum.isConnected === 'function' && !window.ethereum.isConnected()) {
@@ -644,6 +649,15 @@ export async function connectWallet(resumeFromStep = null) {
 export async function switchToEthereum(retryCount = 0, maxRetries = 5) {
     // Check if wallet is actually connected before making requests
     if (!window.ethereum) return;
+    // Don't make requests if page is hidden (prevents warning when closing Rabby browser)
+    if (window.isPageVisible === false) {
+        console.log('Page hidden, skipping network switch');
+        return;
+    }
+    if (!localStorage.getItem('walletConnected')) {
+        console.log('Wallet not connected to dApp, skipping network switch');
+        return;
+    }
     if (typeof window.ethereum.isConnected === 'function' && !window.ethereum.isConnected()) {
         console.log('Wallet provider not connected, skipping network switch');
         return;
@@ -727,6 +741,15 @@ export async function switchToEthereum(retryCount = 0, maxRetries = 5) {
 export async function switchToBase(retryCount = 0, maxRetries = 5) {
     // Check if wallet is actually connected before making requests
     if (!window.ethereum) return;
+    // Don't make requests if page is hidden (prevents warning when closing Rabby browser)
+    if (window.isPageVisible === false) {
+        console.log('Page hidden, skipping network switch');
+        return;
+    }
+    if (!localStorage.getItem('walletConnected')) {
+        console.log('Wallet not connected to dApp, skipping network switch');
+        return;
+    }
     if (typeof window.ethereum.isConnected === 'function' && !window.ethereum.isConnected()) {
         console.log('Wallet provider not connected, skipping network switch');
         return;
@@ -867,7 +890,16 @@ export async function setupWalletListeners() {
     // Handle account changes
     window.ethereum.on('accountsChanged', async (accounts) => {
         console.log('Account changed event:', accounts);
-            window.positionsLoaded = false;
+        // Don't process if page is hidden (prevents warning when closing Rabby browser)
+        if (window.isPageVisible === false) {
+            console.log('Page hidden, skipping account change handling');
+            // Still disconnect if needed, but skip other processing
+            if (accounts.length === 0) {
+                disconnectWallet();
+            }
+            return;
+        }
+        window.positionsLoaded = false;
         if (accounts.length === 0) {
             disconnectWallet();
         } else {

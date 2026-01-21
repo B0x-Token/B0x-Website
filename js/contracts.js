@@ -583,8 +583,18 @@ export async function switchToChain(chainKey) {
 export async function getCurrentChain() {
     if (!window.ethereum) return null;
 
-    // Check if wallet is actually connected before making requests
-    // This prevents triggering wallet popups when user has closed the wallet
+    // Don't make requests if page is hidden (prevents warning when closing Rabby browser)
+    if (window.isPageVisible === false) {
+        return null;
+    }
+
+    // Only make ethereum requests if user has connected their wallet to this dApp
+    // This prevents triggering wallet warnings when user navigates away
+    if (!localStorage.getItem('walletConnected')) {
+        return null;
+    }
+
+    // Check if wallet provider is connected
     if (typeof window.ethereum.isConnected === 'function' && !window.ethereum.isConnected()) {
         return null;
     }
