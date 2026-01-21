@@ -1065,6 +1065,12 @@ export async function setupWalletListeners() {
         }
     });
 
+    // Handle wallet disconnect (e.g., when user clicks X in Rabby dApp browser)
+    window.ethereum.on('disconnect', (error) => {
+        console.log('Wallet disconnect event:', error);
+        disconnectWallet();
+    });
+
     // Note: chainChanged listener is set up in init.js to avoid duplicates
 
     listenersSetup = true;
