@@ -404,10 +404,7 @@ export async function connectWallet(resumeFromStep = null) {
         // First try eth_accounts (doesn't require approval, won't hang)
         let accounts = null;
         try {
-            const existingAccounts = await Promise.race([
-                window.ethereum.request({ method: 'eth_accounts' }),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('eth_accounts timeout')), 3000))
-            ]);
+            const existingAccounts = await window.ethereum.request({ method: 'eth_accounts' });
             if (existingAccounts && existingAccounts.length > 0) {
                 console.log('Found existing authorized accounts:', existingAccounts.length);
                 accounts = existingAccounts;
@@ -415,7 +412,6 @@ export async function connectWallet(resumeFromStep = null) {
         } catch (e) {
             console.log('eth_accounts check failed:', e.message);
         }
-
         // If no existing accounts, request new authorization
         if (!accounts || accounts.length === 0) {
             console.log('No existing accounts, requesting authorization...');
