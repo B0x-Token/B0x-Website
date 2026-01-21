@@ -10,7 +10,7 @@
 [![Ethereum](https://img.shields.io/badge/Ethereum-Mainnet-3C3C3D?logo=ethereum)](https://ethereum.org)
 [![Base](https://img.shields.io/badge/Base-Mainnet-0052FF?logo=coinbase)](https://base.org)
 
-[Live Site using this Github](https://b0x-token.github.io/B0x-Website/) | [IPFS Version(need to deploy first)](https://ipfs.io/ipfs/)
+[Live Site using this Github](https://b0x-token.github.io/B0x-Website/) | [IPFS Version](https://ipfs.io/ipfs/bafybeial4nlmtpi6fdts7qhkqzsuzit6ou2tutgatmdqulj7bwp2s5ecjm)
 
 </div>
 
