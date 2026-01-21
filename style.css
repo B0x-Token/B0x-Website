@@ -468,41 +468,42 @@ body.stats-active .content {
         padding: 20px 15px;
         text-align: center;
         cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
         border: none;
         background: rgba(255, 255, 255, 0.02);
-        backdrop-filter: blur(5px);
         font-size: 0.95rem;
         font-weight: 500;
         color: rgba(255, 255, 255, 0.7);
         white-space: nowrap;
         position: relative;
         overflow: hidden;
+        will-change: transform;
     }
 
     .nav-tab::before {
         content: '';
         position: absolute;
         top: 0;
-        left: -100%;
+        left: 0;
         width: 100%;
         height: 100%;
         background: linear-gradient(90deg,
                 transparent 0%,
                 rgba(120, 119, 198, 0.2) 50%,
                 transparent 100%);
-        transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(-100%);
+        transition: transform 0.5s ease;
+        will-change: transform;
     }
 
     .nav-tab:hover {
         background: rgba(120, 119, 198, 0.1);
         color: #ffffff;
         transform: translateY(-2px);
-        box-shadow: 0 4px 20px rgba(120, 119, 198, 0.2);
     }
 
     .nav-tab:hover::before {
-        left: 100%;
+        transform: translateX(100%);
     }
 
     .nav-tab.active {
@@ -2934,6 +2935,13 @@ body.stats-active .content {
         max-width: calc(100vw - 20px);
     }
 
+    .notification-container.center {
+        top: 70%;
+        right: 10px;
+        transform: translateY(-80%);
+        max-width: calc(100vw - 20px);
+    }
+
     /* Individual Notification - Mobile Optimized */
     .notification {
         display: flex;
@@ -2985,6 +2993,15 @@ body.stats-active .content {
     }
 
     .notification-container.bottom-left .notification.show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .notification-container.center .notification {
+        transform: translateX(50px);
+    }
+
+    .notification-container.center .notification.show {
         transform: translateX(0);
         opacity: 1;
     }
@@ -3381,14 +3398,14 @@ body.stats-active .content {
 
     .stat-value2 .unit {
         color: #c0c0c0;
-        font-size: 19px;
-        font-weight: 400;
+        font-size: 22px;
+        font-weight: 400 !important;
         margin-left: 6px;
     }
 
     .stat-value2 .detail {
         color: #999;
-        font-size: 13px;
+        font-size: 17px;
         font-weight: 400;
         margin-left: 8px;
     }
@@ -3547,8 +3564,8 @@ body.stats-active .content {
 
         .stat-value2 .unit {
             color: #c0c0c0;
-            font-size: 14px;
-            font-weight: 400;
+            font-size: 16px;
+            font-weight: 400 !important;
             margin-left: 6px;
         }
 
@@ -6767,4 +6784,160 @@ body.stats-active .content {
 
 #main-content {
   background-color: #2d2c43;
+}
+
+/* IPFS Verification Banner */
+.ipfs-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+    border-bottom: 1px solid #00d4aa;
+    padding: 6px 12px;
+    z-index: 10001;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.ipfs-banner-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+}
+
+.ipfs-icon {
+    font-size: 14px;
+}
+
+.ipfs-text {
+    color: #e0e0e0;
+}
+
+.ipfs-text strong {
+    color: #00d4aa;
+}
+
+.ipfs-text a {
+    color: #5dade2;
+    text-decoration: none;
+    margin-left: 8px;
+}
+
+.ipfs-text a:hover {
+    text-decoration: underline;
+}
+
+.ipfs-cid {
+    color: #888;
+    font-size: 10px;
+    cursor: pointer;
+    padding: 2px 6px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+    display: none;
+}
+
+.ipfs-cid:hover {
+    background: rgba(0,212,170,0.2);
+}
+
+.ipfs-close {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 8px 12px;
+    line-height: 1;
+    margin-left: auto;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ipfs-close:hover {
+    color: #fff;
+}
+
+/* Adjust body padding for fixed banner - applied via JS when banner shows */
+body.ipfs-active {
+    padding-top: 32px;
+}
+
+/* Tablet - banner wraps to 2 lines */
+@media (max-width: 785px) {
+    body.ipfs-active {
+        padding-top: 52px;
+    }
+}
+
+/* Mobile adjustments for IPFS banner */
+@media (max-width: 630px) {
+    .ipfs-banner {
+        font-size: 11px;
+        padding: 8px 12px;
+    }
+
+    .ipfs-banner-content {
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* First line: icon + main text */
+    .ipfs-icon {
+        display: inline;
+    }
+
+    /* Second line: bookmark link */
+    .ipfs-text a {
+        display: block;
+        margin-top: 2px;
+    }
+
+    /* Third line: CID */
+    .ipfs-cid {
+        display: block;
+        margin-top: 2px;
+    }
+
+    .ipfs-close {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+    }
+
+    body.ipfs-active {
+        padding-top: 75px;
+    }
+}
+
+/* Small phones - content shifts, needs more padding */
+@media (max-width: 462px) {
+    body.ipfs-active {
+        padding-top: 85px;
+    }
+
+    body.ipfs-active #main-content {
+        margin-top: 28px;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 400px) {
+    .ipfs-banner {
+        font-size: 10px;
+        padding: 6px 10px;
+    }
+
+    body.ipfs-active {
+        padding-top: 55px;
+    }
 }

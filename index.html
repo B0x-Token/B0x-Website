@@ -16,12 +16,12 @@
 
     <!-- Description for search engines -->
     <meta name="description"
-        content="B0x Token DeFi dAPP that has swaps, create b0x Uniswap V4 positions, Stake your B0x Univ4 positions to beat IL and collect rewards right along side the miners of B0x Tokens! 100% Decentralized">
+        content="B Zero X Token DeFi dApp that has swaps, create B0x Uniswap V4 positions, Stake your B0x Univ4 positions to beat IL and collect rewards right along side the miners of B0x Tokens! 100% Decentralized">
 
     <!-- Open Graph / Social Preview -->
     <meta property="og:title" content="B0x Token DeFi dAPP">
     <meta property="og:description"
-        content="B0x Token DeFi dAPP that has Swaps, Create B0x Uniswap V4 positions, Stake your b Univ4 positions to beat IL and collect rewards right along side the miners of B0x Tokens! 100% Decentralized">
+        content="B Zero X Token DeFi dAPP that has Swaps, Create B0x Uniswap V4 positions, Stake your b Univ4 positions to beat IL and collect rewards right along side the miners of B0x Tokens! 100% Decentralized">
     <meta property="og:image" content="https://b0x-token.github.io/B0x-Website/images/b0x_logo_square.png">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://b0x-token.github.io/B0x-Website/">
@@ -30,7 +30,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="B0x Token DeFi dAPP">
     <meta name="twitter:description"
-        content="B0x Token DeFi dAPP that has Swaps, Create B0x Uniswap V4 positions, Stake your B0x Univ4 positions to beat IL and collect rewards right along side the miners of B0x Tokens! 100% Decentralized">
+        content="B Zero X Token DeFi dApp that has Swaps, Create B0x Uniswap V4 positions, Stake your B0x Univ4 positions to beat IL and collect rewards right along side the miners of B0x Tokens! 100% Decentralized">
     <meta name="twitter:image" content="https://b0x-token.github.io/B0x-Website/images/b0x_logo_square.png">
 
 
@@ -47,6 +47,45 @@
 
     </head>
 <body>
+    <!-- IPFS Verification Banner -->
+    <div id="ipfs-banner" class="ipfs-banner" style="display:none;">
+        <div class="ipfs-banner-content">
+            <span class="ipfs-icon">&#x1F512;</span>
+            <span class="ipfs-text">
+                <strong>IPFS Verified</strong> — Content-addressed & immutable. Code cannot change.
+                <a href="#" id="ipfs-bookmark" onclick="var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent); if(isMobile) { alert('Tap the Share button (iOS) or Menu ⋮ (Android), then select Add to Home Screen or Bookmark'); } else { alert('Press Ctrl+D (Cmd+D on Mac) to bookmark this page'); } return false;">Bookmark it!</a>
+            </span>
+            <span class="ipfs-cid" id="ipfs-cid" title="Click to copy IPFS URL"></span>
+            <button class="ipfs-close" onclick="document.getElementById('ipfs-banner').style.display='none'; document.body.classList.remove('ipfs-active')" aria-label="Close banner">&times;</button>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var url = window.location.href;
+        var cidMatch = url.match(/\/ipfs\/([a-zA-Z0-9]+)/);
+        if (cidMatch) {
+            var cid = cidMatch[1];
+            var banner = document.getElementById('ipfs-banner');
+            var cidEl = document.getElementById('ipfs-cid');
+            if (banner && cidEl) {
+                banner.style.display = 'block';
+                document.body.classList.add('ipfs-active');
+                cidEl.style.display = 'inline';
+                cidEl.textContent = cid.slice(0,8) + '...' + cid.slice(-6);
+                cidEl.onclick = function() {
+                    var ipfsUrl = 'https://ipfs.io/ipfs/' + cid + '/';
+                    navigator.clipboard.writeText(ipfsUrl).then(function() {
+                        cidEl.textContent = 'Copied!';
+                        setTimeout(function() {
+                            cidEl.textContent = cid.slice(0,8) + '...' + cid.slice(-6);
+                        }, 1500);
+                    });
+                };
+            }
+        }
+    });
+    </script>
+
  <!-- Notification Container -->
     <div class="notification-container bottom-right" id="notificationContainer"></div>
 
@@ -162,11 +201,10 @@
             </div>
             <center>
                 <div class="wallet-section">
-                    <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+                    <button id="connectBtn">Connect Wallet</button>
                     <div id="walletInfo" style="display: none;">
                         <span id="walletAddress" style="display: none;"></span>
-                        <button id="disconnectBtn" onclick="disconnectWallet()"
-                            style="display: none;">Disconnect</button>
+                        <button id="disconnectBtn" style="display: none;">Disconnect</button>
                     </div>
             </center>
             <div class="content">
@@ -393,7 +431,7 @@
                         <!-- Miner Statistics Sections -->
                         <div id="row-miners2">
                             <div class="section">
-                                <h4>Block distribution since last adjustment</h4>
+                                <h4 id="block-distribution-heading2">Block distribution since last adjustment</h4>
                                 <div class="chart-containerf">
                                     <div class="pie-chart-wrapper">
                                         <div id="blockdistributionpiechart2"></div>
@@ -413,7 +451,7 @@
 
                         <div id="row-miners">
                             <div class="section">
-                                <h4>Block distribution since launch</h4>
+                                <h4 id="block-distribution-heading">Block distribution since launch</h4>
                                 <div class="chart-containerf">
                                     <div class="pie-chart-wrapper">
                                         <div id="blockdistributionpiechart"></div>
@@ -433,7 +471,7 @@
 
                         <div id="row-blocks">
                             <div class="section">
-                                <h4>Blocks solved since launch</h4>
+                                <h4 id="blocks-solved-heading">Blocks solved since launch</h4>
                                 <div class="stats-table-wrapper">
                                     <table class="blocks-table">
                                         <tbody id="blockstats">
@@ -442,6 +480,10 @@
                                             </tr>
                                         </tbody>
                                     </table>
+                                    <div id="blocks-load-more-container" style="text-align: center; padding: 20px; display: none;">
+                                        <p id="blocks-status" style="margin-bottom: 10px; color: #888;"></p>
+                                        <button id="blocks-load-more-btn" class="primary-button" style="padding: 10px 30px; display: block; margin: 0 auto;">Load More Blocks</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -463,8 +505,8 @@
                                             <div class="hashrate-row">
                                                 <div class="hashrate-input-section">
                                                     <label class="input-label">Your Hashrate:</label>
-                                                    <input type="number" class="calc-input" placeholder="100.00"
-                                                        value="100" step="1" id="hashrate-input">
+                                                    <input type="number" class="calc-input" placeholder="1000"
+                                                        value="1000" step="1" id="hashrate-input">
                                                 </div>
                                                 <div class="units-section">
                                                     <label class="input-label">Units:</label>
@@ -504,7 +546,7 @@
                                                 <span id="avg-block-time" class="result-value">0.0</span>
                                             </div>
                                             <div class="result-item">
-                                                <span class="result-label">Time for 10 blocks:</span>
+                                                <span class="result-label">Time for 10 blocks:</span></br>
                                                 <span id="realistic-block-time" class="result-value">0.0</span>
                                             </div>
                                         </div>
@@ -957,6 +999,59 @@
                                 amount saved successfully!</div>
                         </div>
 
+                        <br></br><br></br>
+                        <div class="settings-form">
+                            <h3>📁 Offline Data Management</h3>
+                            <p>Upload JSON data files to restore cached data when servers are offline. This saves time on full refreshes.</p>
+
+                            <!-- Current Data Source URLs -->
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label>Current Data Source URLs:</label>
+                                <div style="font-size: 0.9em; margin-top: 5px;">
+                                    <div style="margin-bottom: 18px;">
+                                        <strong>Uniswap V4 Data:</strong><br>
+                                        <a id="uniswapDataUrlPrimary" href="about:blank" target="_blank" style="word-break: break-all; color: white;">Loading...</a><br>
+                                        <a id="uniswapDataUrlBackup" href="about:blank" target="_blank" style="word-break: break-all; color: #888;">Loading...</a>
+                                    </div>
+                                    <div style="margin-bottom: 18px;">
+                                        <strong>Mined Blocks:</strong><br>
+                                        <a id="minedBlocksUrlPrimary" href="about:blank" target="_blank" style="word-break: break-all; color: white;">Loading...</a><br>
+                                        <a id="minedBlocksUrlBackup" href="about:blank" target="_blank" style="word-break: break-all; color: #888;">Loading...</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upload Uniswap Data -->
+                            <div class="form-group" style="margin-top: 20px;">
+                                <label>Upload mainnet_uniswap_v4_data.json</label>
+                                <div class="input-group" style="flex-direction: column; align-items: flex-start;">
+                                    <input type="file" id="uploadUniswapData" accept=".json" style="margin-bottom: 10px;">
+                                    <button class="btn-primary" onclick="handleUniswapDataUpload()">Upload & Apply</button>
+                                </div>
+                                <div id="uniswapDataUploadStatus" style="margin-top: 10px;"></div>
+                            </div>
+
+
+                            <!-- Upload Mined Blocks -->
+                            <div class="form-group">
+                                <label>Upload mined_blocks_mainnet.json</label>
+                                <div class="input-group" style="flex-direction: column; align-items: flex-start;">
+                                    <input type="file" id="uploadMinedBlocks" accept=".json" style="margin-bottom: 10px;">
+                                    <button class="btn-primary" onclick="handleMinedBlocksUpload()">Upload & Apply</button>
+                                </div>
+                                <div id="minedBlocksUploadStatus" style="margin-top: 10px;"></div>
+                            </div>
+
+                            <!-- Download Current Data -->
+                            <div class="form-group" style="margin-top: 20px;">
+                                <label>Download Current Cached Data:</label>
+                                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                    <button class="btn-secondary" onclick="downloadUniswapData()">Download Uniswap Data</button>
+                                    <button class="btn-secondary" onclick="downloadMinedBlocksData()">Download Mined Blocks</button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -970,7 +1065,7 @@
                     <div class="staking-management">
                         <div class="management-card">
                             <h3>🪙 Add Reward Token</h3>
-                            <p>Add new ERC20 tokens to be distributed as staking rewards. Costs 20 USDC on Base</p>
+                            <p>Add new ERC20 tokens to be distributed as staking rewards. <span id="addRewardTokenCost">Costs 20 USDC on Base</span></p>
 
                             <div class="form-group">
                                 <label>Reward Token Contract Address</label>
@@ -1009,8 +1104,17 @@
                                 <p style="color: #6c757d; font-style: italic;">No active reward periods.</p>
                             </div>
                         </div>
-                    </div>
                     <button class="btn-primary" onclick="getRewardStats()">getRewardStats</button>
+<br></br><br></br>
+                        <div class="management-card">
+                            <h3>💰 Fetch All Uniswap Fees</h3>
+                            <p>Collect accumulated Uniswap fees from all staked NFT positions owned by the staking contract.</p>
+                            <div id="fetchFeesResult" style="margin: 10px 0; padding: 10px; background: #1a1a2e; border-radius: 8px; display: none;">
+                                <p style="margin: 0;"><span id="fetchFeesStatus">Ready</span></p>
+                            </div>
+                            <button class="btn-success" onclick="fetchAllUniswapFees()">Fetch All Uniswap Fees</button>
+                        </div>
+                    </div>
                 </div>
 
 
@@ -1145,22 +1249,23 @@
                         <p>Stake your Unsiwap NFT tokens to earn rewards and support network security.</p>
                     </div>
 
-                    <div class="info-card2">
+                    <div class="info-card2" id="staking-position-info">
                         <h3>NFT Position Info</h3>
-                        <p>Create Position to Stake Position</p>
+                        <p>Please Create a Position in order to Deposit the Uniswap v4 NFT into staking</p>
                     </div>
                     <div class="form-group">
                         <label>Select Position</label>
-                        <select>
+                        <select id="staking-deposit-select" onchange="updateStakingDepositPositionInfo()">
+                            <option>Connect Wallet to see positions</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label>Estimated Percentage of Staking Rewards this position is</label>
-                        <input type="text" id="estimatedRewards" value="0.00 B0x" readonly style="background: #f8f9fa;">
+                        <input type="text" id="estimatedRewards" value="0.00%" readonly style="background: #f8f9fa;">
                     </div>
 <h3 style="color: red"> You are now depositing a Uniswap v4 NFT Position to stake.  Withdrawl penalty is 20% to instant withdraw down to 3% after 15 days.  1% after 45 days. It is tracked per NFT, so multiple NFTs will have different withdraw Penalities</h3>
-                    <button class="btn-success" id="depositNFTStakeBtn" onclick="depositNFTStake()">Deposit
+                    <button class="btn-success" id="depositNFTStakeBtn">Deposit
                         NFT</button><br></br><br></br>
 
                     <div class="info-card3">
@@ -1177,8 +1282,7 @@
                     <div class="form-group2">
                         <label>Select NFT to Withdraw</label>
                         <select>
-                            <option>UNSTAKE - UNStaking Token</option>
-                            <option>UNDAI - UNDai Stablecoin</option>
+                            <option>Connect Wallet to see positions</option>
                         </select>
                     </div>
 
@@ -1374,7 +1478,7 @@
                     <div class="form-group">
                         <label>Select Position</label>
                         <select>
-                            <!-- Options will be populated by JavaScript -->
+                            <option>Connect Wallet to see positions</option>
                         </select>
                     </div>
                     <!--
@@ -1416,7 +1520,7 @@
                             <option>2.0%</option>
                         </select>
                     </div>
-                    <button class="btn-primary" id="increaseLiquidityBtn" onclick="increaseLiquidity()">Increase
+                    <button class="btn-primary" id="increaseLiquidityBtn">Increase
                         Liquidity</button>
                     <!--      <button class="btn-primary" onclick="getTokenIDsOwnedByMetamask()">Get Metamask StakedTokensOwned</button>
                     <button class="btn-primary" onclick="getTokenIDsOwnedByStaking()">Get Staking Contracted Owned NFTs</button>
@@ -1458,6 +1562,7 @@
                     <div class="form-group">
                         <label>Select Position</label>
                         <select onchange="updatePositionInfo()">
+                            <option>Connect Wallet to see positions</option>
                         </select>
                     </div>
 
@@ -1512,7 +1617,7 @@
                             <option>2.0%</option>
                         </select>
                     </div>
-                    <button class="btn-primary" id="decreaseLiquidityBtn" onclick="decreaseLiquidity()">Remove Liquidity
+                    <button class="btn-primary" id="decreaseLiquidityBtn">Remove Liquidity
                         & Claim Fees</button>
                 </div>
 
@@ -1568,7 +1673,7 @@
                     <div class="form-group">
                         <label>Select Position</label>
                         <select>
-                            <!-- Options will be populated by JavaScript -->
+                            <option>Connect Wallet to see positions</option>
                         </select>
                     </div>
 
@@ -1650,7 +1755,7 @@
                     <div class="form-group">
                         <label>Select Position</label>
                         <select>
-                            <!-- Options will be populated by JavaScript -->
+                            <option>Connect Wallet to see positions</option>
                         </select>
                     </div>
                     <!-- old
@@ -1854,7 +1959,7 @@
 
                 <div class="team-member-card">
                     <div class="member-header">
-                        <div class="member-avatar">
+                        <div class="member-avatar">     
                             <div class="avatar-placeholder">C</div>
                         </div>
                         <div class="member-basic-info">
@@ -1890,8 +1995,6 @@
 
 
                 <!-- whitepaper dapp page-->
-
-                <!-- ADMIN FUNCTION DAPP PAGE -->
                 <div id="whitepaper" class="page">
 
                     <div class="bx-scroll-indicator" id="bxScrollProgress"></div>
@@ -2024,7 +2127,7 @@
                                     specific conditions: 7 days if
                                     the network reaches 4x target blocktime with at least 256 blocks mined, or 14 days
                                     at target Time of 10 minute epochs.
-                                    The halving schedule operates on allowing half the supply of the previous era 
+                                    The halving schedule operates on 210,000 epochts per halvening @ 10 minute average block time
                                     similar to Bitcoin, ensuring sustainable and long-term emission.
                                 </p>
                             </section>
@@ -2100,13 +2203,6 @@
                                     hardware efficiency.
                                 </p>
 
-                                <div
-                                    style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
-                                    <strong>Important:</strong> This protocol is experimental. Only participate with
-                                    funds you can afford to lose.
-                                    Conduct thorough research and consider consulting with financial advisors before
-                                    participating.
-                                </div>
                             </section>
 
                             <section class="bx-section-block bx-fade-in">
@@ -2148,6 +2244,7 @@
 
 
                 </div>
+
 
 
                 <div id="side-pools" class="page">
@@ -2625,6 +2722,8 @@
 
 
 
-    <script src="script.js" defer></script>
+    <!-- Load modular JavaScript files -->
+    <!-- Main.js loads all modules and exposes them globally -->
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
