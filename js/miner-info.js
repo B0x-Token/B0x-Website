@@ -1229,6 +1229,16 @@ let epchCount;
                 console.log('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
                 console.log('==================');
 
+                // ✅ Check for invalid block range - this is unrecoverable
+                if (error && error.data && error.data.message === 'invalid block range params') {
+                    console.log('❌ Invalid block range detected - skipping this range entirely');
+                    getLogs = false;
+                    isGetLogsRunning = false;
+                    runInProgress = false;
+                    run++; // Move to next range
+                    break; // Exit the retry loop
+                }
+
                 // Reset locks on error
                 getLogs = false;
                 isGetLogsRunning = false;

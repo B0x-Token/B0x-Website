@@ -7,6 +7,7 @@
  * - Event listener setup
  * - Tab management
  * - URL routing
+ * - Farcaster Mini App SDK integration
  */
 
 // Import all modules
@@ -116,6 +117,17 @@ export async function initializeDApp() {
 
         await new Promise(resolve => setTimeout(resolve, 200));
         hideLoadingScreen();
+
+        // Signal to Farcaster Mini App SDK that app is ready
+        try {
+            const { sdk } = await import('https://cdn.jsdelivr.net/npm/@farcaster/miniapp-sdk/+esm');
+            console.log('Farcaster SDK loaded, calling ready()...');
+            await sdk.actions.ready();
+            console.log('✓ Farcaster Mini App SDK ready');
+        } catch (farcasterError) {
+            // Not running in Farcaster context - this is expected for regular web access
+            console.log('Farcaster SDK not available (normal for web access)', farcasterError);
+        }
 
         // Continue loading remaining data in background (non-blocking)
         if (!pricesLoaded || !isLatestSearchComplete()) {
