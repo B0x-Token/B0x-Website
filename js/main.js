@@ -76,7 +76,7 @@ window.Whitepaper = Whitepaper;
 // ============================================
 
 // Contract addresses
-window.UnsiwapV4PoolCreatorAddress = Config.UnsiwapV4PoolCreatorAddress;
+window.UniswapV4PoolCreatorAddress = Config.UniswapV4PoolCreatorAddress;
 window.USDCToken = Config.USDCToken;
 window.positionManager_address = Config.positionManager_address;
 window.contractAddress_PositionFinderPro = Config.contractAddress_PositionFinderPro;

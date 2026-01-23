@@ -48,7 +48,7 @@ export const tokenIconsETH = {
 // ============================================================================
 // CONTRACT ADDRESSES - Base Network
 // ============================================================================
-export const UnsiwapV4PoolCreatorAddress = "0x80D68014E12C76B60DbA69c4d33E0ceD06f602EF";
+export const UniswapV4PoolCreatorAddress = "0x80D68014E12C76B60DbA69c4d33E0ceD06f602EF";
 export const USDCToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 export const positionManager_address = "0x7c5f5a4bbd8fd63184577525326123b519429bdc";
 //export const contractAddress_PositionFinderPro = '0x09faDBe933dfF4C7217E7d88C551E9EA6d49eE0f';
@@ -277,7 +277,7 @@ export const contractsList = [
     },
     {
         name: "Uniswapv4PoolCreator ",
-        address: UnsiwapV4PoolCreatorAddress,
+        address: UniswapV4PoolCreatorAddress,
         isToken: false,
         chain: "base"
     }
