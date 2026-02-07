@@ -2026,6 +2026,7 @@ export async function loadPositionsIntoDappSelections() {
     }
 
     // Staking main page - withdraw NFT selector (uses stakingPositionData)
+    // Sorted by lowest withdrawal penalty first to guide users to withdraw from positions with lowest penalty
     const withdrawNFTSelect = document.querySelector('#staking-main-page .form-group2 select');
     if (withdrawNFTSelect) {
         const currentWithdrawValue = withdrawNFTSelect.value;
@@ -2035,7 +2036,11 @@ export async function loadPositionsIntoDappSelections() {
         }
 
         if (Object.keys(stakingPositionData).length > 0) {
-            Object.values(stakingPositionData).forEach(position => {
+            Object.values(stakingPositionData).sort((a, b) => {
+                const penaltyA = parseFloat(a.PenaltyForWithdraw.replace('%', ''));
+                const penaltyB = parseFloat(b.PenaltyForWithdraw.replace('%', ''));
+                return penaltyA - penaltyB; // Lowest penalty first
+            }).forEach(position => {
                 const option = document.createElement('option');
                 option.value = position.id;
                 option.textContent = `${position.pool} #${position.id.split('_')[2]} Staked - ${position.feeTier} Position`;
@@ -2055,7 +2060,7 @@ export async function loadPositionsIntoDappSelections() {
     }
 
     // Stake increase position selector (uses stakingPositionData)
-    // Reversed order so newest positions appear first (to reset largest penalty first)
+    // Sorted by highest withdrawal penalty first to guide users to reset penalties on positions with highest penalty
     const stakeIncreaseSelect = document.querySelector('#stake-increase select');
     if (stakeIncreaseSelect) {
         const currentIncreaseValue = stakeIncreaseSelect.value;
@@ -2065,7 +2070,11 @@ export async function loadPositionsIntoDappSelections() {
         }
 
         if (Object.keys(stakingPositionData).length > 0) {
-            Object.values(stakingPositionData).reverse().forEach(position => {
+            Object.values(stakingPositionData).sort((a, b) => {
+                const penaltyA = parseFloat(a.PenaltyForWithdraw.replace('%', ''));
+                const penaltyB = parseFloat(b.PenaltyForWithdraw.replace('%', ''));
+                return penaltyB - penaltyA; // Highest penalty first
+            }).forEach(position => {
                 const option = document.createElement('option');
                 option.value = position.id;
                 option.textContent = `${position.pool} #${position.id.split('_')[2]} Staked - ${position.feeTier} Position`;
@@ -2085,6 +2094,7 @@ export async function loadPositionsIntoDappSelections() {
     }
 
     // Stake decrease position selector (uses stakingPositionData)
+    // Sorted by lowest withdrawal penalty first to guide users to decrease from positions with lowest penalty
     const stakeDecreaseSelect = document.querySelector('#stake-decrease select');
     if (stakeDecreaseSelect) {
         const currentDecreaseValue = stakeDecreaseSelect.value;
@@ -2094,7 +2104,11 @@ export async function loadPositionsIntoDappSelections() {
         }
 
         if (Object.keys(stakingPositionData).length > 0) {
-            Object.values(stakingPositionData).forEach(position => {
+            Object.values(stakingPositionData).sort((a, b) => {
+                const penaltyA = parseFloat(a.PenaltyForWithdraw.replace('%', ''));
+                const penaltyB = parseFloat(b.PenaltyForWithdraw.replace('%', ''));
+                return penaltyA - penaltyB; // Lowest penalty first
+            }).forEach(position => {
                 const option = document.createElement('option');
                 option.value = position.id;
                 option.textContent = `${position.pool} #${position.id.split('_')[2]} Staked - ${position.feeTier} Position`;
