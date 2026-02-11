@@ -329,7 +329,7 @@ export async function getAllFees() {
 
     const link0xBTCETHz = "https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=NATIVE&chain=base&hook=0x785319f8fCE23Cd733DE94Fd7f34b74A5cAa1000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" + poolsfee.oxbtcEth + ",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
 
-    const linkR0xBTC0xBTCz = "https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=0x2ffa14b113b0a598b07af6714f42dd75bddffd3e&chain=base&hook=0x785319f8fCE23Cd733DE94Fd7f34b74A5cAa1000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" + poolsfee.R0xBTC0xBTC + ",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
+    const linkR0xBTC0xBTCz = "https://app.uniswap.org/positions/create/v4?currencyA=0xc4d4fd4f4459730d176844c170f2bb323c87eb3b&currencyB=0x0e062be1E627032170340E982717137Ab3Ed5c0A&chain=base&hook=0x785319f8fCE23Cd733DE94Fd7f34b74A5cAa1000&priceRangeState={%22priceInverted%22:false,%22fullRange%22:true,%22minPrice%22:%22%22,%22maxPrice%22:%22%22,%22initialPrice%22:%22%22}&depositState={%22exactField%22:%22TOKEN0%22,%22exactAmounts%22:{}}&fee={%22feeAmount%22:" + poolsfee.R0xBTC0xBTC + ",%22tickSpacing%22:60,%22isDynamic%22:true}&step=1";
 
     // Update link elements
     const linkB0xETH = document.getElementById('uniswap-linkB0xETH');

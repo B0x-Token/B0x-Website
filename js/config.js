@@ -69,7 +69,7 @@ export const tokenAddresses = {
     'B0x': '0x6B19E31C1813cD00b0d47d798601414b79A3e8AD',
     '0xBTC': '0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B',
     'WETH': '0x4200000000000000000000000000000000000006',
-    'RightsTo0xBTC': '0x2FFa14b113b0a598B07aF6714f42dd75bDDFfD3E',
+    'RightsTo0xBTC': '0x0e062be1E627032170340E982717137Ab3Ed5c0A',
     'USDC': '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
 };
 
@@ -79,7 +79,7 @@ export const tokenMap = {
     "0x0000000000000000000000000000000000000000": "ETH",
     "0x6B19E31C1813cD00b0d47d798601414b79A3e8AD": "B0x",
     "0xc4D4FD4F4459730d176844c170F2bB323c87Eb3B": "0xBTC",
-    "0x2FFa14b113b0a598B07aF6714f42dd75bDDFfD3E": "RightsTo0xBTC",
+    "0x0e062be1E627032170340E982717137Ab3Ed5c0A": "RightsTo0xBTC",
     "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913": "USDC",
 };
 
@@ -96,7 +96,7 @@ export const tokenAddressesETH = {
 // ============================================================================
 // NETWORK CONFIGURATION
 // ============================================================================
-export const defaultRPC_ETH = "https://eth.llamarpc.com";
+export const defaultRPC_ETH = "https://ethereum-rpc.publicnode.com";
 export const defaultRPC_Base = 'https://mainnet.base.org';
 export const defaultRPC_Graph = 'https://gateway.tenderly.co/public/base'; // RPC for charts/graphs
 
