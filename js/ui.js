@@ -475,6 +475,13 @@ let statsDataLoadedAt = 0; // Timestamp of last stats load
  * @param {string} tabName - Name of tab to switch to
  */
 export async function switchTab(tabName) {
+    
+    if (tabName == 'stats') {
+
+        // Always ensure stats-home is visible when switching to stats tab
+       await switchTab2('stats-home');
+
+    }
     console.log("called switchTab: ", tabName);
     // Store previous tab and update immediately to prevent race conditions
     const previousTab = PreviousTabName;
@@ -504,12 +511,6 @@ export async function switchTab(tabName) {
         selectedPage.classList.add('active');
     }
     
-    if (tabName == 'stats') {
-
-        // Always ensure stats-home is visible when switching to stats tab
-        switchTab2('stats-home');
-
-    }
         
 
     console.log("Switched to tab:", tabName);
@@ -726,7 +727,7 @@ export async function switchTabForStats() {
     }
 
     // Always ensure stats-home is visible when switching to stats tab
-    switchTab2('stats-home');
+    await switchTab2('stats-home');
 
     // Only load data if coming from a different tab
     if (previousTab != 'stats') {
@@ -778,7 +779,7 @@ export async function showStatsPageDirect(targetSubTab) {
     document.querySelector('.content').style.padding = '0px';
 
     // Show target sub-tab FIRST (before loading data to avoid jitter)
-    switchTab2(targetSubTab);
+   await switchTab2(targetSubTab);
 
     // Then load data in background
     if (previousTab != 'stats') {
