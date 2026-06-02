@@ -563,6 +563,8 @@ export async function switchTab(tabName) {
     // Tab-specific data loading
     if (tabName == 'stats' || tabName == ' stats') {
 
+        // Always ensure stats-home is visible when switching to stats tab
+       await switchTab2('stats-home');
         // Only load data if coming from a different tab or 3 minutes have passed
         const statsStale = (Date.now() - statsDataLoadedAt) > 180000; // 3 minutes
         if (previousTab != 'stats' || statsStale) {
