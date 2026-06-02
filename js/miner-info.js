@@ -1209,7 +1209,7 @@ let epchCount;
                 }
 
             } catch (error) {
-                if(stop_log_search_at_loop - start_log_search_at_loop + 1 > 0){
+                if(stop_log_search_at_loop - start_log_search_at_loop  < 1){
                     break;
                 }
                 console.log('=== ERROR CAUGHT ===');
