@@ -1209,6 +1209,8 @@ let epchCount;
                 }
 
             } catch (error) {
+                if(stop_log_search_at_loop - start_log_search_at_loop + 1 > 0){
+                    break;
                 console.log('=== ERROR CAUGHT ===');
                 console.log('Error message:', error ? error.message : 'No error message');
                 console.log('Error code:', error ? error.code : 'No error code');
