@@ -565,7 +565,7 @@ export async function switchTab(tabName) {
 
         // Only load data if coming from a different tab or 3 minutes have passed
         const statsStale = (Date.now() - statsDataLoadedAt) > 180000; // 3 minutes
-        if (previousTab != 'stats' && statsStale) {
+        if (previousTab != 'stats' || statsStale) {
             statsDataLoadedAt = Date.now();
             console.log("SwitchTab - Loading stats data");
 
@@ -838,7 +838,7 @@ export async function switchTab2(tabName) {
         loadData();
     } else if (tabName == 'rich-list') {
         loadData();
-    } else if ((tabName == 'stats-home' || tabName == 'stats-mining-calc') && (Date.now() - statsDataLoadedAt) > 180000) {
+    } else if ((tabName == 'stats-home' || tabName == 'stats-mining-calc') || (Date.now() - statsDataLoadedAt) > 180000) {
         // Load stats data when switching to tabs that need it (with 3 min cache)
         statsDataLoadedAt = Date.now();
         if (typeof window.getRewardStats === 'function') {
