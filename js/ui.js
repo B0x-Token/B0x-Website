@@ -561,7 +561,7 @@ export async function switchTab(tabName) {
         }, 100);
     }
     // Tab-specific data loading
-    if (tabName == 'stats') {
+    if (tabName == 'stats' || tabName == ' stats') {
 
         // Only load data if coming from a different tab or 3 minutes have passed
         const statsStale = (Date.now() - statsDataLoadedAt) > 180000; // 3 minutes
