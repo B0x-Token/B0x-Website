@@ -476,12 +476,6 @@ let statsDataLoadedAt = 0; // Timestamp of last stats load
  */
 export async function switchTab(tabName) {
     
-    if (tabName == 'stats') {
-
-        // Always ensure stats-home is visible when switching to stats tab
-       await switchTab2('stats-home');
-
-    }
     console.log("called switchTab: ", tabName);
     // Store previous tab and update immediately to prevent race conditions
     const previousTab = PreviousTabName;
@@ -564,7 +558,7 @@ export async function switchTab(tabName) {
     if (tabName == 'stats' || tabName == ' stats') {
 
         // Always ensure stats-home is visible when switching to stats tab
-       await switchTab2('stats-home');
+       switchTab2('stats-home');
         // Only load data if coming from a different tab or 3 minutes have passed
         const statsStale = (Date.now() - statsDataLoadedAt) > 180000; // 3 minutes
         if (previousTab != 'stats' || statsStale) {
