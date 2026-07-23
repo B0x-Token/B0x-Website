@@ -280,8 +280,7 @@ const validTabs = [
     'side-pools',
     'stats-rich-list',
     'rich-list',
-    'miner',
-    'Timelock'
+    'miner'
 ];
 
 // Stats sub-tabs that require switchTabForStats() first

@@ -1357,7 +1357,6 @@ export async function increaseLiquidity() {
         fetchBalances();
         await new Promise(resolve => setTimeout(resolve, 1000));
         await getTokenIDsOwnedByMetamask(true); // Force refresh after liquidity change
-        if (window.Timelock) window.Timelock.renderAllowedNFTs();
     } catch (error) {
         console.error(`Error increasing liquidity:`, error);
         showErrorNotification('Operation Failed', error.message || 'Failed to increase liquidity');
@@ -1589,7 +1588,6 @@ export async function decreaseLiquidity() {
         fetchBalances();
         await new Promise(resolve => setTimeout(resolve, 1000));
         getTokenIDsOwnedByMetamask(true); // Force refresh after liquidity change
-        if (window.Timelock) window.Timelock.renderAllowedNFTs();
     } catch (error) {
         enableButton('decreaseLiquidityBtn', 'Decrease Liquidity and Claim Fees');
         console.error(`Error decreasing liquidity:`, error);
