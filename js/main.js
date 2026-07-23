@@ -45,6 +45,7 @@ import * as Whitepaper from './whitepaper.js';  // NEW: Whitepaper page function
 import * as Pools from './pools.js';  // NEW: Pool fees functionality
 import * as MiningCalc from './mining-calc.js';  // NEW: Mining calculator functionality
 import * as Countdown from './countdown.js';  // NEW: Countdown timer and reload functionality
+import * as Timelock from './timelock.js';  // NEW: TimeLock vault functionality
 
 // ============================================
 // EXPOSE MODULES GLOBALLY
@@ -70,6 +71,7 @@ window.MinerInfo = MinerInfo;
 window.Admin = Admin;
 window.Init = Init;
 window.Whitepaper = Whitepaper;
+window.Timelock = Timelock;
 
 // ============================================
 // EXPOSE KEY CONFIGURATION VARIABLES
@@ -205,6 +207,7 @@ window.showLoadingScreen = UI.showLoadingScreen;
 window.switchTab = UI.switchTab;
 window.switchTab2 = UI.switchTab2;
 window.switchTabForStats = UI.switchTabForStats;
+window.switchMinerTab = UI.switchMinerTab;
 
 // Wallet UI
 window.displayWalletBalances = UI.displayWalletBalances;

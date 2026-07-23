@@ -617,6 +617,9 @@ export async function connectWallet(resumeFromStep = null) {
             if (window.updatePositionInfoDecrease) {
                 window.updatePositionInfoDecrease();
             }
+            if (window.Timelock && typeof window.Timelock.loadTimelockPage === 'function') {
+                window.Timelock.loadTimelockPage();
+            }
 
         // Release connection lock on success
         isConnecting = false;
@@ -1000,6 +1003,21 @@ export async function setupWalletListeners() {
                 window.triggerRefresh();
             }
 
+            // Reload Timelock vaults for the new account so the old account's
+            // vaults (and any selected vault's actions panel) don't linger.
+            if (window.Timelock) {
+                try {
+                    if (typeof window.Timelock.resetVaultSelection === 'function') {
+                        window.Timelock.resetVaultSelection();
+                    }
+                    if (typeof window.Timelock.loadUserVaults === 'function') {
+                        await window.Timelock.loadUserVaults();
+                    }
+                } catch (e) {
+                    console.warn('Failed to reload Timelock vaults on account change:', e);
+                }
+            }
+
             // Show loading state for position selectors during account change
             if (window.setIsInitialPositionLoad) {
                 window.setIsInitialPositionLoad(true);
@@ -1033,6 +1051,12 @@ export async function setupWalletListeners() {
                 window.setIsInitialPositionLoad(false);
             }
 
+            // Refresh the "Eligible NFT Positions" timelock panel now that
+            // positionData reflects the newly selected account (it otherwise
+            // keeps showing whatever the previously connected account had).
+            if (window.Timelock && typeof window.Timelock.renderAllowedNFTs === 'function') {
+                window.Timelock.renderAllowedNFTs();
+            }
 
             // Update staking stats
             if (window.updateStakingStats) {

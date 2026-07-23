@@ -197,6 +197,8 @@
                 <button class="nav-tab" onclick="switchTab('settings')" data-tab="settings">Settings</button>
                 <button class="nav-tab" onclick="switchTab('contract-info')" data-tab="contract-info">Contract
                     Info</button>
+
+                <button class="nav-tab" onclick="switchTab('Timelock')" data-tab="Timelock">Staking Timelock</button>
                 <button class="nav-tab" onclick="switchTab('whitepaper')" data-tab="whitepaper">Whitepaper</button>
                 <button class="nav-tab" onclick="switchTab('socials')" data-tab="socials">Social Media</button>
                 <button class="nav-tab" onclick="switchTab('miner')" data-tab="miner">Miner Setup</button>
@@ -737,6 +739,251 @@
 
 
 
+
+                <!--STATS END NOW Contract Info-->
+                <div id="Timelock" class="page">
+
+                    <!-- Header -->
+                    <div class="info-card3">
+                        <h2>Staking Timelock Vaults</h2>
+                        <p>Lock your Uniswap V4 NFT positions in a personal timelock vault. Your NFTs continue earning LP staking rewards while locked. Withdrawals are only possible after the unlock time you set.</p>
+                    </div>
+
+                    <!-- Section 1: Allowed NFTs -->
+                    <div class="info-card3">
+                        <h2>Eligible NFT Positions</h2>
+                        <p>These are your Uniswap V4 B0x/0xBTC LP positions that are eligible to deposit into a timelock vault.</p>
+                        <div id="timelock-allowed-nfts">
+                            <p style="color:#aaa">Connect wallet to see your positions.</p>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Create New Vault -->
+                    <div class="info-card3">
+                        <h2>Create New Timelock Vault</h2>
+                        <p>Deploy a personal vault that holds your NFTs until the unlock time. You can stake NFTs through the vault and earn rewards throughout the lock period.</p>
+                        <div class="form-group">
+                            <label>Unlock Date &amp; Time</label>
+                            <input type="datetime-local" id="timelock-unlock-datetime" oninput="Timelock.updateUnlockTimestamp()" style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;">
+                        </div>
+                        <div class="form-group">
+                            <label>Calculated Unix Timestamp</label>
+                            <input type="text" id="timelock-unlock-ts" readonly style="width:100%;padding:8px;background:#111;color:#aaa;border:1px solid #333;border-radius:6px;">
+                            <div id="timelock-unlock-distance" style="margin-top:6px;font-size:0.9em;font-weight:600;"></div>
+                        </div>
+                        <button class="btn-success" id="timelockCreateVaultBtn" onclick="Timelock.createVault()">Create Timelock Vault</button>
+                    </div>
+
+                    <!-- Section 3: Masquerade -->
+                    <div class="info-card3">
+                        <h2>Masquerade — Permissionless Withdrawals</h2>
+                        <p>The contract allows <strong>anyone</strong> to call <code>depositNFT</code>, </code><code>withdrawToken</code>, <code>withdrawNFT</code>, and <code>exitAllTogether</code> after the timelock expires. Enter any vault owner's address below to load their vaults and trigger permissionless deposits & withdrawals using your own connected wallet. Tokens and NFTs are returned to the vault's registered owner, not to you.  
+                            WHILE MASQUARDING IF YOU DEPOSIT, THE MASQUARDING PARTY WILL RECIEVE YOUR NFT DEPOSITS not you, be careful</p>
+                        <div class="form-group">
+                            <label>Vault Owner Address to Masquerade As</label>
+                            <input type="text" id="timelock-masquerade-input" placeholder="0x..." style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;">
+                        </div>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap">
+                            <button id="timelockMasqueradeBtn" class="btn-warning" onclick="Timelock.setMasquerade()">Load Vaults for Address</button>
+                            <button id="timelockClearMasqueradeBtn" class="btn-secondary" onclick="Timelock.clearMasquerade()">Clear / Show My Vaults</button>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Your Vaults (or masquerade target vaults) -->
+                    <div class="info-card3">
+                        <div id="timelock-masquerade-banner" style="display:none;margin-bottom:12px;padding:10px 14px;background:#2a200a;border:1px solid #f0a500;border-radius:8px;font-size:0.9em;line-height:1.5"></div>
+                        <h2 id="timelock-vaults-heading">Your Timelock Vaults</h2>
+                        <div id="timelock-vaults-total" style="display:none;margin-bottom:12px;font-size:2em;color:#4caf50;font-weight:600"></div>
+                        <button class="btn-primary" onclick="Timelock.loadUserVaults()" style="margin-bottom:12px">Refresh Vaults</button>
+                        <div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                            <label for="timelock-vault-sort-select" style="font-size:0.9em;color:#aaa">Sort by:</label>
+                            <select id="timelock-vault-sort-select" onchange="Timelock.setVaultSortMode(this.value)" style="padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;">
+                                <option value="staked" selected>Most Staked B0x</option>
+                                <option value="unlock">Unlock Time (Soonest First)</option>
+                            </select>
+                        </div>
+                        <div id="timelock-vault-search-wrap" style="display:none;margin-bottom:12px">
+                            <input type="text" id="timelock-vault-search-input" placeholder="Search by vault address or staked NFT #..." oninput="Timelock.filterVaults(this.value)" style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;box-sizing:border-box">
+                        </div>
+                        <div id="timelock-vaults-container">
+                            <p style="color:#aaa">Connect wallet to see your vaults.</p>
+                        </div>
+                    </div>
+
+                    <!-- Section 4b: Super Withdrawer — experimental batch withdraw across vaults -->
+                    <div id="timelock-super-withdraw-section" class="info-card3" style="display:none;border-left-color:#a855f7">
+                        <h2>⚗️ Experimental: Super Withdraw (Batch)</h2>
+                        <p>Withdraws staked NFTs and claims B0x / 0xBTC / WETH rewards from <strong>multiple unlocked vaults in a single transaction</strong>, starting with your biggest stakers, capped at 6 vaults and 10 NFTs total per run. Locked vaults are never touched. This calls a new, experimental factory function — if a vault fails to process, it's skipped automatically rather than failing the whole batch.</p>
+                        <div id="timelock-super-withdraw-summary" style="margin-bottom:16px;font-size:0.9em"></div>
+                        <button class="btn-warning" id="timelockSuperWithdrawBtn" onclick="Timelock.superWithdrawAll()">Super Withdraw Now</button>
+                    </div>
+
+                    <!-- Section 4c: Super Destroyer — experimental permanent vault destruction -->
+                    <div id="timelock-super-destroy-section" class="info-card3" style="display:none;border-left-color:#e55">
+                        <h2>💀 Experimental: Super Destroyer (Permanent)</h2>
+                        <p style="color:#f88"><strong>Permanent, on this site.</strong> Only ever looks at vaults that are unlocked with 0.0 B0x staked — the only case destroying one could make sense — and only checks their loose (unstaked) B0x balance once there are multiple of those. Vaults holding 0 loose B0x are destroyed, capped at 22 vaults per transaction; vaults holding a little are flagged so you can withdraw first instead. <strong>A destroyed vault is removed from this site forever and will never be shown here again — the vault contract itself still exists and you (the owner) retain full access to it directly (e.g. via BaseScan's Read/Write Contract tabs), but this UI will never help you find or use it again.</strong></p>
+                        <div id="timelock-super-destroy-summary" style="margin-bottom:16px;font-size:0.9em"></div>
+                        <button class="btn-warning" id="timelockSuperDestroyBtn" onclick="Timelock.superDestroyEligibleVaults()">Destroy Empty Vaults</button>
+                    </div>
+
+                    <!-- Section 4: Vault Action Panel (shown when vault is selected) -->
+                    <div id="timelock-vault-actions" style="display:none">
+
+                        <div class="info-card3">
+                            <h2>Vault: <span id="timelock-selected-vault-addr" style="font-size:0.75em;color:#aaa;word-break:break-all"></span></h2>
+                            <div id="timelock-vault-status" style="margin-bottom:16px"></div>
+                            <button class="btn-primary" onclick="Timelock.refreshSelectedVault()" style="margin-bottom:4px">Refresh Status</button>
+                        </div>
+
+                        <!-- Stake NFT -->
+                        <div class="info-card3">
+                            <h2>Stake NFT Into Vault</h2>
+                            <div id="timelock-stake-masquerade-warning" style="display:none;margin-bottom:12px;padding:10px 14px;background:#3a0a0a;border:1px solid #e55;border-radius:8px;font-size:0.9em;line-height:1.5;color:#f88">
+                                ⚠️ <strong>Masquerade Mode Active</strong> — You are viewing someone else's vault. Staking will deposit <strong>your NFT</strong> into their vault. You will not be able to recover it unless you also control that wallet.
+                            </div>
+                            <p>Approves the vault to receive your NFT, then stakes it through the vault to the LP pool. Rewards accumulate to the vault while locked. <span id="timelock-stake-masquerade-cost" style="display:none">Costs a minimum of <span class="timelock-fee-per-position">50</span> B0x, charges <span class="timelock-fee-per-position">50</span> B0x value to stake the NFT for someone else (NFT Value + Your B0x = <span class="timelock-fee-per-position">50</span> B0x = Success).</span></p>
+                            <div class="form-group">
+                                <label>Select NFT Position to Stake</label>
+                                <select id="timelock-nft-select" style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;">
+                                    <option>Connect wallet to load positions</option>
+                                </select>
+                                <div style="margin-top:6px">
+                                    <input type="number" id="timelock-nft-custom-id" placeholder="Or enter custom Token #" min="1" step="1" style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #f0a500;border-radius:6px;box-sizing:border-box">
+                                </div>
+                            </div>
+                            <button class="btn-success" id="timelockStakeNFTBtn" onclick="Timelock.stakeNFTToVault()">Stake NFT to Vault</button>
+                        </div>
+
+                        <!-- Smart Contract Withdrawal -->
+                        <div class="info-card3">
+                            <h2>Smart Contract Withdrawal</h2>
+                            <div id="timelock-smart-withdraw-mismatch-warning" style="display:none;margin-bottom:12px;padding:10px 14px;background:#3a2a0a;border:1px solid #f0a500;border-radius:8px;font-size:0.9em;line-height:1.5;color:#f0a500">
+                                ⚠️ <strong>Position count mismatch</strong> — this vault has fewer NFTs recorded (<span id="timelock-exit-mismatch-timelock-count2">0</span>) than are actually staked in the LP pool (<span id="timelock-exit-mismatch-pool-count2">0</span>). Smart Contract Withdrawal can't reach these — use <strong>this Smart Contract Withdrawl function and/or the Exit All Function below</strong>  to get all positions withdrawn from staking.
+                            </div>
+                            <p style="color:#f0a500">Only available after the vault unlocks. Withdraws the 20 most valuable staked NFTs in one transaction and claims B0x / 0xBTC / WETH rewards for them, returning everything to <span class="timelock-owner-wallet-phrase">your wallet</span>.</p>
+                            <p>Checks the vault's staked-NFT count first. If the vault has 20 or fewer NFTs staked, this one transaction empties it. If it has more (e.g. 40 NFTs), you'll need to run this multiple times — always the 2 most valuable remaining positions each time (40 NFTs = 2 runs). Works with zero staked NFTs too — it'll just claim/transfer the B0x / 0xBTC / WETH reward balances sitting in the vault.</p>
+                            <div id="timelock-smart-withdraw-status" style="margin-bottom:12px;font-size:0.9em;color:#aaa"></div>
+                            <button class="btn-warning" id="timelockSmartWithdrawBtn" onclick="Timelock.withdrawMultipleNFTsAndERC20sFromVault()">Smart Withdraw Most Valuable NFTs</button>
+                        </div>
+
+                        <!-- Withdraw NFT -->
+                        <div class="info-card3">
+                            <h2>Withdraw NFT from Vault</h2>
+                            <p style="color:#f0a500">Only available after the vault unlocks. Unstakes from LP pool and returns NFT to <span class="timelock-owner-wallet-phrase">your wallet</span>.</p>
+                            <div class="form-group">
+                                <label>Select Staked NFT to Withdraw</label>
+                                <select id="timelock-staked-nft-select" style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;">
+                                    <option>No staked NFTs</option>
+                                </select>
+                                <div style="margin-top:6px">
+                                    <input type="number" id="timelock-withdraw-custom-id" placeholder="Or enter custom Token #" min="1" step="1" style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #f0a500;border-radius:6px;box-sizing:border-box">
+                                </div>
+                            </div>
+                            <button class="btn-warning" id="timelockWithdrawNFTBtn" onclick="Timelock.withdrawNFTFromVault()">Withdraw NFT (After Unlock)</button>
+                        </div>
+
+                        <!-- Rewards -->
+                        <div class="info-card3">
+                            <h2>Collect Rewards</h2>
+                            <p>Push LP staking rewards into this vault. Rewards are sent <strong>to the vault</strong> and remain timelocked alongside your NFTs — they cannot be withdrawn to your wallet until the timelock expires.</p>
+                            <div style="display:flex;gap:12px;flex-wrap:wrap">
+                                <button class="btn-primary" id="timelockGetRewardsBtn" onclick="Timelock.getVaultRewards()">Collect All Rewards</button>
+                                <button class="btn-primary" id="timelockGetRewardsTokensBtn" onclick="Timelock.getVaultRewardsForTokens()">Collect B0x / 0xBTC / WETH Rewards</button>
+                            </div>
+                        </div>
+
+                        <!-- ERC-20 Balances in Vault -->
+                        <div class="info-card3">
+                            <h2>Token Balances in Vault</h2>
+                            <p>ERC-20 tokens currently locked inside this vault.</p>
+                            <div id="timelock-token-balances">
+                                <p style="color:#aaa">Select a vault to load balances.</p>
+                            </div>
+                        </div>
+
+                        <!-- ERC-20 Deposit -->
+                        <div class="info-card3">
+                            <h2>Deposit ERC-20 Token</h2>
+                            <p>Transfer ERC-20 tokens directly into this vault. They will be timelocked and only the vault owner can withdraw them after the timelock expires.</p>
+                            <div style="margin-bottom:18px;padding:14px;background:#161626;border:1px solid #f0a500;border-radius:8px">
+                                <div style="font-size:1.1em;color:#f0a500;margin-bottom:10px;font-weight:700;letter-spacing:0.04em">Your Wallet Balances</div>
+                                <div id="timelock-wallet-deposit-balances" style="font-size:0.95em">
+                                    <span style="color:#aaa">Select a vault to load balances.</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Select Token</label>
+                                <select id="timelock-token-deposit-select" style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;">
+                                    <option>Select vault first</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Custom ERC-20 Address <span style="color:#aaa;font-weight:400">(overrides dropdown)</span></label>
+                                <input type="text" id="timelock-token-deposit-custom" placeholder="0x... optional custom token address" style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #f0a500;border-radius:6px;box-sizing:border-box">
+                            </div>
+                            <div class="form-group">
+                                <label>Amount</label>
+                                <div style="display:flex;gap:8px;align-items:center">
+                                    <input type="number" id="timelock-token-deposit-amount" placeholder="0.0" min="0" step="any" style="flex:1;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;">
+                                    <button class="btn-secondary" onclick="Timelock.setMaxDepositAmount()" style="white-space:nowrap;padding:8px 16px">Max</button>
+                                </div>
+                            </div>
+                            <button class="btn-success" id="timelockDepositTokenBtn" onclick="Timelock.depositTokenToVault()">Deposit Token to Vault</button>
+                        </div>
+                        <!-- ERC-20 Withdraw -->
+                        <div class="info-card3">
+                            <h2>Withdraw ERC-20 Token</h2>
+                            <p style="color:#f0a500">Only available after the vault unlocks. Sends the entire token balance held in the vault back to <span class="timelock-owner-wallet-phrase">your wallet</span>.</p>
+                            <div class="form-group">
+                                <label>Select Token to Withdraw</label>
+                                <select id="timelock-token-withdraw-select" style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;">
+                                    <option>Select vault first</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-top:8px">
+                                <label>Or Enter Custom ERC-20 Address</label>
+                                <input type="text" id="timelock-token-withdraw-custom" placeholder="0x... (overrides dropdown above)" style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;">
+                            </div>
+                            <button class="btn-warning" id="timelockWithdrawTokenBtn" onclick="Timelock.withdrawTokenFromVault()">Withdraw Token (After Unlock)</button>
+                        </div>
+
+                        <!-- Exit All — hidden when the vault's own staked-NFT count matches the
+                             LP pool's, since Smart Contract Withdrawal already covers that case.
+                             Only shown when Start Index is actually needed to page through the
+                             LP pool's own records. -->
+                        <div class="info-card3" id="timelock-exit-all-section" style="display:none">
+                            <h2>Exit All (After Unlock)</h2>
+                            <p style="color:#f0a500">Collects all rewards and exits LP positions and returns them to <span class="timelock-owner-wallet-phrase">your wallet</span>. Only available after the vault unlocks.</p>
+                            <div style="margin-bottom:12px;padding:10px 14px;background:#3a2a0a;border:1px solid #f0a500;border-radius:8px;font-size:0.9em;line-height:1.5;color:#f0a500">
+                                ⚠️ <strong>Position count mismatch</strong> — this vault has fewer NFTs recorded (<span id="timelock-exit-mismatch-timelock-count">0</span>) than are actually staked in the LP pool (<span id="timelock-exit-mismatch-pool-count">0</span>). Smart Contract Withdrawal can't reach these — use this function to withdraw the LP pool positions and exit so many at a time.
+                            </div>
+                            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+                                <div class="form-group" style="flex:1;min-width:120px">
+                                    <label>Start Index</label>
+                                    <input type="number" id="timelock-exit-start" value="0" min="0" style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;">
+                                </div>
+                                <div class="form-group" style="flex:1;min-width:120px">
+                                    <label>Count</label>
+                                    <input type="number" id="timelock-exit-count" value="25" min="1" style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;">
+                                </div>
+                            </div>
+                            <button class="btn-warning" id="timelockExitAllBtn" onclick="Timelock.exitAllFromVault()">Exit All (After Unlock)</button>
+                        </div>
+
+                        <!-- Transfer Ownership -->
+                        <div id="timelock-transfer-ownership-section" class="info-card3" style="display:none">
+                            <h2>Transfer Vault Ownership</h2>
+                            <p style="color:#f0a500">Only possible while the vault is still locked. Permanently transfers control to a new address. Costs a minimum of <span class="timelock-fee-per-position">50</span> B0x Total Value per Staked NFT positions in the timelock. (<span class="timelock-fee-per-position">50</span> B0x * # NFTs) = (Your B0x needed + NFT B0x Value) = Success</p>
+                            <div class="form-group">
+                                <label>New Owner Address</label>
+                                <input type="text" id="timelock-new-owner-input" placeholder="0x..." style="width:100%;padding:8px;background:#1e1e2e;color:#fff;border:1px solid #444;border-radius:6px;">
+                            </div>
+                            <button class="btn-secondary" id="timelockTransferOwnerBtn" onclick="Timelock.transferVaultOwnership()">Transfer Ownership (Locked Only)</button>
+                        </div>
+
+                    </div><!-- end vault-actions -->
+
+                </div>
 
 
                 <!--STATS END NOW Contract Info-->
@@ -1881,7 +2128,7 @@
                     </svg>
                     Main Website
                 </a>
-                <a href="https://ipfs.io/ipfs/bafybeifbupdlfvkpwj6yg3t3la7jv3msmutfhbqi5drmqv7mi6jtvsnhsi" class="social-link website" target="_blank" rel="noopener noreferrer">
+                <a href="https://ipfs.io/ipfs/bafybeifb4gs7cmkmclyzidor3jw3ed5aefwaqt6ym4zqmg7yx3dsfkxk7m" class="social-link website" target="_blank" rel="noopener noreferrer">
                     <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
                     </svg>
@@ -2486,199 +2733,427 @@
                         <div id="b0x-main-content">
                             <header id="b0x-header">
                                 <h1 id="b0x-title">🚀 B0x Token Miner Setup</h1>
-                                <p id="b0x-subtitle">Complete guide to get your miner up and running </p>
+                                <p id="b0x-subtitle">Complete guide to get your miner up and running</p>
                             </header>
 
-                            <div class="b0x-section">
-                                <h2 class="b0x-section-title">📋 Prerequisites</h2>
-
-                                <div class="b0x-step">
-                                    <span class="b0x-step-number">1</span>
-                                    <strong>Update Graphics Drivers:</strong> Install the latest NVIDIA graphics drivers
-                                    from the
-                                    <a href="https://www.nvidia.com/drivers" target="_blank"
-                                        class="b0x-external-link">official NVIDIA website</a>
-                                </div>
-
-                                <div class="b0x-step">
-                                    <span class="b0x-step-number">2</span>
-                                    <strong>(Optional Miner Start Script Installs dotnet 6.0 for user automatically) Install .NET 6.0:</strong> Download and install .NET 6.0 Runtime from
-                                    <a href="https://dotnet.microsoft.com/download/dotnet/6.0" target="_blank"
-                                        class="b0x-external-link">Microsoft's official site</a>
-                                </div>
+                            <!-- Miner Mode Navigation Tabs -->
+                            <div class="miner-mode-tabs">
+                                <button class="miner-mode-tab active" data-miner-tab="solo" onclick="switchMinerTab('solo')">⛏️ Solo Mining</button>
+                                <button class="miner-mode-tab" data-miner-tab="pool" onclick="switchMinerTab('pool')">🏊 Pool Mining</button>
+                                <button class="miner-mode-tab" data-miner-tab="fpga" onclick="switchMinerTab('fpga')">⚡ FPGA Mining</button>
                             </div>
 
-                            <div class="b0x-section">
-                                <h2 class="b0x-section-title">⬇️ Download Miner</h2>
-                                <p>Choose your operating system and download the appropriate miner:</p>
+                            <!-- ==================== SOLO MINING TAB ==================== -->
+                            <div id="miner-tab-solo" class="miner-tab-content active">
 
-                                <div class="b0x-download-links">
-                                    <div class="b0x-download-card">
-                                        <h3>🪟 Windows Miner</h3>
-                                        <p>For Windows 10/11 users</p>
-                                        <a href="https://github.com/B0x-Token/B0xToken-Windows-Miner-Mainnet/"
-                                            target="_blank" class="b0x-download-btn">
-                                            Download Windows Miner
-                                        </a>
-                                        <br></br>
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">📋 Prerequisites</h2>
 
-                                    <a   class="b0x-external-link" href="https://youtu.be/tHIzfkRPDXQ?si=9SgiO1l_nsAYFHRr">Example Windows Setup Video Click here</a>
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">1</span>
+                                        <strong>Update Graphics Drivers:</strong> Install the latest NVIDIA graphics drivers
+                                        from the
+                                        <a href="https://www.nvidia.com/drivers" target="_blank"
+                                            class="b0x-external-link">official NVIDIA website</a>
                                     </div>
 
-                                    <div class="b0x-download-card">
-                                        <h3>🐧 Ubuntu Miner</h3>
-                                        <p>For Ubuntu 20+ users</p>
-                                        <a href="https://github.com/B0x-Token/B0xToken-Miner-Mainnet-Ubuntu/"
-                                            target="_blank" class="b0x-download-btn">
-                                            Download Ubuntu Miner
-                                        </a>
-                                        <br></br>
-
-                                    <a   class="b0x-external-link" href="https://youtu.be/0VIh9oY8718?si=Z_kN1oleeu_bayVw">Example Ubuntu Setup Video Click here</a>
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">2</span>
+                                        <strong>(Optional Miner Start Script Installs dotnet 6.0 for user automatically) Install .NET 6.0:</strong> Download and install .NET 6.0 Runtime from
+                                        <a href="https://dotnet.microsoft.com/download/dotnet/6.0" target="_blank"
+                                            class="b0x-external-link">Microsoft's official site</a>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="b0x-section">
-                                <h2 class="b0x-section-title">⚙️ Configuration Setup</h2>
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">⬇️ Download Miner</h2>
+                                    <p>Choose your operating system and download the appropriate miner:</p>
 
-                                <div class="b0x-step">
-                                    <span class="b0x-step-number">3</span>
-                                    <strong>Extract Files:</strong> After downloading, extract the .zip file contents to
-                                    your desired location.
-                                </div>
-
-                                <div class="b0x-step">
-                                    <span class="b0x-step-number">4</span>
-                                    <strong>Configure Settings:</strong> Navigate to the B0x Token Miner folder and open
-                                    <code>B0xToken.conf</code> file. Edit the following settings:
-                                </div>
-
-                                <div class="b0x-config-block">
-                                    "minerAddress": "0xF2E00a6DbA02eD1115e5BEf3CcD7B5dD47141dDC",<br></br>
-                                    "privateKey": "0xf7a41INPUTYOURPRIVATEKEYHEREc3e0ac4fd7e83bd900de10190",
-                                </div>
-
-                                <div class="b0x-important-note">
-                                    ⚠️ <strong>Important:</strong> Replace with your Base Blockchain account
-                                    that has Base Ethereum in it. Using this exposed key will result in loss of funds.
-                                    **ESPECIALLY TRUE ON MAINNET, USING the included testnet key will result in loss of funds,
-                                    you must supply your own private key and address for mining!**
-                                </div>
-
-                                <h3 style="color: white; margin-top: 25px;">Optional Configuration Parameters:</h3>
-
-                                <div class="b0x-config-block">
-                                    "mintToAddress": "",</div>
-                                <p><strong>mintToAddress:</strong> Optional. If you want tokens minted to a different
-                                    address. Overpayment ETH will also go to this address.</p>
-
-                                <div class="b0x-config-block">
-                                    "MaxSolvesperMint": 15,<br></br>
-                                    "MinSolvesperMint": 3,</div>
-                                <p><strong>MaxSolvesperMint:</strong> Maximum number of solves before submitting a
-                                    transaction.<br>
-                                    <strong>MinSolvesperMint:</strong> Minimum number of solves before submitting (lower
-                                    is better).
-                                </p>
-
-                                <div class="b0x-config-block">
-                                    "Difficulty_Multiplier": 1,</div>
-                                <p><strong>Difficulty_Multiplier:</strong> Work at higher difficulties for more reward
-                                    per mint. Suggested: 2-5 at start, then 1 after 1000 difficulty.</p>
-
-                                <div class="b0x-config-block">
-                                    "minSecondsPerAnswer": 0,<br></br>
-                                    "maxUSDperToken": -0.10,</div>
-                                <p><strong>maxUSDperToken:</strong> Maximum USD you plan to spend per B0x token
-                                    (negative means it costs money to mint - this is normal).
-                                    -0.10 means 10c per Token is the maximum you want to spend per token in ur mints
-                                </p>
-
-                                <h3 style="color: white; margin-top: 25px;">Network Configuration (Testnet):</h3>
-                                <div class="b0x-config-block">
-                                    "web3api": "https://base.llamarpc.com",<br></br>
-                                    "contractAddress": "0x97bBa9F710DE42536843Bd1061514b5104D7DE50",<br></br>
-                                    "chainID": 8453,</div>
-                            </div>
-
-                            <div class="b0x-section">
-                                <h2 class="b0x-section-title">💰 Get Base Ethereum & Bridgeing to Base</h2>
-
-                                <div class="b0x-step">
-                                    <span class="b0x-step-number">5</span>
-                                    <strong>Get Base Ethereum:</strong> First, get Base Ethereum frome bridge
-                                </div>
-
-                                <div class="b0x-bridge-links">
-                                    <a href="https://jumper.exchange/?fromChain=8453&toChain=8453&toToken=0x0000000000000000000000000000000000000000"
-                                        target="_blank" class="b0x-bridge-btn">
-                                        🚰 Get Base Ethereum from the Bridge
-                                    </a>
-                                </div>      <div class="b0x-bridge-links">
-                                    <a href="https://superbridge.app/?fromChainId=1&toChainId=8453"
-                                        target="_blank" class="b0x-bridge-btn">
-                                        🚰 Get Base Ethereum from the SuperBridge Bridge
-                                    </a>
-                                </div>
-                                <div class="b0x-important-note">
-                                    ⏱️ <strong>Minmum Price:</strong> The Minmum Price of 1 B0x is 0.0000005 Ethereum or ~0.0025$ USD.  If you expect to mint 10,000 Tokens expect it to cost at least 25$. (10000*0.0025)
-                                  <br>  This is a constant forever.
-                                </div>
-                            </div>
-
-                            <div class="b0x-section">
-                                <h2 class="b0x-section-title">🚀 Start Mining</h2>
-
-                                <div class="b0x-platform-instructions">
-                                    <div class="b0x-platform-card">
-                                        <div class="b0x-platform-title">
-                                            <div class="b0x-platform-icon">W</div>
-                                            Windows Instructions
+                                    <div class="b0x-download-links">
+                                        <div class="b0x-download-card">
+                                            <h3>🪟 Windows Miner</h3>
+                                            <p>For Windows 10/11 users</p>
+                                            <a href="https://github.com/B0x-Token/B0xToken-Windows-Miner-Mainnet/releases/"
+                                                target="_blank" class="b0x-download-btn">
+                                                Download Windows Miner
+                                            </a>
+                                            <br></br>
+                                            <a class="b0x-external-link" href="https://youtu.be/tHIzfkRPDXQ?si=9SgiO1l_nsAYFHRr">Example Windows Setup Video Click here</a>
                                         </div>
-                                        <ol>
-                                            <li>Double-click <strong>AStartMiner.bat</strong></li>
-                                            <li>The system will verify all components are installed correctly</li>
-                                            <li>The miner should start automatically!</li>
-                                            <li>Check the logs for easy monitoring</li>
-                                        </ol>
-                                    </div>
 
-                                    <div class="b0x-platform-card">
-                                        <div class="b0x-platform-title">
-                                            <div class="b0x-platform-icon">U</div>
-                                            Ubuntu Instructions
+                                        <div class="b0x-download-card">
+                                            <h3>🐧 Ubuntu Miner</h3>
+                                            <p>For Ubuntu 20+ users</p>
+                                            <a href="https://github.com/B0x-Token/B0xToken-Miner-Mainnet-Ubuntu/releases/"
+                                                target="_blank" class="b0x-download-btn">
+                                                Download Ubuntu Miner
+                                            </a>
+                                            <br></br>
+                                            <a class="b0x-external-link" href="https://youtu.be/0VIh9oY8718?si=Z_kN1oleeu_bayVw">Example Ubuntu Setup Video Click here</a>
                                         </div>
-                                        <ol>
-                                            <li>Right-click on <strong>1RunThisToMineB0xToken.sh</strong></li>
-                                            <li>Select "Properties" → "Permissions"</li>
-                                            <li>Enable "Allow executing file as program"</li>
-                                            <li>Double-click the file and select "Run in terminal"</li>
-                                        </ol>
-                                        <p><strong>Alternative:</strong> Open terminal in the directory and run:<br>
-                                            <code>./1RunThisToMineB0xToken.sh</code>
-                                        </p>
                                     </div>
                                 </div>
+
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">⚙️ Configuration Setup</h2>
+
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">3</span>
+                                        <strong>Extract Files:</strong> After downloading, extract the .zip file contents to
+                                        your desired location.
+                                    </div>
+
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">4</span>
+                                        <strong>Configure Settings:</strong> Navigate to the B0x Token Miner folder and open
+                                        <code>B0xToken.conf</code> file. Edit the following settings:
+                                    </div>
+
+                                    <div class="b0x-config-block">
+                                        "minerAddress": "0xF2E00a6DbA02eD1115e5BEf3CcD7B5dD47141dDC",<br></br>
+                                        "privateKey": "0xf7a41INPUTYOURPRIVATEKEYHEREc3e0ac4fd7e83bd900de10190",
+                                    </div>
+
+                                    <div class="b0x-important-note">
+                                        ⚠️ <strong>Important:</strong> Replace with your Base Blockchain account
+                                        that has Base Ethereum in it. Using this exposed key will result in loss of funds.
+                                        **ESPECIALLY TRUE ON MAINNET, USING the included testnet key will result in loss of funds,
+                                        you must supply your own private key and address for mining!**
+                                    </div>
+
+                                    <h3 style="color: white; margin-top: 25px;">Optional Configuration Parameters:</h3>
+
+                                    <div class="b0x-config-block">
+                                        "mintToAddress": "",</div>
+                                    <p><strong>mintToAddress:</strong> Optional. If you want tokens minted to a different
+                                        address. Overpayment ETH will also go to this address.</p>
+
+                                    <div class="b0x-config-block">
+                                        "MaxSolvesperMint": 15,<br></br>
+                                        "MinSolvesperMint": 3,</div>
+                                    <p><strong>MaxSolvesperMint:</strong> Maximum number of solves before submitting a
+                                        transaction.<br>
+                                        <strong>MinSolvesperMint:</strong> Minimum number of solves before submitting (lower
+                                        is better).
+                                    </p>
+
+                                    <div class="b0x-config-block">
+                                        "Difficulty_Multiplier": 1,</div>
+                                    <p><strong>Difficulty_Multiplier:</strong> Work at higher difficulties for more reward
+                                        per mint. Suggested: 2-5 at start, then 1 after 1000 difficulty.</p>
+
+                                    <div class="b0x-config-block">
+                                        "minSecondsPerAnswer": 0,<br></br>
+                                        "maxUSDperToken": -0.10,</div>
+                                    <p><strong>maxUSDperToken:</strong> Maximum USD you plan to spend per B0x token
+                                        (negative means it costs money to mint - this is normal).
+                                        -0.10 means 10c per Token is the maximum you want to spend per token in ur mints
+                                    </p>
+
+                                    <h3 style="color: white; margin-top: 25px;">Network Configuration:</h3>
+                                    <div class="b0x-config-block">
+                                        "web3api": "https://base.llamarpc.com",<br></br>
+                                        "contractAddress": "0x97bBa9F710DE42536843Bd1061514b5104D7DE50",<br></br>
+                                        "chainID": 8453,</div>
+                                </div>
+
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">💰 Get Base Ethereum & Bridging to Base</h2>
+
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">5</span>
+                                        <strong>Get Base Ethereum:</strong> First, get Base Ethereum from bridge
+                                    </div>
+
+                                    <div class="b0x-bridge-links">
+                                        <a href="https://jumper.exchange/?fromChain=8453&toChain=8453&toToken=0x0000000000000000000000000000000000000000"
+                                            target="_blank" class="b0x-bridge-btn">
+                                            🚰 Get Base Ethereum from the Bridge
+                                        </a>
+                                    </div>
+                                    <div class="b0x-bridge-links">
+                                        <a href="https://superbridge.app/?fromChainId=1&toChainId=8453"
+                                            target="_blank" class="b0x-bridge-btn">
+                                            🚰 Get Base Ethereum from the SuperBridge Bridge
+                                        </a>
+                                    </div>
+                                    <div class="b0x-important-note">
+                                        ⏱️ <strong>Minimum Price:</strong> The Minimum Price of 1 B0x is 0.0000005 Ethereum or ~0.0025$ USD. If you expect to mint 10,000 Tokens expect it to cost at least 25$. (10000*0.0025)
+                                        <br>This is a constant forever.
+                                    </div>
+                                </div>
+
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">🚀 Start Mining</h2>
+
+                                    <div class="b0x-platform-instructions">
+                                        <div class="b0x-platform-card">
+                                            <div class="b0x-platform-title">
+                                                <div class="b0x-platform-icon">W</div>
+                                                Windows Instructions
+                                            </div>
+                                            <ol>
+                                                <li>Double-click <strong>AStartMiner.bat</strong></li>
+                                                <li>The system will verify all components are installed correctly</li>
+                                                <li>The miner should start automatically!</li>
+                                                <li>Check the logs for easy monitoring</li>
+                                            </ol>
+                                        </div>
+
+                                        <div class="b0x-platform-card">
+                                            <div class="b0x-platform-title">
+                                                <div class="b0x-platform-icon">U</div>
+                                                Ubuntu Instructions
+                                            </div>
+                                            <ol>
+                                                <li>Right-click on <strong>1RunThisToMineB0xToken.sh</strong></li>
+                                                <li>Select "Properties" → "Permissions"</li>
+                                                <li>Enable "Allow executing file as program"</li>
+                                                <li>Double-click the file and select "Run in terminal"</li>
+                                            </ol>
+                                            <p><strong>Alternative:</strong> Open terminal in the directory and run:<br>
+                                                <code>./1RunThisToMineB0xToken.sh</code>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="b0x-final-section">
+                                    <h2>🎉 Congratulations!</h2>
+                                    <p style="font-size: 1.2em; margin-bottom: 0;">You're now mining B0x Tokens!</p>
+                                    <p>Monitor the logs to track your mining progress and earnings.</p>
+                                    <button class="mining-stats-button" onclick="switchTab('stats')">GO View Mining Statistics</button>
+                                </div>
+
                             </div>
+                            <!-- END SOLO MINING TAB -->
 
-                            <div class="b0x-final-section">
-                                <h2>🎉 Congratulations!</h2>
-                                <p style="font-size: 1.2em; margin-bottom: 0;">You're now mining B0x Tokens!</p>
-                                <p>Monitor the logs to track your mining progress and earnings.</p>
-                                <button class="mining-stats-button" onclick="switchTab('stats')">GO View Mining
-                                    Statistics</button>
+                            <!-- ==================== POOL MINING TAB ==================== -->
+                            <div id="miner-tab-pool" class="miner-tab-content">
 
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">📋 Prerequisites</h2>
 
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">1</span>
+                                        <strong>Update Graphics Drivers:</strong> Install the latest NVIDIA graphics drivers
+                                        from the
+                                        <a href="https://www.nvidia.com/drivers" target="_blank"
+                                            class="b0x-external-link">official NVIDIA website</a>
+                                    </div>
+
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">2</span>
+                                        <strong>(Optional Miner Start Script Installs dotnet 6.0 for user automatically) Install .NET 6.0:</strong> Download and install .NET 6.0 Runtime from
+                                        <a href="https://dotnet.microsoft.com/download/dotnet/6.0" target="_blank"
+                                            class="b0x-external-link">Microsoft's official site</a>
+                                    </div>
+                                </div>
+
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">⬇️ Download Miner</h2>
+                                    <p>Choose your operating system and download the appropriate miner:</p>
+
+                                    <div class="b0x-download-links">
+                                        <div class="b0x-download-card">
+                                            <h3>🪟 Windows Miner</h3>
+                                            <p>For Windows 10/11 users</p>
+                                            <a href="https://github.com/B0x-Token/B0xToken-Windows-Miner-Mainnet/releases/"
+                                                target="_blank" class="b0x-download-btn">
+                                                Download Windows Miner
+                                            </a>
+                                            <br></br>
+                                            <a class="b0x-external-link" href="https://youtu.be/tHIzfkRPDXQ?si=9SgiO1l_nsAYFHRr">Example Windows Setup Video Click here</a>
+                                        </div>
+
+                                        <div class="b0x-download-card">
+                                            <h3>🐧 Ubuntu Miner</h3>
+                                            <p>For Ubuntu 20+ users</p>
+                                            <a href="https://github.com/B0x-Token/B0xToken-Miner-Mainnet-Ubuntu/releases/"
+                                                target="_blank" class="b0x-download-btn">
+                                                Download Ubuntu Miner
+                                            </a>
+                                            <br></br>
+                                            <a class="b0x-external-link" href="https://youtu.be/0VIh9oY8718?si=Z_kN1oleeu_bayVw">Example Ubuntu Setup Video Click here</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">⚙️ Configuration Setup</h2>
+
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">3</span>
+                                        <strong>Extract Files:</strong> After downloading, extract the .zip file contents to
+                                        your desired location.
+                                    </div>
+
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">4</span>
+                                        <strong>Configure Settings:</strong> Navigate to the B0x Token Miner folder and open
+                                        <code>B0xToken.conf</code> file. Edit the following settings:
+                                    </div>
+
+                                    <div class="b0x-config-block">
+                                        "minerAddress": "0xF2E00a6DbA02eD1115e5BEf3CcD7B5dD47141dDC",<br></br>
+                                        "primaryPool": "https://pool.bzerox.org:8185/",
+                                    </div>
+
+                                    <div class="b0x-important-note">
+                                        ✅ <strong>Note:</strong> No private key is required for pool mining — just your public wallet address!
+                                    </div>
+
+                                    <h3 style="color: white; margin-top: 25px;">Network Configuration:</h3>
+                                    <div class="b0x-config-block">
+                                        "web3api": "https://base.llamarpc.com/",<br></br>
+                                        "contractAddress": "0x97bBa9F710DE42536843Bd1061514b5104D7DE50",<br></br>
+                                        "chainID": 8453,
+                                    </div>
+
+                                    <div class="b0x-important-note">
+                                        💡 <strong>Note:</strong> No ETH is required in the account to mine B Zero X. However, to transfer B Zero X, trade, and stake — Ethereum on Base is required to pay the transaction fee.
+                                    </div>
+                                </div>
+
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">💰 Get Base Ethereum & Bridging to Base</h2>
+
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">5</span>
+                                        <strong>Get Base Ethereum:</strong> First, get Base Ethereum from bridge
+                                    </div>
+
+                                    <div class="b0x-bridge-links">
+                                        <a href="https://jumper.exchange/?fromChain=8453&toChain=8453&toToken=0x0000000000000000000000000000000000000000"
+                                            target="_blank" class="b0x-bridge-btn">
+                                            🚰 Get Base Ethereum from the Bridge
+                                        </a>
+                                    </div>
+                                    <div class="b0x-bridge-links">
+                                        <a href="https://superbridge.app/?fromChainId=1&toChainId=8453"
+                                            target="_blank" class="b0x-bridge-btn">
+                                            🚰 Get Base Ethereum from the SuperBridge Bridge
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">🚀 Start Mining</h2>
+
+                                    <div class="b0x-platform-instructions">
+                                        <div class="b0x-platform-card">
+                                            <div class="b0x-platform-title">
+                                                <div class="b0x-platform-icon">W</div>
+                                                Windows Instructions
+                                            </div>
+                                            <ol>
+                                                <li>Double-click <strong>AStartMiner.bat</strong></li>
+                                                <li>The system will verify all components are installed correctly</li>
+                                                <li>The miner should start automatically!</li>
+                                                <li>Check the logs for easy monitoring</li>
+                                            </ol>
+                                        </div>
+
+                                        <div class="b0x-platform-card">
+                                            <div class="b0x-platform-title">
+                                                <div class="b0x-platform-icon">U</div>
+                                                Ubuntu Instructions
+                                            </div>
+                                            <ol>
+                                                <li>Right-click on <strong>1RunThisToMineB0xToken.sh</strong></li>
+                                                <li>Select "Properties" → "Permissions"</li>
+                                                <li>Enable "Allow executing file as program"</li>
+                                                <li>Double-click the file and select "Run in terminal"</li>
+                                            </ol>
+                                            <p><strong>Alternative:</strong> Open terminal in the directory and run:<br>
+                                                <code>./1RunThisToMineB0xToken.sh</code>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="b0x-final-section">
+                                    <h2>🎉 Congratulations!</h2>
+                                    <p style="font-size: 1.2em; margin-bottom: 0;">You're now pool mining B0x Tokens!</p>
+                                    <p>Monitor the logs to track your mining progress and earnings.</p>
+                                    <button class="mining-stats-button" onclick="switchTab('stats')">GO View Mining Statistics</button>
+                                    <a href="https://pool.bzerox.org" target="_blank" class="mining-stats-button" style="display: inline-block; text-decoration: none; margin-top: 15px;">Go View Mining Pool Website</a>
+                                </div>
 
                             </div>
+                            <!-- END POOL MINING TAB -->
+
+                            <!-- ==================== FPGA MINING TAB ==================== -->
+                            <div id="miner-tab-fpga" class="miner-tab-content">
+
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">⚡ FPGA Mining Configuration</h2>
+
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">1</span>
+                                        <strong>Set Your Pool URL:</strong> Configure your FPGA miner to connect to the B0x pool.
+                                    </div>
+
+                                    <div class="b0x-config-block">
+                                        Pool URL: https://pool.bzerox.org:8185/
+                                    </div>
+
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">2</span>
+                                        <strong>Set Your Miner Address:</strong> Use an Ethereum address that you control the private key of — this is where your mined tokens will be sent.
+                                    </div>
+
+                                    <div class="b0x-config-block">
+                                        Miner Address Example: 0xF2E00a6DbA02eD1115e5BEf3CcD7B5dD47141dDC
+                                    </div>
+
+                                    <div class="b0x-important-note">
+                                        ⚠️ <strong>Important:</strong> Set your miner address to an Ethereum address that you have control of the private key of, in order to control the tokens sent to it.
+                                    </div>
+                                </div>
+
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">🪙 Token</h2>
+                                    <div class="b0x-config-block">
+                                        Token: 0xBTC, 0xBitcoin
+                                    </div>
+                                </div>
+
+                                <div class="b0x-section">
+                                    <h2 class="b0x-section-title">💰 Get Base Ethereum & Bridging to Base</h2>
+
+                                    <div class="b0x-step">
+                                        <span class="b0x-step-number">3</span>
+                                        <strong>Get Base Ethereum:</strong> First, get Base Ethereum from bridge to pay for transaction fees.
+                                    </div>
+
+                                    <div class="b0x-bridge-links">
+                                        <a href="https://jumper.exchange/?fromChain=8453&toChain=8453&toToken=0x0000000000000000000000000000000000000000"
+                                            target="_blank" class="b0x-bridge-btn">
+                                            🚰 Get Base Ethereum from the Bridge
+                                        </a>
+                                    </div>
+                                    <div class="b0x-bridge-links">
+                                        <a href="https://superbridge.app/?fromChainId=1&toChainId=8453"
+                                            target="_blank" class="b0x-bridge-btn">
+                                            🚰 Get Base Ethereum from the SuperBridge Bridge
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="b0x-final-section">
+                                    <h2>🎉 Congratulations!</h2>
+                                    <p style="font-size: 1.2em; margin-bottom: 0;">You're now FPGA mining B0x Tokens!</p>
+                                    <p>Monitor the logs to track your mining progress and earnings.</p>
+                                    <button class="mining-stats-button" onclick="switchTab('stats')">GO View Mining Statistics</button>
+                                    <a href="https://pool.bzerox.org" target="_blank" class="mining-stats-button" style="display: inline-block; text-decoration: none; margin-top: 15px;">Go View Mining Pool Website</a>
+                                </div>
+
+                            </div>
+                            <!-- END FPGA MINING TAB -->
 
                         </div>
                     </div>
-
-
-
-
                 </div>
                 <!-- ADMIN FUNCTION DAPP PAGE -->
                 <div id="admin-functions" class="page">

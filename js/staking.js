@@ -519,7 +519,7 @@ export async function depositNFTStake() {
             "name": "tokenId",
             "type": "uint256"
         }],
-        "name": "stakeUniswapV3NFT",
+        "name": "stakeUniswapV4NFT",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -577,7 +577,7 @@ export async function depositNFTStake() {
 
         // Step 2: Stake the NFT
         console.log(`Staking NFT token ${positionID}...`);
-        const stakeTx = await LPStakingContract.stakeUniswapV3NFT(positionID);
+        const stakeTx = await LPStakingContract.stakeUniswapV4NFT(positionID);
 
         showInfoNotificationCentered('Staking NFT...', 'Please wait for confirmation');
         console.log("Staking transaction sent:", stakeTx.hash);
@@ -667,6 +667,7 @@ export async function withdrawNFTStake() {
         if (window.fetchBalances) await window.fetchBalances();
         if (window.getTokenIDsOwnedByMetamask) await window.getTokenIDsOwnedByMetamask(true); // Force refresh after unstake
       //  if (window.loadPositionsIntoDappSelections) await window.loadPositionsIntoDappSelections();
+        if (window.Timelock) window.Timelock.renderAllowedNFTs();
 
     } catch (error) {
         enableButton('withdrawNFTStakeBtn', 'Withdraw NFT from Staking');

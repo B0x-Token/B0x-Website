@@ -19,6 +19,7 @@ import { customRPC } from './settings.js';
 import { getEstimate } from './swaps.js';
 import { showSuccessNotification, showInfoNotification } from './ui.js';
 import { fetchBalances } from './utils.js';
+import { triggerRefresh, isSearchingLogs, sleep } from './data-loader.js';
 // Note: Using window.checkAdminAccess instead of direct import to avoid circular dependency
 
 // Create aliases for commonly used addresses
@@ -2175,9 +2176,26 @@ export async function getCreatePosition() {
         enableButton('getCreatePositionBtn', 'Create Position');
         fetchBalances();
 
+        // Force the background NFT-owner scanner to pick up the newly minted
+        // position immediately, instead of waiting for its next 3-minute cycle
+        // (this is the same call wallet.js makes on reconnect, which is why
+        // reconnecting was the only thing that surfaced new positions before).
+        triggerRefresh();
+        let waitedForScan = 0;
+        while (!isSearchingLogs() && waitedForScan < 3000) {
+            await sleep(100);
+            waitedForScan += 100;
+        }
+
         await getTokenIDsOwnedByMetamask(true);
         if (window.checkAdminAccess) await window.checkAdminAccess();
         await loadPositionsIntoDappSelections();
+        if (window.Timelock) {
+            window.Timelock.renderAllowedNFTs();
+            if (typeof window.Timelock.refreshSelectedVault === 'function') {
+                await window.Timelock.refreshSelectedVault();
+            }
+        }
 
     } catch (error) {
         console.error(`Error create Position:`, error);

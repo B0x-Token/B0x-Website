@@ -180,6 +180,123 @@ class MobileNotificationWidget {
 // Initialize the notification widget (will be initialized after DOM is ready)
 let notificationWidget = null;
 
+// =============================================================================
+// BUTTON-ANCHORED TOAST
+// =============================================================================
+
+let _lastClickedBtn = null;   // updated by the click listener (general fallback)
+let _actionAnchorBtn = null;  // pinned by setButtonToastAnchor; never touched by click listener
+let _anchoredToastEl = null;
+let _anchoredToastTimer = null;
+
+// Track the last clicked non-nav button as a general fallback only
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (btn && !btn.classList.contains('nav-tab')) _lastClickedBtn = btn;
+}, true);
+
+/**
+ * Pin the toast anchor to a specific button for the duration of an action.
+ * This is NOT overridden by subsequent clicks, so it survives wallet popups
+ * and other async interactions. Call at the very start of each action handler.
+ */
+export function setButtonToastAnchor(buttonId) {
+    const el = typeof buttonId === 'string' ? document.getElementById(buttonId) : buttonId;
+    if (el) _actionAnchorBtn = el;
+}
+
+/** Clear the pinned action anchor (call after an action completes). */
+export function clearButtonToastAnchor() {
+    _actionAnchorBtn = null;
+}
+
+/**
+ * Shows a small toast anchored near the last clicked button.
+ * Falls back to top-right if no button click has been recorded.
+ */
+export function showButtonToast(type = 'info', title = '', message = '', duration = 7000) {
+    // Clear any previous anchored toast immediately
+    if (_anchoredToastEl && _anchoredToastEl.parentNode) {
+        _anchoredToastEl.parentNode.removeChild(_anchoredToastEl);
+    }
+    if (_anchoredToastTimer) clearTimeout(_anchoredToastTimer);
+
+    const colors = { success: '#10b981', error: '#ef4444', info: '#3b82f6', warning: '#f0a500' };
+    const icons  = { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' };
+    const color  = colors[type] || colors.info;
+    const icon   = icons[type]  || icons.info;
+
+    const toast = document.createElement('div');
+    toast.style.cssText = [
+        'position:fixed',
+        'z-index:99999',
+        'max-width:340px',
+        'min-width:180px',
+        `background:#1a1a2e`,
+        `border:1px solid ${color}`,
+        `border-left:4px solid ${color}`,
+        'border-radius:8px',
+        'padding:11px 14px',
+        'color:#fff',
+        'font-size:0.87em',
+        'line-height:1.45',
+        'box-shadow:0 6px 24px rgba(0,0,0,0.6)',
+        'pointer-events:none',
+        'opacity:0',
+        'transform:translateY(-8px)',
+        'transition:opacity 0.18s ease,transform 0.18s ease',
+    ].join(';');
+
+    toast.innerHTML =
+        `<div style="font-weight:700;color:${color};margin-bottom:${message ? '4px' : '0'}">${icon} ${title}</div>` +
+        (message ? `<div style="color:#ccc">${message}</div>` : '');
+
+    document.body.appendChild(toast);
+    _anchoredToastEl = toast;
+
+    // Prefer the pinned action anchor; fall back to the general click tracker
+    const btn = _actionAnchorBtn || _lastClickedBtn;
+    if (btn) {
+        const r   = btn.getBoundingClientRect();
+        const tw  = 340;
+        const th  = 90; // conservative height estimate
+
+        // getBoundingClientRect() is viewport-relative, but body has contain:paint
+        // which makes position:fixed relative to the body origin, not the viewport.
+        // Add scroll offsets to convert viewport coords → document coords.
+        const scrollX = window.scrollX || 0;
+        const scrollY = window.scrollY || 0;
+
+        // Horizontal: align with button left edge, clamp to viewport width
+        let left = r.left;
+        if (left + tw > window.innerWidth - 12) left = window.innerWidth - tw - 12;
+        if (left < 8) left = 8;
+
+        // Vertical: above button if room, otherwise below
+        const top = r.top > th + 12 ? r.top - th - 8 : r.bottom + 8;
+
+        toast.style.left = `${Math.round(left + scrollX)}px`;
+        toast.style.top  = `${Math.round(top  + scrollY)}px`;
+    } else {
+        // Fallback: top-right of the current viewport
+        toast.style.top   = `${Math.round(20 + (window.scrollY || 0))}px`;
+        toast.style.right = '20px';
+    }
+
+    // Animate in (double rAF ensures the initial opacity:0 is painted first)
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        toast.style.opacity   = '1';
+        toast.style.transform = 'translateY(0)';
+    }));
+
+    // Auto-dismiss
+    _anchoredToastTimer = setTimeout(() => {
+        toast.style.opacity   = '0';
+        toast.style.transform = 'translateY(-8px)';
+        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 220);
+    }, duration);
+}
+
 /**
  * Initialize notification widget after DOM is loaded
  */
@@ -475,7 +592,6 @@ let statsDataLoadedAt = 0; // Timestamp of last stats load
  * @param {string} tabName - Name of tab to switch to
  */
 export async function switchTab(tabName) {
-    
     console.log("called switchTab: ", tabName);
     // Store previous tab and update immediately to prevent race conditions
     const previousTab = PreviousTabName;
@@ -505,6 +621,12 @@ export async function switchTab(tabName) {
         selectedPage.classList.add('active');
     }
     
+    if (tabName == 'stats') {
+
+        // Always ensure stats-home is visible when switching to stats tab
+        switchTab2('stats-home');
+
+    }
         
 
     console.log("Switched to tab:", tabName);
@@ -555,13 +677,11 @@ export async function switchTab(tabName) {
         }, 100);
     }
     // Tab-specific data loading
-    if (tabName == 'stats' || tabName == ' stats') {
+    if (tabName == 'stats') {
 
-        // Always ensure stats-home is visible when switching to stats tab
-       switchTab2('stats-home');
         // Only load data if coming from a different tab or 3 minutes have passed
         const statsStale = (Date.now() - statsDataLoadedAt) > 180000; // 3 minutes
-        if (previousTab != 'stats' || statsStale) {
+        if (previousTab != 'stats' && statsStale) {
             statsDataLoadedAt = Date.now();
             console.log("SwitchTab - Loading stats data");
 
@@ -681,6 +801,11 @@ export async function switchTab(tabName) {
                 }
             }
         }
+    } else if (tabName === 'Timelock') {
+        // Load timelock page data
+        if (typeof window.Timelock !== 'undefined' && typeof window.Timelock.loadTimelockPage === 'function') {
+            window.Timelock.loadTimelockPage();
+        }
     } else {
         // Remove active class from all sub-tabs and sub-pages
         document.querySelectorAll('.nav-tab2').forEach(tab => {
@@ -723,7 +848,7 @@ export async function switchTabForStats() {
     }
 
     // Always ensure stats-home is visible when switching to stats tab
-    await switchTab2('stats-home');
+    switchTab2('stats-home');
 
     // Only load data if coming from a different tab
     if (previousTab != 'stats') {
@@ -775,7 +900,7 @@ export async function showStatsPageDirect(targetSubTab) {
     document.querySelector('.content').style.padding = '0px';
 
     // Show target sub-tab FIRST (before loading data to avoid jitter)
-   await switchTab2(targetSubTab);
+    switchTab2(targetSubTab);
 
     // Then load data in background
     if (previousTab != 'stats') {
@@ -805,6 +930,15 @@ import { initEthers2, updateGraphData } from "./charts.js";
  * Switches stats sub-navigation tab
  * @param {string} tabName - Stats tab name
  */
+export function switchMinerTab(tabName) {
+    document.querySelectorAll('.miner-tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.miner-mode-tab').forEach(el => el.classList.remove('active'));
+    const content = document.getElementById('miner-tab-' + tabName);
+    const tab = document.querySelector(`.miner-mode-tab[data-miner-tab="${tabName}"]`);
+    if (content) content.classList.add('active');
+    if (tab) tab.classList.add('active');
+}
+
 export async function switchTab2(tabName) {
     updateURL(tabName);
 
@@ -834,7 +968,7 @@ export async function switchTab2(tabName) {
         loadData();
     } else if (tabName == 'rich-list') {
         loadData();
-    } else if ((tabName == 'stats-home' || tabName == 'stats-mining-calc') || (Date.now() - statsDataLoadedAt) > 180000) {
+    } else if ((tabName == 'stats-home' || tabName == 'stats-mining-calc') && (Date.now() - statsDataLoadedAt) > 180000) {
         // Load stats data when switching to tabs that need it (with 3 min cache)
         statsDataLoadedAt = Date.now();
         if (typeof window.getRewardStats === 'function') {
@@ -1876,10 +2010,9 @@ export async function loadData2() {
         updateStats55();
 
         // Convert users object to array for easier handling
-        allStakingData = Object.entries(stakingData.users).map(([address, data]) => ({
-            address,
-            ...data
-        }));
+        allStakingData = Object.entries(stakingData.users)
+            .map(([address, data]) => ({ address, ...data }))
+            .filter(user => Number(user.B0xStaked) > 0 || Number(user['0xBTCStaked']) > 0);
         filteredData = [...allStakingData];
 
         // Initial render
@@ -2052,6 +2185,7 @@ function combineData() {
     baseData.holders.forEach(holder => {
         addressMap.set(holder.address, {
             address: holder.address,
+            owner: holder.owner || null,
             b0xBalance: parseFloat(holder.balanceFormatted) || 0,
             b0xBalanceRaw: holder.balance,
             ethB0xBalance: 0,
@@ -2065,9 +2199,11 @@ function combineData() {
         if (existing) {
             existing.ethB0xBalance = parseFloat(holder.balanceFormatted) || 0;
             existing.ethB0xBalanceRaw = holder.balance;
+            if (!existing.owner && holder.owner) existing.owner = holder.owner;
         } else {
             addressMap.set(holder.address, {
                 address: holder.address,
+                owner: holder.owner || null,
                 b0xBalance: 0,
                 b0xBalanceRaw: '0',
                 ethB0xBalance: parseFloat(holder.balanceFormatted) || 0,
@@ -2158,7 +2294,8 @@ export function filterData2() {
         filteredData2 = [...combinedData];
     } else {
         filteredData2 = combinedData.filter(holder =>
-            holder.address.toLowerCase().includes(searchTerm)
+            holder.address.toLowerCase().includes(searchTerm) ||
+            (holder.owner && holder.owner.toLowerCase().includes(searchTerm))
         );
     }
 
@@ -2189,7 +2326,8 @@ export function filterData() {
         filteredData = [...allStakingData];
     } else {
         filteredData = allStakingData.filter(user =>
-            user.address.toLowerCase().includes(searchTerm)
+            user.address.toLowerCase().includes(searchTerm) ||
+            (user.owner && user.owner.toLowerCase().includes(searchTerm))
         );
     }
 
@@ -2676,6 +2814,15 @@ export function renderTable2() {
                        title="${user.address}">
                         ${user.address}
                     </a>
+                    ${user.owner ? `
+                    <br>
+                    <a href="https://basescan.org/address/${user.owner}"
+                       target="_blank"
+                       class="address-link"
+                       title="${user.owner}"
+                       style="font-size:0.75em">
+                        Owned By: ${user.owner}
+                    </a>` : ''}
                 </td>
                 <td class="balance55">${b0xStakedFormatted}</td>
                 <td class="balance55">${btcStakedFormatted}</td>
@@ -2757,6 +2904,13 @@ export function renderTable() {
     const screenWidth = window.innerWidth;
     const maxDecimals = screenWidth <= 650 ? 1 : 6;
 
+    // These two holders' "owner" field is not a delegated/vault relationship
+    // worth surfacing, so the "Owned By" line is suppressed for them only.
+    const OWNER_DISPLAY_EXCLUDED_ADDRESSES = [
+        '0x08f489C5017942d3b7c82C1c178877C80492c948',
+        '0x498581fF718922c3f8e6A244956aF099B2652b2b'
+    ].map(addr => addr.toLowerCase());
+
     pageData.forEach((holder, index) => {
         var rank = "";
         if (sortByB0xBaseChain) {
@@ -2764,11 +2918,21 @@ export function renderTable() {
         } else {
             rank = holder.rankETHb0x;
         }
+        const showOwner = holder.owner && !OWNER_DISPLAY_EXCLUDED_ADDRESSES.includes(holder.address.toLowerCase());
         tableHTML += `
             <tr>
                 <td class="spot-rich">${rank}</td>
                 <td class="address-rich" data-full-address="${holder.address}">
                     <a href="${_BLOCK_EXPLORER_ADDRESS_URL}${holder.address}" target="_blank">${holder.address}</a>
+                    ${showOwner ? `
+                    <br>
+                    <a href="${_BLOCK_EXPLORER_ADDRESS_URL}${holder.owner}"
+                       target="_blank"
+                       class="address-link"
+                       title="${holder.owner}"
+                       style="font-size:0.75em">
+                        Owned By: ${holder.owner}
+                    </a>` : ''}
                 </td>
                 <td class="balance-rich">${holder.b0xBalance.toLocaleString(undefined, { maximumFractionDigits: maxDecimals })}</td>
                 <td class="balance-rich">${holder.ethB0xBalance.toLocaleString(undefined, { maximumFractionDigits: maxDecimals })}</td>
@@ -3985,6 +4149,7 @@ export default {
     switchTabForStats,
     showStatsPageDirect,
     switchTab2,
+    switchMinerTab,
     updateURL,
 
     // Wallet UI
