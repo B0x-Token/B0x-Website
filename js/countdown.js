@@ -208,11 +208,12 @@ export async function runReloadFunctions(fromChecker = false, fromReset = true) 
             );
         }
 
-        // Check if on convert tab - need ETH balances too
+        // Check if on convert tab - need ETH balances too. No chain switch
+        // needed — fetchBalancesETH reads via its own independent RPC
+        // provider (customRPC_ETH), not the wallet's active chain.
         const PreviousTabName = window.PreviousTabName || "";
         if (PreviousTabName === "convert") {
             console.log("Tab is convert, fetching ETH balances");
-            if (window.switchToEthereum) await window.switchToEthereum();
             if (window.fetchBalancesETH) {
                 await window.fetchBalancesETH(
                     window.userAddress,
@@ -226,7 +227,6 @@ export async function runReloadFunctions(fromChecker = false, fromReset = true) 
                     window.connectWallet
                 );
             }
-            if (window.switchToBase) await window.switchToBase();
         }
 
   await new Promise(resolve => setTimeout(resolve, 200));

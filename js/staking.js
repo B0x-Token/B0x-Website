@@ -20,7 +20,8 @@ import {
     MULTICALL_ADDRESS,
     ProofOfWorkAddresss,
     USDCToken,
-    contractAddress_PositionFinderPro
+    contractAddress_PositionFinderPro,
+    B0xGuessAddress
 } from './config.js';
 
 import { positionData, stakingPositionData } from './positions.js';
@@ -38,7 +39,11 @@ import {
     showInfoNotification,
     showSuccessNotificationCentered,
     showErrorNotificationCentered,
-    showInfoNotificationCentered
+    showInfoNotificationCentered,
+    showAlertDialog,
+    showButtonToast,
+    setButtonToastAnchor,
+    clearButtonToastAnchor
 } from './ui.js';
 import {
     getTokenNameFromAddress,
@@ -421,6 +426,8 @@ export function populateStakingManagementData() {
  * @returns {Promise<void>}
  */
 export async function collectRewards() {
+    setButtonToastAnchor('collectRewardsBtn');
+    try {
     if (!window.walletConnected) {
         await window.connectWallet();
     }
@@ -458,7 +465,7 @@ export async function collectRewards() {
             window.signer
         );
 
-        showInfoNotification('Collecting Rewards', 'Submitting reward collection transaction...');
+        showButtonToast('info', 'Collecting Rewards', 'Submitting reward collection transaction...');
 
         const rewardTx = await LPStakingContract.getRewardForTokens(tokenAddresses1);
         console.log("Reward collection transaction sent:", rewardTx.hash);
@@ -466,8 +473,7 @@ export async function collectRewards() {
         await rewardTx.wait();
         console.log("Rewards claimed successfully!");
 
-        showSuccessNotificationTop('Rewards Claimed!', 'Your staking rewards have been successfully claimed.', rewardTx.hash);
-        alert("Claimed Rewards SUCCESSFULLY!");
+        showButtonToast('success', 'Rewards Claimed!', `Your staking rewards have been successfully claimed. <a href="https://basescan.org/tx/${rewardTx.hash}" target="_blank" style="color:#10b981;text-decoration:underline;">View on Explorer →</a>`);
 
         // Invalidate cache and cooldown to force fresh data fetch
         window.rewardStatsCache.timestamp = 0;
@@ -479,13 +485,42 @@ export async function collectRewards() {
 
     } catch (error) {
         console.error("Error collecting rewards:", error);
-        showErrorNotification('Reward Collection Failed', error.message || 'Failed to collect rewards');
+        showButtonToast('error', 'Reward Collection Failed', error.message || 'Failed to collect rewards');
     }
+    } finally { clearButtonToastAnchor(); }
 }
 
 // ============================================
 // NFT STAKING
 // ============================================
+
+// The stake transaction can be rejected with NOT_AUTHORIZED if the RPC node
+// serving it hasn't yet caught up with the NFT approve that was just mined
+// (approve and stake can land on different nodes behind a load balancer).
+// Retry with backoff — 1s, 2s, 4s — giving that node time to catch up before
+// giving up for good.
+const STAKE_AUTH_RETRY_DELAYS_MS = [1000, 2000, 4000];
+
+function isNotAuthorizedError(err) {
+    const text = [err?.reason, err?.message, err?.error?.message]
+        .filter(Boolean)
+        .join(' ');
+    return /not[_\s-]?authorized/i.test(text);
+}
+
+async function stakeUniswapV3NFTWithAuthRetry(LPStakingContract, positionID) {
+    for (let attempt = 0; ; attempt++) {
+        try {
+            return await LPStakingContract.stakeUniswapV3NFT(positionID);
+        } catch (err) {
+            if (attempt >= STAKE_AUTH_RETRY_DELAYS_MS.length || !isNotAuthorizedError(err)) throw err;
+            const delay = STAKE_AUTH_RETRY_DELAYS_MS[attempt];
+            console.warn(`[Staking] stakeUniswapV3NFT NOT_AUTHORIZED (attempt ${attempt + 1}/${STAKE_AUTH_RETRY_DELAYS_MS.length}), retrying in ${delay}ms:`, err);
+            showInfoNotificationCentered('Waiting for network...', `The approval hasn't propagated yet. Retrying in ${delay / 1000}s.`);
+            await sleep(delay);
+        }
+    }
+}
 
 /**
  * Deposits an NFT position into staking contract
@@ -493,19 +528,21 @@ export async function collectRewards() {
  * @returns {Promise<void>}
  */
 export async function depositNFTStake() {
+    setButtonToastAnchor('depositNFTStakeBtn');
+    try {
     if (!window.walletConnected) {
         await window.connectWallet();
     }
 
     disableButtonWithSpinner('depositNFTStakeBtn');
-    alert('You are now depositing a Uniswap v4 NFT Position to stake. Withdrawal penalty is 20% to instant withdraw down to 3% after 15 days. 1% after 45 days. It is tracked per NFT, so multiple NFTs will have different withdraw Penalties');
+    showButtonToast('info', 'Depositing NFT', 'You are now depositing a Uniswap v4 NFT Position to stake. Withdrawal penalty is 20% to instant withdraw down to 3% after 15 days. 1% after 45 days. It is tracked per NFT, so multiple NFTs will have different withdraw Penalties', 12000);
 
     const positionSelect = document.querySelector('#staking-deposit-select');
     const selectedPositionId = positionSelect.value;
     const position = positionData?.[selectedPositionId];
 
     if (!position) {
-        showErrorNotificationCentered('Invalid Position', 'Selected position not found');
+        showButtonToast('error', 'Invalid Position', 'Selected position not found');
         enableButton('depositNFTStakeBtn', 'Deposit NFT');
         return;
     }
@@ -557,7 +594,7 @@ export async function depositNFTStake() {
     );
 
     try {
-        showInfoNotificationCentered('Approve the NFT', 'Approve NFT TokenID: ' + positionID + ' for Staking');
+        showButtonToast('info', 'Approve the NFT', 'Approve NFT TokenID: ' + positionID + ' for Staking');
 
         console.log(`Approving NFT token ${positionID}...`);
 
@@ -568,23 +605,23 @@ export async function depositNFTStake() {
         );
 
         console.log("Approval transaction sent:", approveTx.hash);
-        showInfoNotificationCentered('Waiting for approval...', 'Please wait for confirmation');
+        showButtonToast('info', 'Waiting for Approval', 'Please wait for confirmation');
         await approveTx.wait();
-        showSuccessNotificationCentered('Approved NFT Transfer!', 'Now confirm the Stake transaction in your wallet');
+        showButtonToast('success', 'Approved NFT Transfer!', 'Now confirm the Stake transaction in your wallet');
 
         console.log("Approval confirmed!");
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await sleep(2000);
 
         // Step 2: Stake the NFT
         console.log(`Staking NFT token ${positionID}...`);
-        const stakeTx = await LPStakingContract.stakeUniswapV3NFT(positionID);
+        const stakeTx = await stakeUniswapV3NFTWithAuthRetry(LPStakingContract, positionID);
 
-        showInfoNotificationCentered('Staking NFT...', 'Please wait for confirmation');
+        showButtonToast('info', 'Staking NFT...', 'Please wait for confirmation');
         console.log("Staking transaction sent:", stakeTx.hash);
         await stakeTx.wait();
         console.log("NFT staked successfully!");
 
-        showSuccessNotificationCentered('NFT Staked Successfully!', 'Transaction confirmed on blockchain');
+        showButtonToast('success', 'NFT Staked Successfully!', 'Transaction confirmed on blockchain');
         enableButton('depositNFTStakeBtn', 'Deposit NFT');
 
         if (window.fetchBalances) await window.fetchBalances();
@@ -594,9 +631,10 @@ export async function depositNFTStake() {
 
     } catch (error) {
         console.error("Error approving/staking NFT:", error);
-        showErrorNotificationCentered('Staking Failed', error.message || 'Failed to stake NFT');
+        showButtonToast('error', 'Staking Failed', error.message || 'Failed to stake NFT');
         enableButton('depositNFTStakeBtn', 'Deposit NFT');
     }
+    } finally { clearButtonToastAnchor(); }
 }
 
 /**
@@ -667,6 +705,7 @@ export async function withdrawNFTStake() {
         if (window.fetchBalances) await window.fetchBalances();
         if (window.getTokenIDsOwnedByMetamask) await window.getTokenIDsOwnedByMetamask(true); // Force refresh after unstake
       //  if (window.loadPositionsIntoDappSelections) await window.loadPositionsIntoDappSelections();
+        if (window.Timelock) window.Timelock.renderAllowedNFTs();
 
     } catch (error) {
         enableButton('withdrawNFTStakeBtn', 'Withdraw NFT from Staking');
@@ -850,10 +889,10 @@ export async function startRewardPeriod() {
     } catch (e) {
         if (e.message && e.message.includes("Reward must be positive")) {
             const symbol = mockRewardTokens.find(token => token.address === inputtedTokenAddress)?.symbol;
-            alert("Token Reward Amount is Zero for token: " + symbol + "   address: " + inputtedTokenAddress + " \nCant start new Reward Period with zero rewards");
+            await showAlertDialog("Token Reward Amount is Zero for token: " + symbol + "   address: " + inputtedTokenAddress + " \nCant start new Reward Period with zero rewards");
         } else {
             console.error("Transaction failed:", e.message || e);
-            alert("Transaction failed: " + (e.message || "Unknown error"));
+            await showAlertDialog("Transaction failed: " + (e.message || "Unknown error"));
         }
     }
 
@@ -1046,6 +1085,15 @@ export async function getRewardStats() {
         "type": "function"
     }];
 
+    // B0xGuess ABI for the staking pool's available balance (balanceOf(B0xGuess) - unreleased)
+    const b0xGuessABI = [{
+        "inputs": [],
+        "name": "unreleased",
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+        "stateMutability": "view",
+        "type": "function"
+    }];
+
     // Owner ABI for admin access checks (Ownable contracts)
     const ownerABI = [{
         "inputs": [],
@@ -1071,6 +1119,7 @@ export async function getRewardStats() {
     const multicallInterface = new ethers.utils.Interface(MULTICALL3_ABI);
     const erc20Interface = new ethers.utils.Interface(erc20ABI);
     const rewardTokensInterface = new ethers.utils.Interface(getRewardTokensABI);
+    const b0xGuessInterface = new ethers.utils.Interface(b0xGuessABI);
 
     console.log("userAddress== ", window.userAddress);
 
@@ -1171,6 +1220,24 @@ export async function getRewardStats() {
             target: contractAddressLPRewardsStaking,
             allowFailure: true,
             callData: rewardTokensInterface.encodeFunctionData("getRewardTokens")
+        },
+        // Calls 26-27: B0x Guess staking pool available balance (2 calls)
+        // available = IERC20(B0x).balanceOf(B0xGuess) - B0xGuess.unreleased()
+        {
+            target: tokenAddresses['B0x'],
+            allowFailure: true,
+            callData: erc20Interface.encodeFunctionData("balanceOf", [B0xGuessAddress])
+        },
+        {
+            target: B0xGuessAddress,
+            allowFailure: true,
+            callData: b0xGuessInterface.encodeFunctionData("unreleased", [])
+        },
+        // Call 28: Max possible circulating B0x supply (1 call)
+        {
+            target: ProofOfWorkAddresss,
+            allowFailure: true,
+            callData: contractInterface.encodeFunctionData("getCirculatingSupply", [])
         }
     ];
 
@@ -1230,7 +1297,10 @@ export async function getRewardStats() {
         rewardEra: rewardEra[0].toString(),
         readjustDifficulty: readjustDifficulty[0].toString(),
         tokensMinted: tokensMinted[0].toString(),
-        maxSupplyForEra: maxSupplyForEra[0].toString()
+        maxSupplyForEra: maxSupplyForEra[0].toString(),
+        lpTotalLiquidity: result3.liquidityInStaking.toString(),
+        lpTotal0xBTCStaked: result3.total0xBTCStaked.toString(),
+        lpTotalB0xStaked: result3.totalB0xStaked.toString()
     };
 
     // Decode tokenSwapper.getOutput result (index 16)
@@ -1242,6 +1312,30 @@ export async function getRewardStats() {
 
     // Update cachedContractStats with the block number from multicall
     window.cachedContractStats.blockNumber = blockNumberFromMulticall.toString();
+
+    // Decode B0x Guess staking pool available balance (indices 26-27)
+    // available = IERC20(B0x).balanceOf(B0xGuess) - B0xGuess.unreleased()
+    try {
+        if (results[26] && results[26].success && results[27] && results[27].success) {
+            const b0xGuessTokenBalance = erc20Interface.decodeFunctionResult("balanceOf", results[26].returnData)[0];
+            const b0xGuessUnreleased = b0xGuessInterface.decodeFunctionResult("unreleased", results[27].returnData)[0];
+            window.cachedContractStats.b0xGuessTokenBalance = b0xGuessTokenBalance.toString();
+            window.cachedContractStats.b0xGuessUnreleased = b0xGuessUnreleased.toString();
+            window.cachedContractStats.b0xGuessAvailableBalance = b0xGuessTokenBalance.sub(b0xGuessUnreleased).toString();
+        }
+    } catch (b0xGuessError) {
+        console.warn("Failed to decode B0x Guess pool balance from multicall:", b0xGuessError);
+    }
+
+    // Decode max possible circulating B0x supply (index 28)
+    try {
+        if (results[28] && results[28].success) {
+            const circulatingSupply = contractInterface.decodeFunctionResult("getCirculatingSupply", results[28].returnData)[0];
+            window.cachedContractStats.circulatingSupply = circulatingSupply.toString();
+        }
+    } catch (circulatingSupplyError) {
+        console.warn("Failed to decode circulating supply from multicall:", circulatingSupplyError);
+    }
 
     // Decode token balances (indices 18-21) and update window.walletBalances
     try {
@@ -1687,7 +1781,7 @@ export async function decreaseLiquidityStaking() {
         console.log("decLiqStaking min amount0: ", amount0remove.toString());
         console.log("decLiqStaking min amount1: ", amount1remove.toString());
 
-        alert("Decreasing Liquidity now! Approve Transaction!");
+        await showAlertDialog("Decreasing Liquidity now! Approve Transaction!");
 
         showInfoNotification('Decreasing Liquidity on Staked ID: ' + positionID, 'Please confirm transaction in the wallet');
 
@@ -1701,7 +1795,7 @@ export async function decreaseLiquidityStaking() {
 
         console.log("Decreased Liquidity transaction confirmed in block:", receipt.blockNumber);
 
-        alert("Successfully decreased liquidity of your Staked Uniswap position");
+        await showAlertDialog("Successfully decreased liquidity of your Staked Uniswap position");
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         if (window.fetchBalances) await window.fetchBalances();
@@ -1880,7 +1974,7 @@ export async function increaseLiquidityStaking() {
             console.warn("Error refreshing data after increase:", refreshError);
         }
 
-        alert("Successfully Increased Liquidity of Staked NFT - Position data has been refreshed");
+        await showAlertDialog("Successfully Increased Liquidity of Staked NFT - Position data has been refreshed");
 
     } catch (error) {
         console.error(`Error increasing liquidity:`, error);
@@ -2219,9 +2313,218 @@ export function updateStakePercentage(value) {
 // FETCH ALL UNISWAP FEES
 // ============================================================================
 
+// ABI fragment for the staking contract's own aggregate totals - permissionless,
+// no per-NFT owner/staker identity required (unlike getTokenAmountForPercentageLiquidity,
+// which turned out to require the actual staker's address as ownerOfNFT - something we
+// have no record of for NFTs staked by other users).
+const CONTRACT_TOTALS_ABI = [{
+    "inputs": [],
+    "name": "getContractTotals",
+    "outputs": [
+        { "internalType": "uint128", "name": "liquidityInStaking", "type": "uint128" },
+        { "internalType": "uint256", "name": "total0xBTCStaked", "type": "uint256" },
+        { "internalType": "uint256", "name": "totalB0xStaked", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+}];
+
+// A single, unambiguous per-NFT liquidity read on the position manager itself -
+// permissionless, no owner/staker identity needed. Same call already used
+// (non-batched) in positions.js's decreaseLiquidityStaking flow.
+const POSITION_LIQUIDITY_ABI = [{
+    "inputs": [{ "internalType": "uint256", "name": "tokenId", "type": "uint256" }],
+    "name": "getPositionLiquidity",
+    "outputs": [{ "internalType": "uint128", "name": "liquidity", "type": "uint128" }],
+    "stateMutability": "view",
+    "type": "function"
+}];
+
 /**
- * Fetches all Uniswap fees from staked NFT positions
- * Gets all token IDs owned by the staking contract and calls getUniswapALL
+ * Finds all staked NFT token IDs (owned by the staking contract) and splits
+ * them into those whose estimated B0x liquidity is at/above the admin-configured
+ * Minimum Staking Configuration and those below it. Positions below the
+ * minimum are the ones the anti-spam sweep exists for.
+ *
+ * Each position's B0x share is estimated proportionally from its own Uniswap
+ * liquidity (a permissionless per-NFT read on the position manager) against
+ * the staking contract's own totals:
+ *   nftB0xBalance = nftLiquidity * totalB0xStaked / liquidityInStaking
+ *
+ * If a position's liquidity can't be read (e.g. the on-chain call fails), it
+ * fails OPEN into atOrAboveMinimum rather than disappearing from both
+ * buckets - a misbehaving read should never cause fees to stop being
+ * collected for everyone, it should just fail to catch the small positions.
+ * @async
+ * @returns {Promise<{atOrAboveMinimum: string[], belowMinimum: string[], noData: boolean, readFailureCount: number}>}
+ */
+async function getStakedTokenIdsSplitByMinimum() {
+    const nftOwners = getNFTOwners();
+
+    if (!nftOwners || Object.keys(nftOwners).length === 0) {
+        return { atOrAboveMinimum: [], belowMinimum: [], noData: true, readFailureCount: 0 };
+    }
+
+    // Filter for token IDs owned by the staking contract
+    const stakingContractAddress = contractAddressLPRewardsStaking.toLowerCase();
+    const stakedTokenIds = [];
+
+    for (const [tokenId, owner] of Object.entries(nftOwners)) {
+        if (owner.toLowerCase() === stakingContractAddress) {
+            stakedTokenIds.push(tokenId);
+        }
+    }
+
+    console.log(`Found ${stakedTokenIds.length} NFTs owned by staking contract`);
+
+    if (stakedTokenIds.length === 0) {
+        return { atOrAboveMinimum: [], belowMinimum: [], noData: false, readFailureCount: 0 };
+    }
+
+    const minStakingThreshold = toBigNumber(document.getElementById('minStaking')?.value || 0);
+
+    if (minStakingThreshold.isZero()) {
+        // No minimum configured - every staked NFT is eligible for the normal sweep.
+        return { atOrAboveMinimum: stakedTokenIds, belowMinimum: [], noData: false, readFailureCount: 0 };
+    }
+
+    const stakingContractView = new ethers.Contract(contractAddressLPRewardsStaking, CONTRACT_TOTALS_ABI, window.signer);
+    const { liquidityInStaking, totalB0xStaked } = await stakingContractView.getContractTotals();
+
+    if (liquidityInStaking.isZero()) {
+        // Nothing staked contract-wide - no basis to compute a per-NFT share.
+        return { atOrAboveMinimum: stakedTokenIds, belowMinimum: [], noData: false, readFailureCount: 0 };
+    }
+
+    const positionLiquidityInterface = new ethers.utils.Interface(POSITION_LIQUIDITY_ABI);
+    const multicallContract = new ethers.Contract(MULTICALL_ADDRESS, MULTICALL_ABI2, window.signer);
+
+    const atOrAboveMinimum = [];
+    const belowMinimum = [];
+    let readFailureCount = 0;
+    const BATCH_SIZE = 50;
+
+    for (let i = 0; i < stakedTokenIds.length; i += BATCH_SIZE) {
+        const batch = stakedTokenIds.slice(i, i + BATCH_SIZE);
+        const calls = batch.map(tokenId => ({
+            target: positionManager_address,
+            allowFailure: true,
+            callData: positionLiquidityInterface.encodeFunctionData('getPositionLiquidity', [tokenId])
+        }));
+
+        let results;
+        try {
+            results = await multicallContract.callStatic.aggregate3(calls);
+        } catch (multicallError) {
+            console.warn(`Position liquidity multicall failed for batch starting at index ${i}; including these ${batch.length} NFTs in the normal sweep as a safety fallback:`, multicallError);
+            atOrAboveMinimum.push(...batch);
+            readFailureCount += batch.length;
+            continue;
+        }
+
+        results.forEach((result, idx) => {
+            const tokenId = batch[idx];
+
+            if (!result.success || result.returnData === '0x') {
+                console.warn(`Could not read Uniswap liquidity for staked NFT #${tokenId}; including it in the normal sweep as a safety fallback`);
+                atOrAboveMinimum.push(tokenId);
+                readFailureCount++;
+                return;
+            }
+
+            try {
+                const [liquidity] = positionLiquidityInterface.decodeFunctionResult('getPositionLiquidity', result.returnData);
+                const b0xBalance = liquidity.mul(totalB0xStaked).div(liquidityInStaking);
+
+                if (b0xBalance.gte(minStakingThreshold)) {
+                    atOrAboveMinimum.push(tokenId);
+                } else {
+                    belowMinimum.push(tokenId);
+                }
+            } catch (decodeError) {
+                console.warn(`Could not decode Uniswap liquidity for staked NFT #${tokenId}; including it in the normal sweep as a safety fallback:`, decodeError);
+                atOrAboveMinimum.push(tokenId);
+                readFailureCount++;
+            }
+        });
+    }
+
+    console.log(`Minimum Staking split: ${atOrAboveMinimum.length} at/above minimum, ${belowMinimum.length} below minimum, ${readFailureCount} unreadable`);
+
+    return { atOrAboveMinimum, belowMinimum, noData: false, readFailureCount };
+}
+
+/**
+ * Sends getUniswapALL for the given token IDs and reports the outcome to the
+ * given status elements. Shared by fetchAllUniswapFees and
+ * fetchAllUniswapFeesBelowMinimum.
+ * @async
+ * @param {string[]} tokenIds
+ * @param {string} resultElId
+ * @param {string} statusElId
+ * @returns {Promise<{successCount: number, failureCount: number}>}
+ */
+async function collectUniswapFeesForTokenIds(tokenIds, resultElId, statusElId) {
+    const resultDiv = document.getElementById(resultElId);
+    const statusSpan = document.getElementById(statusElId);
+
+    if (resultDiv) resultDiv.style.display = 'block';
+
+    if (tokenIds.length === 0) {
+        if (statusSpan) statusSpan.textContent = 'No staked NFTs to collect fees from.';
+        return { successCount: 0, failureCount: 0 };
+    }
+
+    // ABI for getUniswapALL function
+    const getUniswapALLABI = [{
+        "inputs": [
+            { "internalType": "uint256[]", "name": "tokenIds", "type": "uint256[]" }
+        ],
+        "name": "getUniswapALL",
+        "outputs": [
+            { "internalType": "uint256", "name": "successCount", "type": "uint256" },
+            { "internalType": "uint256", "name": "failureCount", "type": "uint256" }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }];
+
+    const feeCollectorContract = new ethers.Contract(
+        contractAddress_PositionFinderPro,
+        getUniswapALLABI,
+        window.signer
+    );
+
+    showInfoNotification('Fetching Uniswap Fees', `Collecting fees from ${tokenIds.length} staked NFT positions...`);
+
+    // Call getUniswapALL with the given token IDs
+    const tx = await feeCollectorContract.getUniswapALL(tokenIds);
+    console.log("Transaction sent:", tx.hash);
+
+    if (statusSpan) statusSpan.textContent = `Transaction sent. Waiting for confirmation...`;
+
+    const receipt = await tx.wait();
+    console.log("Transaction confirmed:", receipt.transactionHash);
+
+    const successCount = tokenIds.length;
+    const failureCount = 0;
+
+    const resultMessage = `✅ Fees collected! Success: ${successCount}, Failures: ${failureCount}`;
+    if (statusSpan) statusSpan.innerHTML = resultMessage;
+
+    showSuccessNotification('Fees Collected!', `Successfully processed ${tokenIds.length} NFT positions`, tx.hash);
+
+    // Refresh reward stats to show updated balances
+    await getRewardStats();
+
+    return { successCount, failureCount };
+}
+
+/**
+ * Fetches Uniswap fees from staked NFT positions whose current B0x liquidity
+ * is at/above the Minimum Staking Configuration. Positions below the minimum
+ * are excluded here as an anti-spam measure - use
+ * fetchAllUniswapFeesBelowMinimum() to sweep those separately.
  * @async
  * @returns {Promise<{successCount: number, failureCount: number}>}
  */
@@ -2237,96 +2540,82 @@ export async function fetchAllUniswapFees() {
     if (statusSpan) statusSpan.textContent = 'Scanning for staked NFTs...';
 
     try {
-        // Get all NFT owners from data-loader
-        const nftOwners = getNFTOwners();
+        const { atOrAboveMinimum, belowMinimum, noData, readFailureCount } = await getStakedTokenIdsSplitByMinimum();
 
-        if (!nftOwners || Object.keys(nftOwners).length === 0) {
+        if (noData) {
             if (statusSpan) statusSpan.textContent = 'No NFT owner data available. Please wait for data to load.';
             return { successCount: 0, failureCount: 0 };
         }
 
-        // Filter for token IDs owned by the staking contract
-        const stakingContractAddress = contractAddressLPRewardsStaking.toLowerCase();
-        const stakedTokenIds = [];
-
-        for (const [tokenId, owner] of Object.entries(nftOwners)) {
-            if (owner.toLowerCase() === stakingContractAddress) {
-                stakedTokenIds.push(tokenId);
+        if (atOrAboveMinimum.length === 0) {
+            if (statusSpan) {
+                statusSpan.textContent = belowMinimum.length > 0
+                    ? `All ${belowMinimum.length} staked NFTs are below the Minimum Staking Configuration. Use "Fetch All Uniswap Fees BELOW Minimum" to collect those.`
+                    : 'No NFTs found owned by the staking contract.';
             }
-        }
-
-        console.log(`Found ${stakedTokenIds.length} NFTs owned by staking contract`);
-
-        if (stakedTokenIds.length === 0) {
-            if (statusSpan) statusSpan.textContent = 'No NFTs found owned by the staking contract.';
             return { successCount: 0, failureCount: 0 };
         }
 
-        if (statusSpan) statusSpan.textContent = `Found ${stakedTokenIds.length} staked NFTs. Fetching fees...`;
-
-        // ABI for getUniswapALL function
-        const getUniswapALLABI = [{
-            "inputs": [
-                { "internalType": "uint256[]", "name": "tokenIds", "type": "uint256[]" }
-            ],
-            "name": "getUniswapALL",
-            "outputs": [
-                { "internalType": "uint256", "name": "successCount", "type": "uint256" },
-                { "internalType": "uint256", "name": "failureCount", "type": "uint256" }
-            ],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        }];
-
-        const feeCollectorContract = new ethers.Contract(
-            contractAddress_PositionFinderPro,
-            getUniswapALLABI,
-            window.signer
-        );
-
-        showInfoNotification('Fetching Uniswap Fees', `Collecting fees from ${stakedTokenIds.length} staked NFT positions...`);
-
-        // Call getUniswapALL with all staked token IDs
-        const tx = await feeCollectorContract.getUniswapALL(stakedTokenIds);
-        console.log("Transaction sent:", tx.hash);
-
-        if (statusSpan) statusSpan.textContent = `Transaction sent. Waiting for confirmation...`;
-
-        const receipt = await tx.wait();
-        console.log("Transaction confirmed:", receipt.transactionHash);
-
-        // Try to get the return values from the transaction
-        // Note: For non-view functions, we may need to parse logs or decode return data
-        let successCount = 0;
-        let failureCount = 0;
-
-        // Try to decode the return values from the transaction receipt
-        try {
-            const iface = new ethers.utils.Interface(getUniswapALLABI);
-            // Check if there are any logs we can parse for results
-            if (receipt.logs && receipt.logs.length > 0) {
-                console.log("Transaction logs:", receipt.logs);
-            }
-            // For now, we'll report based on the transaction success
-            successCount = stakedTokenIds.length;
-            failureCount = 0;
-        } catch (decodeError) {
-            console.warn("Could not decode return values:", decodeError);
-            successCount = stakedTokenIds.length;
+        if (statusSpan) {
+            const exclusionNote = belowMinimum.length > 0 ? ` (excluding ${belowMinimum.length} below it)` : '';
+            const warningNote = readFailureCount > 0 ? ` [⚠️ ${readFailureCount} liquidity reads failed - see console; those NFTs were included here as a safety fallback]` : '';
+            statusSpan.textContent = `Found ${atOrAboveMinimum.length} staked NFTs at/above the Minimum Staking Configuration${exclusionNote}.${warningNote} Fetching fees...`;
         }
 
-        const resultMessage = `✅ Fees collected! Success: ${successCount}, Failures: ${failureCount}`;
-        if (statusSpan) statusSpan.innerHTML = resultMessage;
-
-        showSuccessNotification('Fees Collected!', `Successfully processed ${stakedTokenIds.length} NFT positions`, tx.hash);
-
-        // Refresh reward stats to show updated balances
-        await getRewardStats();
-
-        return { successCount, failureCount };
+        return await collectUniswapFeesForTokenIds(atOrAboveMinimum, 'fetchFeesResult', 'fetchFeesStatus');
 
     } catch (error) {
         console.error("Error fetching Uniswap fees:", error);
+        const errorMessage = `❌ Error: ${error.message || 'Failed to fetch fees'}`;
+        if (statusSpan) statusSpan.textContent = errorMessage;
+        showErrorNotification('Fee Collection Failed', error.message || 'Failed to fetch Uniswap fees');
+        return { successCount: 0, failureCount: 0 };
+    }
+}
+
+/**
+ * Anti-spam sweep: fetches Uniswap fees only from staked NFTs whose current
+ * B0x liquidity is BELOW the Minimum Staking Configuration - the small
+ * positions intentionally excluded from fetchAllUniswapFees(), so they don't
+ * get a free, unlimited fee-harvest cadence via the main button.
+ * @async
+ * @returns {Promise<{successCount: number, failureCount: number}>}
+ */
+export async function fetchAllUniswapFeesBelowMinimum() {
+    if (!window.walletConnected) {
+        await window.connectWallet();
+    }
+
+    const resultDiv = document.getElementById('fetchFeesBelowMinResult');
+    const statusSpan = document.getElementById('fetchFeesBelowMinStatus');
+
+    if (resultDiv) resultDiv.style.display = 'block';
+    if (statusSpan) statusSpan.textContent = 'Scanning for staked NFTs below the Minimum Staking Configuration...';
+
+    try {
+        const { atOrAboveMinimum, belowMinimum, noData, readFailureCount } = await getStakedTokenIdsSplitByMinimum();
+
+        if (noData) {
+            if (statusSpan) statusSpan.textContent = 'No NFT owner data available. Please wait for data to load.';
+            return { successCount: 0, failureCount: 0 };
+        }
+
+        if (belowMinimum.length === 0) {
+            if (statusSpan) {
+                const warningNote = readFailureCount > 0 ? ` [⚠️ ${readFailureCount} liquidity reads failed - see console; those NFTs could not be confirmed as below minimum, so they were left out of this sweep]` : '';
+                statusSpan.textContent = (atOrAboveMinimum.length > 0
+                    ? 'No staked NFTs are below the Minimum Staking Configuration.'
+                    : 'No NFTs found owned by the staking contract.') + warningNote;
+            }
+            return { successCount: 0, failureCount: 0 };
+        }
+
+        if (statusSpan) statusSpan.textContent = `Found ${belowMinimum.length} staked NFTs below the Minimum Staking Configuration. Fetching fees...`;
+
+        return await collectUniswapFeesForTokenIds(belowMinimum, 'fetchFeesBelowMinResult', 'fetchFeesBelowMinStatus');
+
+    } catch (error) {
+        console.error("Error fetching below-minimum Uniswap fees:", error);
         const errorMessage = `❌ Error: ${error.message || 'Failed to fetch fees'}`;
         if (statusSpan) statusSpan.textContent = errorMessage;
         showErrorNotification('Fee Collection Failed', error.message || 'Failed to fetch Uniswap fees');

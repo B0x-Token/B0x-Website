@@ -12,11 +12,12 @@
 
 // Import all modules
 import { initializeChart, fetchPriceData, pricesLoaded } from './charts.js';
-import { checkWalletConnection, setupWalletListeners, connectWallet, disconnectWallet } from './wallet.js';
+import { checkWalletConnection, setupWalletListeners, connectWallet, disconnectWallet, suppressWalletEvents } from './wallet.js';
 import {
-    switchTab, switchTab2, switchTabForStats, showStatsPageDirect, updateLoadingStatus, showLoadingScreen, hideLoadingScreen,
-    initNotificationWidget, updateTokenIcon, updateTokenSelection, updatePositionDropdown,
-    displayWalletBalances, updatePositionInfoMAIN_UNSTAKING, initTokenIconListeners, initRichListEventListeners
+    switchTab, switchTab2, switchTabForStats, switchMinerTab, showStatsPageDirect, updateLoadingStatus, showLoadingScreen, hideLoadingScreen,
+    initNotificationWidget, updateTokenIcon, updateTokenIconETH, updateTokenSelection, updatePositionDropdown,
+    displayWalletBalances, updatePositionInfoMAIN_UNSTAKING, initTokenIconListeners, initRichListEventListeners,
+    showButtonToast, setButtonToastAnchor, filterTokenOptionsCreate
 } from './ui.js';
 import { initMiningCalcEventListeners } from './mining-calc.js';
 import * as Settings from './settings.js';
@@ -59,10 +60,17 @@ export async function initializeDApp() {
             Settings.initDataSourceLinks();
         }
 
-        // Check for existing wallet connection
-        await checkWalletConnection();
-        console.log('✓ Wallet connection checked');
-
+        // Check for existing wallet connection. Not awaited: on mobile
+        // browsers without an injected wallet (the common case — regular
+        // Safari/Chrome, no extension), this polls for window.ethereum for
+        // up to 10s (see wallet.js checkWalletConnection) before giving up.
+        // Awaiting it here froze the loading screen on "Connecting to
+        // blockchain..." for that whole 10s on every mobile reload, while
+        // desktop (wallet extension injects window.ethereum instantly)
+        // skipped the poll and felt instant. Nothing below this point
+        // depends on wallet connection having finished — it already
+        // reconnects and loads its own data in the background.
+        checkWalletConnection().catch(e => console.warn('Wallet connection check failed:', e));
 
         updateLoadingStatus('Loading smart contracts...');
 
@@ -134,10 +142,6 @@ export async function initializeDApp() {
             console.log('Continuing to load data in background...');
         }
 
-        // Start the countdown timer for periodic data refresh
-        startCountdown();
-        console.log('✓ Countdown timer started');
-
     } catch (error) {
         console.error('❌ DApp initialization error:', error);
     }
@@ -158,6 +162,13 @@ export function setupEventListeners() {
     const connectBtn = document.getElementById('connectBtn');
     if (connectBtn) {
         connectBtn.addEventListener('click', async () => {
+            // TEMPORARY DIAGNOSTIC — confirms the click itself is reaching
+            // our JS before connectWallet() (and any ethers/wallet code) runs
+            // at all. Remove once the mobile connect issue is resolved.
+            console.log('[diag] Connect Wallet button clicked');
+            setButtonToastAnchor('connectBtn');
+            showButtonToast('info', 'Click Registered', 'Button click reached the app JS. Starting connectWallet()...');
+
             await connectWallet();
         });
     }
@@ -230,12 +241,10 @@ export function setupEventListeners() {
         });
     }
 
-    const collectRewardsBtn = document.getElementById('collectRewardsBtn');
-    if (collectRewardsBtn) {
-        collectRewardsBtn.addEventListener('click', async () => {
-            await Staking.collectRewards();
-        });
-    }
+    // Note: Collect Rewards button is wired via inline onclick="collectRewards()"
+    // in index.html, not here — an addEventListener('click') on this id would
+    // now double-fire alongside it, since the button previously had no id
+    // (this listener attachment was silently a no-op) but now does.
 
     // Load More Blocks button (stats page pagination)
     const loadMoreBlocksBtn = document.getElementById('blocks-load-more-btn');
@@ -280,7 +289,14 @@ const validTabs = [
     'side-pools',
     'stats-rich-list',
     'rich-list',
-    'miner'
+    'stats-guess-staking-rich-list',
+    'guess-staking-rich-list',
+    'miner',
+    'miner-solo',
+    'miner-pool',
+    'miner-fpga',
+    'Timelock',
+    'bridge'
 ];
 
 // Stats sub-tabs that require switchTabForStats() first
@@ -290,7 +306,8 @@ const statsSubTabs = [
     'stats-home',
     'stats-mining-calc',
     'stats-staking-rich-list',
-    'stats-rich-list'
+    'stats-rich-list',
+    'stats-guess-staking-rich-list'
 ];
 
 // Stats sub-tabs that need full stats data (difficulty, hashrate, etc.)
@@ -308,8 +325,19 @@ async function handleTabSwitch(tabName) {
     if (tabName === 'rich-list') {
         tabName = 'stats-rich-list';
     }
+    if (tabName === 'guess-staking-rich-list') {
+        tabName = 'stats-guess-staking-rich-list';
+    }
     if (tabName === 'staking') {
         tabName = 'staking-main-page';
+    }
+
+    // Handle miner sub-tabs (e.g. ?miner-pool, ?miner-fpga)
+    if (tabName === 'miner-solo' || tabName === 'miner-pool' || tabName === 'miner-fpga') {
+        const minerSubTab = tabName.replace('miner-', '');
+        switchTab('miner');
+        switchMinerTab(minerSubTab);
+        return;
     }
 
     // Check if this is a stats sub-tab
@@ -328,7 +356,46 @@ async function handleTabSwitch(tabName) {
         }
     } else {
         console.log("Switching to tab:", tabName);
+
+        // Apply ?dir=/&asset= to the bridge state BEFORE switchTab() runs, so
+        // that when switchTab's initBridgeTab() writes the URL it already has
+        // the right direction/asset instead of the pre-deep-link defaults.
+        if (tabName === 'bridge') {
+            applyBridgeDeepLinkParams();
+        }
+
         switchTab(tabName);
+    }
+}
+
+/**
+ * Applies ?dir= and ?asset= query params to the Bridge tab (e.g.
+ * ?bridge&dir=toEthereum&asset=B0x) so a direction + asset combo can be
+ * bookmarked or shared as a link.
+ * @returns {void}
+ */
+function applyBridgeDeepLinkParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const dir = urlParams.get('dir');
+    const asset = urlParams.get('asset');
+
+    if ((dir === 'toBase' || dir === 'toEthereum') && typeof window.setBridgeDirection === 'function') {
+        console.log('Applying bridge direction from URL:', dir);
+        window.setBridgeDirection(dir);
+    }
+
+    if (asset) {
+        const tokenSelect = document.getElementById('bridgeToken');
+        const hasOption = tokenSelect && Array.from(tokenSelect.options).some(opt => opt.value === asset);
+        if (hasOption) {
+            console.log('Applying bridge asset from URL:', asset);
+            tokenSelect.value = asset;
+            if (typeof window.updateBridgeTokenIcon === 'function') {
+                window.updateBridgeTokenIcon();
+            }
+        } else {
+            console.warn(`Invalid bridge asset parameter: ${asset}`);
+        }
     }
 }
 
@@ -849,6 +916,11 @@ export function setupDOMListeners() {
     updateTokenIcon('fromToken22', 'fromTokenIcon22');
     updateTokenSelection('tokenB', 'tokenBIcon');
     updateTokenSelection('tokenA', 'tokenAIcon');
+    // Convert page icons default to the wrong token in the raw HTML
+    // (mismatched from the <select>'s actual default value) — sync them to
+    // the real selection on load, same as the other pages above.
+    updateTokenIconETH('fromToken', 'fromTokenIcon');
+    updateTokenIconETH('toToken', 'toTokenIcon');
 
     // Swap tokens convert
     if (typeof window.swapTokensConvert === 'function') {
@@ -870,11 +942,48 @@ export function setupDOMListeners() {
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('DOM Content Loaded - Starting initialization...');
 
+    // Set up event listeners (Connect Wallet, swap, etc.), DOM listeners
+    // (icon sync, sliders), token icon listeners, and the countdown timer
+    // FIRST, before the async initializeDApp() chain below. None of these
+    // need anything initializeDApp() loads — they're pure DOM/UI setup —
+    // and initializeDApp() includes several sequential network calls (chart
+    // data, a remote Farcaster SDK import with no timeout, etc.) that can
+    // take a while, especially on mobile. Gating UI setup behind that whole
+    // chain is why the countdown used to visibly start late, and why token
+    // icons could sit unsynced for several seconds after page load.
+    //
+    // setupDOMListeners() itself is NOT called here (only later, at its
+    // original spot below) — it has ~20 addEventListener calls with no
+    // dedup guard, and its position-selector population intentionally needs
+    // to re-run once wallet/position data has loaded. Calling it twice would
+    // double-register those listeners. The icon syncing below duplicates
+    // just its icon-sync lines, which are plain function calls (idempotent,
+    // safe to run twice) rather than listener registrations.
+    setupEventListeners();
+    // Token A and Token B on Create Position both natively default to the
+    // same option (0xBTC) in the raw HTML — filter first so Token B gets
+    // auto-switched to the next available option (B0x) before syncing
+    // icons, same order setupDOMListeners() below uses.
+    filterTokenOptionsCreate();
+    updateTokenIcon('toToken22', 'toTokenIcon11');
+    updateTokenIcon('fromToken22', 'fromTokenIcon22');
+    updateTokenSelection('tokenB', 'tokenBIcon');
+    updateTokenSelection('tokenA', 'tokenAIcon');
+    updateTokenIconETH('fromToken', 'fromTokenIcon');
+    updateTokenIconETH('toToken', 'toTokenIcon');
+    initTokenIconListeners();
+    // Pure DOM manipulation (creates the button, wires its click handler) —
+    // the handler only reads wallet/position state later, at click time, not
+    // here. Internally guarded against double-adding to the same input, so
+    // it's safe regardless. Was previously gated behind the full
+    // initializeDApp() chain, which is why Create/Stake Increase — tabs a
+    // user might switch to quickly — could appear to be missing MAX buttons
+    // if that chain hadn't finished yet.
+    initializeMaxButtons();
+    startCountdown();
+
     // Initialize the DApp
     await initializeDApp();
-
-    // Setup all event listeners
-    setupEventListeners();
 
     // Setup wallet listeners
     await setupWalletListeners();
@@ -894,20 +1003,19 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Render contracts display
     renderContracts();
 
-    // Setup DOM listeners (positions, inputs, sliders)
+    // Setup DOM listeners (positions, inputs, sliders) — re-run now that
+    // wallet/position data has had a chance to load (its position-selector
+    // population depends on that). initTokenIconListeners() is NOT called
+    // again here — it was already registered in the early setup above and
+    // has no data dependency, so calling it again would double-register
+    // those change listeners.
     setupDOMListeners();
-
-    // Initialize token icon listeners for swap/convert/create pages
-    initTokenIconListeners();
 
     // Initialize rich list event listeners (sorting, paging, search)
     initRichListEventListeners();
 
     // Initialize mining calculator event listeners
     initMiningCalcEventListeners();
-
-    // Initialize MAX buttons for all input fields
-    initializeMaxButtons();
 
     // Set responsive padding
     setPadding();
@@ -929,6 +1037,12 @@ let windowListenersSetup = false;
 if (window.ethereum && !windowListenersSetup && localStorage.getItem('walletConnected')) {
     window.ethereum.on('chainChanged', (chainId) => {
         console.log('Chain changed to:', chainId);
+        // Our own connectWallet() calls can fire this event itself (e.g.
+        // switching to Base) — ignore it while that's already in progress.
+        if (suppressWalletEvents) {
+            console.log('Suppressing chainChanged — own connect flow in progress');
+            return;
+        }
         // Don't make requests if page is hidden (prevents warning when closing Rabby browser)
         if (window.isPageVisible === false) {
             console.log('Page hidden, skipping network status update');

@@ -49,8 +49,8 @@
  */
 
 // Import dependencies
-import { MULTICALL_ABI, MULTICALL_ABI_PAYABLE, CONTRACT_ABI } from './abis.js';
-import { ProofOfWorkAddresss, MULTICALL_ADDRESS } from './config.js';
+import { MULTICALL_ABI, MULTICALL_ABI_PAYABLE, CONTRACT_ABI, ERC20_ABI, B0XGUESS_ABI, LP_STAKING_ABI } from './abis.js';
+import { ProofOfWorkAddresss, MULTICALL_ADDRESS, B0xGuessAddress, tokenAddresses, contractAddressLPRewardsStaking } from './config.js';
 import { CONFIG, customRPC, customDataSource, customBACKUPDataSource ,loadSettings } from './settings.js';
 import { showLoadingWidget, hideLoadingWidget, updateLoadingStatus, updateLoadingStatusWidget, setLoadingProgress } from './ui.js';
 
@@ -195,6 +195,9 @@ export async function GetContractStatsWithMultiCall(forceUpdate = false) {
 
     try {
         const contractInterface = new ethers.utils.Interface(CONTRACT_ABI);
+        const erc20Interface = new ethers.utils.Interface(ERC20_ABI);
+        const b0xGuessInterface = new ethers.utils.Interface(B0XGUESS_ABI);
+        const lpStakingInterface = new ethers.utils.Interface(LP_STAKING_ABI);
         const multicallContract = new ethers.Contract(MULTICALL_ADDRESS, MULTICALL_ABI, provids);
 
         // Prepare multicall requests
@@ -210,7 +213,14 @@ export async function GetContractStatsWithMultiCall(forceUpdate = false) {
             { target: ProofOfWorkAddresss, allowFailure: false, callData: contractInterface.encodeFunctionData("rewardEra", []) },
             { target: ProofOfWorkAddresss, allowFailure: false, callData: contractInterface.encodeFunctionData("readjustsToWhatDifficulty", []) },
             { target: ProofOfWorkAddresss, allowFailure: false, callData: contractInterface.encodeFunctionData("tokensMinted", []) },
-            { target: ProofOfWorkAddresss, allowFailure: false, callData: contractInterface.encodeFunctionData("maxSupplyForEra", []) }
+            { target: ProofOfWorkAddresss, allowFailure: false, callData: contractInterface.encodeFunctionData("maxSupplyForEra", []) },
+            // B0x Guess staking pool: available balance = balanceOf(B0xGuess) - unreleased
+            { target: tokenAddresses['B0x'], allowFailure: false, callData: erc20Interface.encodeFunctionData("balanceOf", [B0xGuessAddress]) },
+            { target: B0xGuessAddress, allowFailure: false, callData: b0xGuessInterface.encodeFunctionData("unreleased", []) },
+            // LP Staking pool: current B0x/0xBTC staked
+            { target: contractAddressLPRewardsStaking, allowFailure: false, callData: lpStakingInterface.encodeFunctionData("getContractTotals", []) },
+            // Max possible circulating B0x supply
+            { target: ProofOfWorkAddresss, allowFailure: false, callData: contractInterface.encodeFunctionData("getCirculatingSupply", []) }
         ];
 
         let blockNumber, returnData;
@@ -251,7 +261,7 @@ export async function GetContractStatsWithMultiCall(forceUpdate = false) {
             readjustDifficulty,
             tokensMinted,
             maxSupplyForEra
-        ] = returnData.map((data, index) => {
+        ] = returnData.slice(0, 12).map((data, index) => {
             const functionName = [
                 "miningTarget", "getMiningDifficulty", "epochCount", "inflationMined", "blocksToReadjust",
                 "seconds_Until_adjustmentSwitch", "latestDifficultyPeriodStarted",
@@ -261,6 +271,17 @@ export async function GetContractStatsWithMultiCall(forceUpdate = false) {
 
             return contractInterface.decodeFunctionResult(functionName, data);
         });
+
+        // Decode B0x Guess pool balance/unreleased (indices 12-13)
+        const b0xGuessTokenBalance = erc20Interface.decodeFunctionResult("balanceOf", returnData[12])[0];
+        const b0xGuessUnreleased = b0xGuessInterface.decodeFunctionResult("unreleased", returnData[13])[0];
+        const b0xGuessAvailableBalance = b0xGuessTokenBalance.sub(b0xGuessUnreleased);
+
+        // Decode LP Staking pool totals (index 14)
+        const lpContractTotals = lpStakingInterface.decodeFunctionResult("getContractTotals", returnData[14]);
+
+        // Decode max possible circulating B0x supply (index 15)
+        const circulatingSupply = contractInterface.decodeFunctionResult("getCirculatingSupply", returnData[15])[0];
 
         // Format stats object
         const stats = {
@@ -281,7 +302,14 @@ export async function GetContractStatsWithMultiCall(forceUpdate = false) {
             rewardEra: rewardEra[0].toString(),
             readjustDifficulty: readjustDifficulty[0].toString(),
             tokensMinted: tokensMinted[0].toString(),
-            maxSupplyForEra: maxSupplyForEra[0].toString()
+            maxSupplyForEra: maxSupplyForEra[0].toString(),
+            b0xGuessTokenBalance: b0xGuessTokenBalance.toString(),
+            b0xGuessUnreleased: b0xGuessUnreleased.toString(),
+            b0xGuessAvailableBalance: b0xGuessAvailableBalance.toString(),
+            lpTotalLiquidity: lpContractTotals.liquidityInStaking.toString(),
+            lpTotal0xBTCStaked: lpContractTotals.total0xBTCStaked.toString(),
+            lpTotalB0xStaked: lpContractTotals.totalB0xStaked.toString(),
+            circulatingSupply: circulatingSupply.toString()
         };
 
         // Cache the stats and update timestamp

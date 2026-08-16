@@ -678,6 +678,30 @@ export async function restoreDefaultAddressesfromGithub() {
 // ============================================
 
 /**
+ * Refreshes the Minimum Staking Configuration value shown inline in the
+ * "Fetch All Uniswap Fees" / "Fetch All Uniswap Fees BELOW Minimum" card
+ * descriptions, so the admin can see exactly what threshold those buttons
+ * are using without having to check the settings page.
+ * @returns {void}
+ */
+export function updateMinStakingDisplays() {
+    const rawValue = appSettings.minStaking || 0;
+    let display = `${rawValue} Wei`;
+
+    try {
+        // Stored value is in Wei; convert to whole B0x tokens (18 decimals) for display.
+        display = `${ethers.utils.formatUnits(rawValue.toString(), 18)} B0x`;
+    } catch (error) {
+        // Keep the raw-Wei display if formatting fails (e.g. malformed value).
+    }
+
+    const mainSpan = document.getElementById('minStakingDisplayMain');
+    const belowSpan = document.getElementById('minStakingDisplayBelow');
+    if (mainSpan) mainSpan.textContent = display;
+    if (belowSpan) belowSpan.textContent = display;
+}
+
+/**
  * Saves minimum staking amount to localStorage
  * @returns {void}
  */
@@ -695,6 +719,7 @@ export function saveMinStaking() {
 
     appSettings.minStaking = value;
     localStorage.setItem('stakingSettings', JSON.stringify(appSettings));
+    updateMinStakingDisplays();
 
     showSuccessMessage('stakingSuccess');
     showToast(`Minimum staking amount set to ${value} tokens`);
@@ -1026,6 +1051,7 @@ export function loadSettings() {
         appSettings.minStaking = 0;
         appSettings.minUserHoldings = 0;
     }
+    updateMinStakingDisplays();
 
     // Load Base RPC
     if (rpc) {

@@ -24,7 +24,8 @@ import {
 import {
     showSuccessNotification,
     showErrorNotification,
-    showInfoNotification
+    showInfoNotification,
+    showAlertDialog
 } from './ui.js';
 import { SPLIT_ROUTE_ABI, MULTICALL_ABI2 } from './abis.js';
 import {
@@ -221,7 +222,7 @@ async function approveIfNeeded(tokenToApprove, spenderAddress, requiredAmount) {
 
     } catch (error) {
         console.error("Approve if needed failed:", error);
-        alert(`Approval process failed: ${error.message}`);
+        await showAlertDialog(`Approval process failed: ${error.message}`);
         return false;
     }
 }
@@ -1570,7 +1571,7 @@ export async function getSwapOfTwoTokens() {
         await getEstimate();
 
         if (!window.lastEstimate) {
-            alert("Failed to get swap estimate");
+            await showAlertDialog("Failed to get swap estimate");
             return;
         }
     }
@@ -1746,7 +1747,7 @@ export async function executeOptimizedMultiRouteSwap(fromToken, toToken, amountS
     console.log(`${routes.length} routes available - optimizing...`);
 
     if (routes.length === 0) {
-        alert("No routes found!");
+        await showAlertDialog("No routes found!");
         return;
     }
 
@@ -1800,7 +1801,7 @@ export async function executeOptimizedMultiRouteSwap(fromToken, toToken, amountS
     }
 
     if (!optimizationResult) {
-        alert("Optimization failed!");
+        await showAlertDialog("Optimization failed!");
         return;
     }
 
@@ -1836,7 +1837,7 @@ export async function executeOptimizedMultiRouteSwap(fromToken, toToken, amountS
         `Route ${i + 1}: ${split.toFixed(2)}%`
     ).join(", ");
 
-    alert(`Multi-route swap: ${readableAmountIn} ${fromToken} → ${readableAmountOut} ${toToken}\n${routeInfo}`);
+    await showAlertDialog(`Multi-route swap: ${readableAmountIn} ${fromToken} → ${readableAmountOut} ${toToken}\n${routeInfo}`);
 
     const tokenInAddress = tokenAddresses[fromToken];
     const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -1889,7 +1890,7 @@ export async function executeOptimizedMultiRouteSwap(fromToken, toToken, amountS
 
     } catch (error) {
         console.error("Multi-route swap error:", error);
-        alert("Swap failed: " + error.message);
+        await showAlertDialog("Swap failed: " + error.message);
     }
 }
 

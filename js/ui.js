@@ -180,6 +180,305 @@ class MobileNotificationWidget {
 // Initialize the notification widget (will be initialized after DOM is ready)
 let notificationWidget = null;
 
+// =============================================================================
+// BUTTON-ANCHORED TOAST
+// =============================================================================
+
+let _lastClickedBtn = null;   // updated by the click listener (general fallback)
+let _actionAnchorBtn = null;  // pinned by setButtonToastAnchor; never touched by click listener
+let _anchoredToastEl = null;
+let _anchoredToastTimer = null;
+
+// Track the last clicked non-nav button as a general fallback only
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    // Exclude nav tabs and the dialog's own buttons (e.g. "OK, Got It") — those
+    // get removed from the DOM right after being clicked, so if we captured
+    // them here a *subsequent* dialog would try to anchor off a detached
+    // element (getBoundingClientRect() on it returns all zeros, landing the
+    // dialog top-left instead of near the real action button).
+    if (btn && !btn.classList.contains('nav-tab') && !btn.classList.contains('ui-dialog-btn')) {
+        _lastClickedBtn = btn;
+    }
+}, true);
+
+/**
+ * Pin the toast anchor to a specific button for the duration of an action.
+ * This is NOT overridden by subsequent clicks, so it survives wallet popups
+ * and other async interactions. Call at the very start of each action handler.
+ */
+export function setButtonToastAnchor(buttonId) {
+    const el = typeof buttonId === 'string' ? document.getElementById(buttonId) : buttonId;
+    if (el) _actionAnchorBtn = el;
+}
+
+/** Clear the pinned action anchor (call after an action completes). */
+export function clearButtonToastAnchor() {
+    _actionAnchorBtn = null;
+}
+
+/**
+ * Shows a small toast anchored near the last clicked button.
+ * Falls back to top-right if no button click has been recorded.
+ */
+export function showButtonToast(type = 'info', title = '', message = '', duration = 7000) {
+    // Clear any previous anchored toast immediately
+    if (_anchoredToastEl && _anchoredToastEl.parentNode) {
+        _anchoredToastEl.parentNode.removeChild(_anchoredToastEl);
+    }
+    if (_anchoredToastTimer) clearTimeout(_anchoredToastTimer);
+
+    const colors = { success: '#10b981', error: '#ef4444', info: '#3b82f6', warning: '#f0a500' };
+    const icons  = { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' };
+    const color  = colors[type] || colors.info;
+    const icon   = icons[type]  || icons.info;
+
+    const toast = document.createElement('div');
+    toast.style.cssText = [
+        'position:fixed',
+        'z-index:99999',
+        'box-sizing:border-box',
+        'max-width:min(340px, calc(100vw - 24px))',
+        'min-width:180px',
+        `background:#1a1a2e`,
+        `border:1px solid ${color}`,
+        `border-left:4px solid ${color}`,
+        'border-radius:8px',
+        'padding:11px 14px',
+        'color:#fff',
+        'font-size:0.87em',
+        'line-height:1.45',
+        'box-shadow:0 6px 24px rgba(0,0,0,0.6)',
+        'pointer-events:none',
+        'opacity:0',
+        'transform:translateY(-8px)',
+        'transition:opacity 0.18s ease,transform 0.18s ease',
+        'overflow-wrap:anywhere',
+        'word-break:break-word',
+    ].join(';');
+
+    toast.innerHTML =
+        `<div style="font-weight:700;color:${color};margin-bottom:${message ? '4px' : '0'};overflow-wrap:anywhere;word-break:break-word">${icon} ${title}</div>` +
+        (message ? `<div style="color:#ccc;overflow-wrap:anywhere;word-break:break-word">${message}</div>` : '');
+
+    document.body.appendChild(toast);
+    _anchoredToastEl = toast;
+
+    // Prefer the pinned action anchor; fall back to the general click tracker
+    const btn = _actionAnchorBtn || _lastClickedBtn;
+    if (btn) {
+        const r   = btn.getBoundingClientRect();
+        const tw  = 340;
+        const th  = 90; // conservative height estimate
+
+        // getBoundingClientRect() is viewport-relative, but body has contain:paint
+        // which makes position:fixed relative to the body origin, not the viewport.
+        // Add scroll offsets to convert viewport coords → document coords.
+        const scrollX = window.scrollX || 0;
+        const scrollY = window.scrollY || 0;
+
+        // Horizontal: align with button left edge, clamp to viewport width
+        let left = r.left;
+        if (left + tw > window.innerWidth - 12) left = window.innerWidth - tw - 12;
+        if (left < 8) left = 8;
+
+        // Vertical: above button if room, otherwise below
+        const top = r.top > th + 12 ? r.top - th - 8 : r.bottom + 8;
+
+        toast.style.left = `${Math.round(left + scrollX)}px`;
+        toast.style.top  = `${Math.round(top  + scrollY)}px`;
+    } else {
+        // Fallback: top-right of the current viewport
+        toast.style.top   = `${Math.round(20 + (window.scrollY || 0))}px`;
+        toast.style.right = '20px';
+    }
+
+    // Animate in (double rAF ensures the initial opacity:0 is painted first)
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        toast.style.opacity   = '1';
+        toast.style.transform = 'translateY(0)';
+    }));
+
+    // Auto-dismiss
+    _anchoredToastTimer = setTimeout(() => {
+        toast.style.opacity   = '0';
+        toast.style.transform = 'translateY(-8px)';
+        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 220);
+    }, duration);
+}
+
+// =============================================================================
+// CONFIRMATION ALERT DIALOG (mobile-safe replacement for window.alert/confirm)
+// =============================================================================
+
+let _alertDialogQueue = Promise.resolve();
+
+const _dialogBtnStyle = (primary) => [
+    primary
+        ? 'background:linear-gradient(135deg,#7877c6 0%,#5a4fcf 100%)'
+        : 'background:rgba(255,255,255,0.08)',
+    primary ? 'border:none' : 'border:1px solid rgba(255,255,255,0.15)',
+    'color:#fff', 'border-radius:8px', 'padding:9px 18px',
+    'font-weight:600', 'cursor:pointer', 'flex:1', 'font-size:0.9em',
+].join(';');
+
+/**
+ * Builds the shared overlay + message box used by both showAlertDialog and
+ * showConfirmDialog. Caller appends its own button(s) to the returned box.
+ */
+function _createDialogShell(title, message) {
+    // Full-screen, mostly-transparent click-blocker so the page behind
+    // can't be interacted with while the dialog is unacknowledged.
+    const overlay = document.createElement('div');
+    overlay.style.cssText = [
+        'position:fixed', 'inset:0', 'z-index:100000',
+        'background:rgba(0,0,0,0.35)',
+        'opacity:0', 'transition:opacity 0.15s ease',
+    ].join(';');
+
+    const box = document.createElement('div');
+    box.style.cssText = [
+        'position:fixed', 'z-index:100001', 'box-sizing:border-box',
+        'max-width:340px', 'min-width:220px', 'width:calc(100% - 24px)',
+        'background:#1a1a2e', 'border:1px solid rgba(255,255,255,0.12)',
+        'border-radius:12px', 'padding:16px 18px', 'color:#fff',
+        'box-shadow:0 12px 40px rgba(0,0,0,0.6)',
+        'opacity:0', 'transform:translateY(-8px)',
+        'transition:opacity 0.15s ease,transform 0.15s ease',
+    ].join(';');
+
+    const titleEl = document.createElement('div');
+    titleEl.style.cssText = 'font-weight:700;font-size:1.02em;margin-bottom:8px;color:#7877c6;overflow-wrap:anywhere;word-break:break-word';
+    titleEl.textContent = title;
+
+    const msgEl = document.createElement('div');
+    msgEl.style.cssText = 'color:#ddd;line-height:1.5;white-space:pre-line;margin-bottom:14px;font-size:0.92em;overflow-wrap:anywhere;word-break:break-word';
+    msgEl.textContent = message;
+
+    box.appendChild(titleEl);
+    box.appendChild(msgEl);
+
+    return { overlay, box };
+}
+
+/**
+ * Appends the dialog to the DOM and positions it next to the same anchor
+ * button/element showButtonToast uses (pinned via setButtonToastAnchor, or
+ * the last clicked button), instead of centering on the full viewport.
+ */
+function _showDialog(overlay, box) {
+    document.body.appendChild(overlay);
+    document.body.appendChild(box);
+
+    const anchorEl = _actionAnchorBtn || _lastClickedBtn;
+    const tw = 340;
+    const th = 130; // conservative height estimate
+    const scrollX = window.scrollX || 0;
+    const scrollY = window.scrollY || 0;
+
+    if (anchorEl) {
+        const r = anchorEl.getBoundingClientRect();
+        let left = r.left;
+        if (left + tw > window.innerWidth - 12) left = window.innerWidth - tw - 12;
+        if (left < 8) left = 8;
+
+        const top = r.top > th + 12 ? r.top - th - 8 : r.bottom + 8;
+
+        box.style.left = `${Math.round(left + scrollX)}px`;
+        box.style.top = `${Math.round(top + scrollY)}px`;
+    } else {
+        box.style.top = `${Math.round(20 + scrollY)}px`;
+        box.style.right = '20px';
+    }
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        overlay.style.opacity = '1';
+        box.style.opacity = '1';
+        box.style.transform = 'translateY(0)';
+    }));
+}
+
+function _closeDialog(overlay, box, resolve, result) {
+    // Stop blocking taps immediately — don't wait on the fade-out timer, which
+    // can be throttled/delayed if the tab gets backgrounded (e.g. switching to
+    // the wallet app), leaving an invisible-but-still-clickable overlay.
+    overlay.style.pointerEvents = 'none';
+    box.style.pointerEvents = 'none';
+    overlay.style.opacity = '0';
+    box.style.opacity = '0';
+    setTimeout(() => {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        if (box.parentNode) box.parentNode.removeChild(box);
+    }, 150);
+    resolve(result);
+}
+
+/**
+ * Shows a modal dialog and resolves once the user explicitly acknowledges it
+ * by clicking the button. Drop-in replacement for alert() in contexts where
+ * blocking native alerts don't work (e.g. MetaMask mobile's in-app browser).
+ * Multiple calls are queued so dialogs are shown one at a time.
+ * @param {string} message
+ * @param {string} title
+ * @returns {Promise<void>}
+ */
+export function showAlertDialog(message, title = 'Notice') {
+    _alertDialogQueue = _alertDialogQueue.then(() => new Promise((resolve) => {
+        const { overlay, box } = _createDialogShell(title, message);
+
+        const btn = document.createElement('button');
+        btn.textContent = 'OK, Got It';
+        btn.className = 'ui-dialog-btn';
+        btn.style.cssText = _dialogBtnStyle(true) + ';width:100%';
+        box.appendChild(btn);
+
+        _showDialog(overlay, box);
+
+        btn.addEventListener('click', () => _closeDialog(overlay, box, resolve));
+        btn.focus();
+    }));
+    return _alertDialogQueue;
+}
+
+/**
+ * Shows a Cancel/Confirm dialog anchored near the triggering button/element,
+ * resolving true if confirmed, false if cancelled. Drop-in replacement for
+ * window.confirm() in contexts where blocking native dialogs don't work
+ * (e.g. MetaMask mobile's in-app browser).
+ * @param {string} message
+ * @param {string} title
+ * @returns {Promise<boolean>}
+ */
+export function showConfirmDialog(message, title = 'Please Confirm') {
+    _alertDialogQueue = _alertDialogQueue.then(() => new Promise((resolve) => {
+        const { overlay, box } = _createDialogShell(title, message);
+
+        const btnRow = document.createElement('div');
+        btnRow.style.cssText = 'display:flex;gap:8px';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.className = 'ui-dialog-btn';
+        cancelBtn.style.cssText = _dialogBtnStyle(false);
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.textContent = 'Confirm';
+        confirmBtn.className = 'ui-dialog-btn';
+        confirmBtn.style.cssText = _dialogBtnStyle(true);
+
+        btnRow.appendChild(cancelBtn);
+        btnRow.appendChild(confirmBtn);
+        box.appendChild(btnRow);
+
+        _showDialog(overlay, box);
+
+        cancelBtn.addEventListener('click', () => _closeDialog(overlay, box, resolve, false));
+        confirmBtn.addEventListener('click', () => _closeDialog(overlay, box, resolve, true));
+        confirmBtn.focus();
+    }));
+    return _alertDialogQueue;
+}
+
 /**
  * Initialize notification widget after DOM is loaded
  */
@@ -513,14 +812,20 @@ export async function switchTab(tabName) {
         
 
     console.log("Switched to tab:", tabName);
-    updateURL(tabName);
+    // Bridge owns its own URL (adds &dir=/&asset= on top of ?bridge) via
+    // syncBridgeURLParams(), called from initBridgeTab() below — running the
+    // generic updateURL() here would collapse it back down to a bare ?bridge
+    // first, flashing an incomplete URL before the correct one lands.
+    if (tabName !== 'bridge') {
+        updateURL(tabName);
+    }
 
 
 
     if (!window.walletConnected) {
         console.log("Wallet not connected");
     }else{
-        if(tabName != 'convert' && tabName != "settings" && tabName != "contract-info" && tabName != "whitepaper" && tabName != "miner"){
+        if(tabName != 'convert' && tabName != 'bridge' && tabName != "settings" && tabName != "contract-info" && tabName != "whitepaper" && tabName != "miner"){
 
             await switchToBase();
         }
@@ -600,6 +905,15 @@ export async function switchTab(tabName) {
         if (typeof window.updateStakingValuesFromStored === 'function') {
             window.updateStakingValuesFromStored();
         }
+        // Re-render the "% of staking rewards" figure now that totalLiquidityInStakingContract
+        // is guaranteed fresh. The earlier "preload position data" step above (which populates
+        // positionData and first renders this same field) can run before getRewardStats() has
+        // resolved on a user's very first visit to this tab, using a stale total of 0 and showing
+        // a false 100%. Recomputing here — after getRewardStats() above — corrects it immediately
+        // instead of waiting for the user to touch the position dropdown.
+        if (typeof window.updateStakingDepositPositionInfo === 'function') {
+            window.updateStakingDepositPositionInfo();
+        }
     } else if (tabName === 'stake-increase' || tabName === 'stake-decrease') {
         // Load staking position data when switching to stake increase/decrease tabs
         if (window.walletConnected) {
@@ -645,10 +959,10 @@ export async function switchTab(tabName) {
         if (window.walletConnected && window.userAddress) {
             // Check if ETH balances not already loaded
             if (!window.walletBalancesETH || !window.walletBalancesETH['0xBTC']) {
+                // No chain switch needed — fetchBalancesETH reads via its own
+                // independent RPC provider (customRPC_ETH), not the wallet's
+                // active chain.
                 console.log('Loading ETH balances for convert tab...');
-                if (typeof window.switchToEthereum === 'function') {
-                    await window.switchToEthereum();
-                }
                 if (typeof window.fetchBalancesETH === 'function') {
                     try {
                         await window.fetchBalancesETH(
@@ -683,6 +997,16 @@ export async function switchTab(tabName) {
                     }
                 }
             }
+        }
+    } else if (tabName === 'Timelock') {
+        // Load timelock page data
+        if (typeof window.Timelock !== 'undefined' && typeof window.Timelock.loadTimelockPage === 'function') {
+            window.Timelock.loadTimelockPage();
+        }
+    } else if (tabName === 'bridge') {
+        // Load bridge page data (balances + tracked withdrawals)
+        if (typeof window.Bridge !== 'undefined' && typeof window.Bridge.initBridgeTab === 'function') {
+            window.Bridge.initBridgeTab();
         }
     } else {
         // Remove active class from all sub-tabs and sub-pages
@@ -808,6 +1132,18 @@ import { initEthers2, updateGraphData } from "./charts.js";
  * Switches stats sub-navigation tab
  * @param {string} tabName - Stats tab name
  */
+export function switchMinerTab(tabName) {
+    document.querySelectorAll('.miner-tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.miner-mode-tab').forEach(el => el.classList.remove('active'));
+    const content = document.getElementById('miner-tab-' + tabName);
+    const tab = document.querySelector(`.miner-mode-tab[data-miner-tab="${tabName}"]`);
+    if (content) content.classList.add('active');
+    if (tab) tab.classList.add('active');
+
+    // Keep the URL linkable to the specific miner mode (e.g. ?miner-pool, ?miner-fpga)
+    updateURL(tabName === 'solo' ? 'miner' : `miner-${tabName}`);
+}
+
 export async function switchTab2(tabName) {
     updateURL(tabName);
 
@@ -833,6 +1169,8 @@ export async function switchTab2(tabName) {
     // Now load data AFTER the page is visible (so "loading..." text shows)
     if (tabName == 'stats-staking-rich-list') {
         loadData2();
+    } else if (tabName == 'stats-guess-staking-rich-list') {
+        loadDataGuessStaking();
     } else if (tabName == 'stats-rich-list') {
         loadData();
     } else if (tabName == 'rich-list') {
@@ -871,6 +1209,9 @@ export function updateURL(tabName) {
     }
     if (tabName == "stats-staking-rich-list") {
         tabName = 'staking-rich-list';
+    }
+    if (tabName == "stats-guess-staking-rich-list") {
+        tabName = 'guess-staking-rich-list';
     }
     if (tabName == "stats-rich-list") {
         tabName = 'rich-list';
@@ -1118,9 +1459,19 @@ export function updateTokenIconCore(selectId, iconId, options = {}) {
     const iconSource = context === 'swapETH' ? tokenIconsETH : tokenIconsBase;
     const iconURL = iconSource[token];
 
-    if (iconURL) {
+    // On Ethereum, the "B0x" option actually represents two tokens (B0x +
+    // RightsTo0xBTC, per the "B0x Tokens & RightsTo0xBTC Tokens" option
+    // label) — show both icons side by side instead of just B0x's.
+    if (context === 'swapETH' && token === 'B0x' && iconSource['RightsTo0xBTC']) {
+        icon.classList.add('token-icon-dual');
+        icon.innerHTML =
+            `<img src="${iconSource['B0x']}" alt="B0x" class="token-icon222 token-icon222-dual" onerror="this.style.display='none'">` +
+            `<img src="${iconSource['RightsTo0xBTC']}" alt="RightsTo0xBTC" class="token-icon222 token-icon222-dual" onerror="this.style.display='none'">`;
+    } else if (iconURL) {
+        icon.classList.remove('token-icon-dual');
         icon.innerHTML = `<img src="${iconURL}" alt="${token}" class="token-icon222" onerror="this.parentElement.textContent='${token.charAt(0)}'">`;
     } else {
+        icon.classList.remove('token-icon-dual');
         icon.textContent = token.charAt(0);
     }
 
@@ -1413,8 +1764,15 @@ export function updatePositionInfoMAIN_STAKING() {
     }
 
     var positionLiq = parseFloat(position.currentLiquidity);
-    var percentOfStaking = positionLiq / (parseFloat(totalLiquidityInStakingContract.toString()) + positionLiq);
-    document.getElementById('estimatedRewards').value = percentOfStaking.toFixed(6) * 100 + "%";
+    var totalLiq = parseFloat(totalLiquidityInStakingContract.toString());
+    // totalLiquidityInStakingContract is 0 until getRewardStats() resolves; dividing against
+    // a stale 0 total makes any existing position falsely read as 100% of the pool.
+    if (totalLiq <= 0) {
+        document.getElementById('estimatedRewards').value = "Loading...";
+    } else {
+        var percentOfStaking = positionLiq / (totalLiq + positionLiq);
+        document.getElementById('estimatedRewards').value = (percentOfStaking * 100).toFixed(4) + "%";
+    }
     console.log("percent stats: percentOfStaking = ",percentOfStaking);
     console.log("percent stats: percentotalLiquidityInStakingContracttOfStaking = ",totalLiquidityInStakingContract);
     console.log("percent stats: positionLiq = ",positionLiq);
@@ -1842,6 +2200,13 @@ let filteredData = [];
 let currentPage = 1;
 let pageSize = 25;
 
+// State variables for Guess B0x staking rich list (loadDataGuessStaking)
+let guessStakingData = null;
+let allGuessStakingData = [];
+let filteredGuessStakingData = [];
+let currentPageGuessStaking = 1;
+let pageSizeGuessStaking = 25;
+
 // State variables for B0x rich list (loadData)
 let baseData = [];
 let ethData = [];
@@ -1879,10 +2244,9 @@ export async function loadData2() {
         updateStats55();
 
         // Convert users object to array for easier handling
-        allStakingData = Object.entries(stakingData.users).map(([address, data]) => ({
-            address,
-            ...data
-        }));
+        allStakingData = Object.entries(stakingData.users)
+            .map(([address, data]) => ({ address, ...data }))
+            .filter(user => Number(user.B0xStaked) > 0 || Number(user['0xBTCStaked']) > 0);
         filteredData = [...allStakingData];
 
         // Initial render
@@ -1948,15 +2312,284 @@ export async function loadData2() {
  */
 function updateStats55() {
     document.getElementById('lastBlock').textContent = stakingData.last_block;
-    document.getElementById('totalUsers').textContent = formatNumber(stakingData.user_addresses.length);
 
     // Calculate totals
     const users = Object.values(stakingData.users);
+    const usersWithBalance = users.filter(user => Number(user.B0xStaked) > 0 || Number(user['0xBTCStaked']) > 0);
+    document.getElementById('totalUsers').textContent = formatNumber(usersWithBalance.length);
+
     const totalB0xStaked = users.reduce((sum, user) => sum + user.B0xStaked, 0);
     const total0xBTCStaked = users.reduce((sum, user) => sum + user['0xBTCStaked'], 0);
 
     document.getElementById('totalB0xStaked').textContent = formatNumber(totalB0xStaked / 1e18);
     document.getElementById('total0xBTCStaked').textContent = formatNumber(total0xBTCStaked / 1e8);
+}
+
+/**
+ * Loads Guess B0x staking rich list data from primary or backup sources
+ * @async
+ */
+export async function loadDataGuessStaking() {
+    const primaryUrl = customDataSource + 'GuessB0xStakerBalances.json';
+    const backupUrl = customBACKUPDataSource + 'GuessB0xStakerBalances.json';
+
+    try {
+        document.getElementById('tableContentGuessStaking').innerHTML = '<div class="loading55">Loading Guess B0x staking data...</div>';
+
+        console.log('Fetching Guess B0x staking data from primary source...');
+        const response = await fetch(primaryUrl);
+        console.log("RESPONSE URL: ", primaryUrl);
+
+        if (!response.ok) {
+            throw new Error(`Primary source failed with status: ${response.status}`);
+        }
+
+        guessStakingData = await response.json();
+        console.log('✅ Primary source successful for Guess B0x staking data');
+
+        processGuessStakingData();
+
+    } catch (primaryError) {
+        console.warn('⚠️ Primary source failed for Guess B0x staking data:', primaryError.message);
+        console.log('🔄 Falling back to GitHub backup for Guess B0x staking data...');
+
+        try {
+            document.getElementById('tableContentGuessStaking').innerHTML = '<div class="loading55">Loading Guess B0x staking data from backup...</div>';
+
+            const backupResponse = await fetch(backupUrl);
+
+            if (!backupResponse.ok) {
+                throw new Error(`Backup source failed with status: ${backupResponse.status}`);
+            }
+
+            guessStakingData = await backupResponse.json();
+            console.log('✅ Backup source successful for Guess B0x staking data');
+
+            processGuessStakingData();
+
+            // Optional: Show user that backup data is being used
+            const tableHeader = document.querySelector('#tableContentGuessStaking');
+            if (tableHeader) {
+                const backupNotice = document.createElement('div');
+                backupNotice.className = 'backup-notice';
+                backupNotice.style.cssText = 'background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 8px; margin-bottom: 10px; border-radius: 4px; font-size: 12px;';
+                backupNotice.innerHTML = '⚠️ Using backup data source - some data may be slightly delayed';
+                tableHeader.insertBefore(backupNotice, tableHeader.firstChild);
+            }
+
+        } catch (backupError) {
+            console.error('❌ Both primary and backup sources failed for Guess B0x staking data!');
+            console.error('Primary error:', primaryError.message);
+            console.error('Backup error:', backupError.message);
+
+            document.getElementById('tableContentGuessStaking').innerHTML =
+                '<div class="error">Failed to load data from all sources. Please check your connection and try again.</div>';
+        }
+    }
+}
+
+/**
+ * Processes loaded Guess B0x staking data into stats + table
+ */
+function processGuessStakingData() {
+    allGuessStakingData = Object.entries(guessStakingData.users)
+        .map(([address, data]) => ({ address, ...data }))
+        .filter(user => parseFloat(user.staking_balance) > 0);
+
+    filteredGuessStakingData = [...allGuessStakingData];
+
+    updateStatsGuessStaking();
+
+    currentPageGuessStaking = 1;
+    renderTableGuessStaking();
+    renderPaginationGuessStaking();
+}
+
+/**
+ * Updates statistics for the Guess B0x staking rich list
+ */
+function updateStatsGuessStaking() {
+    const generatedAtEl = document.getElementById('guessStakeLastUpdated');
+    if (generatedAtEl) {
+        const generatedAt = new Date(guessStakingData.generated_at);
+        generatedAtEl.textContent = isNaN(generatedAt.getTime())
+            ? guessStakingData.generated_at
+            : generatedAt.toLocaleString();
+    }
+
+    document.getElementById('guessStakeTotalUsers').textContent = formatNumber(allGuessStakingData.length);
+
+    const poolBalance = parseFloat(guessStakingData.pool_balance) / 1e18;
+    document.getElementById('guessStakePoolBalance').textContent = poolBalance.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+/**
+ * Renders table for the Guess B0x staking rich list
+ */
+export function renderTableGuessStaking() {
+    const sortedData = [...filteredGuessStakingData].sort((a, b) => {
+        return parseFloat(b.withdrawable_b0x) - parseFloat(a.withdrawable_b0x);
+    });
+
+    const start = (currentPageGuessStaking - 1) * pageSizeGuessStaking;
+    const end = start + pageSizeGuessStaking;
+    const pageData = sortedData.slice(start, end);
+
+    let tableHTML = `
+        <style>
+            .address-link {
+                color: white !important;
+                text-decoration: none;
+            }
+            .address-link:visited,
+            .address-link:hover,
+            .address-link:active {
+                color: white !important;
+            }
+            .address-link:hover {
+                text-decoration: underline;
+            }
+        </style>
+        <table>
+            <thead>
+                <tr>
+                <th style="font-size: 1em; padding: 3px 4px;">Rank</th>
+                <th style="font-size: 3em; padding: 12px 16px;">Address</th>
+                <th style="font-size: 3em; padding: 12px 16px;">Withdrawable B0x</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    const globalStart = (currentPageGuessStaking - 1) * pageSizeGuessStaking;
+    pageData.forEach((user, index) => {
+        const rank = globalStart + index + 1;
+
+        const withdrawableB0x = parseFloat(user.withdrawable_b0x_formatted ?? (parseFloat(user.withdrawable_b0x) / 1e18));
+        const withdrawableFormatted = withdrawableB0x.toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: withdrawableB0x > 999.999 ? 0 : withdrawableB0x > 19.999 ? 1 : withdrawableB0x > 1.999 ? 2 : 6
+        });
+
+        // unlock_time_iso (preferred) or unlock_time (unix seconds) tells us when the lock releases
+        const unlockMs = user.unlock_time_iso
+            ? Date.parse(user.unlock_time_iso)
+            : (user.unlock_time ? parseInt(user.unlock_time, 10) * 1000 : NaN);
+        let unlockHTML = '';
+        if (!isNaN(unlockMs)) {
+            const unlockDateStr = new Date(unlockMs).toLocaleDateString('en-US');
+            unlockHTML = unlockMs <= Date.now()
+                ? `<br><span style="font-size:0.75em;color:#4caf50">Unlocked @ ${unlockDateStr}</span>`
+                : `<br><span style="font-size:0.75em;color:#fff">Locked: Unlocks @ ${unlockDateStr}</span>`;
+        }
+
+        tableHTML += `
+            <tr>
+                <td class="rank55">${rank}</td>
+                <td>
+                    <a href="https://basescan.org/address/${user.address}"
+                       target="_blank"
+                       class="address55 address-link"
+                       title="${user.address}">
+                        ${user.address}
+                    </a>
+                    ${user.owner ? `
+                    <br>
+                    <a href="https://basescan.org/address/${user.owner}"
+                       target="_blank"
+                       class="address-link"
+                       title="${user.owner}"
+                       style="font-size:0.75em">
+                        Owned By: ${user.owner}
+                    </a>` : ''}
+                    ${unlockHTML}
+                </td>
+                <td class="balance55">${withdrawableFormatted}</td>
+            </tr>
+        `;
+    });
+
+    tableHTML += '</tbody></table>';
+    document.getElementById('tableContentGuessStaking').innerHTML = tableHTML;
+
+    adjustTableForScreenSize();
+}
+
+/**
+ * Renders pagination for the Guess B0x staking rich list
+ */
+export function renderPaginationGuessStaking() {
+    const totalPages = Math.ceil(filteredGuessStakingData.length / pageSizeGuessStaking);
+    const pagination = document.getElementById('paginationGuessStaking');
+
+    if (totalPages <= 1) {
+        pagination.style.display = 'none';
+        return;
+    }
+
+    pagination.style.display = 'flex';
+
+    let paginationHTML = `
+        <button onclick="changePageGuessStaking(${currentPageGuessStaking - 1})" ${currentPageGuessStaking === 1 ? 'disabled' : ''}>
+            Previous
+        </button>
+    `;
+
+    const startPage = Math.max(1, currentPageGuessStaking - 2);
+    const endPage = Math.min(totalPages, startPage + 4);
+
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <button onclick="changePageGuessStaking(${i})" class="${i === currentPageGuessStaking ? 'active' : ''}">
+                ${i}
+            </button>
+        `;
+    }
+
+    paginationHTML += `
+        <button onclick="changePageGuessStaking(${currentPageGuessStaking + 1})" ${currentPageGuessStaking === totalPages ? 'disabled' : ''}>
+            Next
+        </button>
+        <span class="pagination55-info">
+            Showing ${(currentPageGuessStaking - 1) * pageSizeGuessStaking + 1}-${Math.min(currentPageGuessStaking * pageSizeGuessStaking, filteredGuessStakingData.length)}
+            of ${filteredGuessStakingData.length} users
+        </span>
+    `;
+
+    pagination.innerHTML = paginationHTML;
+}
+
+/**
+ * Changes page for Guess B0x staking rich list pagination
+ * @param {number} page - Page number to navigate to
+ */
+export function changePageGuessStaking(page) {
+    const totalPages = Math.ceil(filteredGuessStakingData.length / pageSizeGuessStaking);
+    if (page < 1 || page > totalPages) return;
+    currentPageGuessStaking = page;
+    renderTableGuessStaking();
+    renderPaginationGuessStaking();
+}
+
+/**
+ * Filters Guess B0x staking rich list data based on search input
+ */
+export function filterDataGuessStaking() {
+    const searchBox = document.getElementById('searchBoxGuessStaking');
+    const searchTerm = searchBox ? searchBox.value.toLowerCase() : '';
+
+    if (searchTerm === '' || allGuessStakingData.length === 0) {
+        filteredGuessStakingData = [...allGuessStakingData];
+    } else {
+        filteredGuessStakingData = allGuessStakingData.filter(user =>
+            user.address.toLowerCase().includes(searchTerm) ||
+            (user.owner && user.owner.toLowerCase().includes(searchTerm))
+        );
+    }
+
+    currentPageGuessStaking = 1;
+    renderTableGuessStaking();
+    renderPaginationGuessStaking();
 }
 
 /**
@@ -2055,6 +2688,9 @@ function combineData() {
     baseData.holders.forEach(holder => {
         addressMap.set(holder.address, {
             address: holder.address,
+            owner: holder.owner || null,
+            unlock_time: holder.unlock_time ?? null,
+            unlock_time_iso: holder.unlock_time_iso ?? null,
             b0xBalance: parseFloat(holder.balanceFormatted) || 0,
             b0xBalanceRaw: holder.balance,
             ethB0xBalance: 0,
@@ -2068,9 +2704,17 @@ function combineData() {
         if (existing) {
             existing.ethB0xBalance = parseFloat(holder.balanceFormatted) || 0;
             existing.ethB0xBalanceRaw = holder.balance;
+            if (!existing.owner && holder.owner) existing.owner = holder.owner;
+            if (!existing.unlock_time_iso && holder.unlock_time_iso) {
+                existing.unlock_time = holder.unlock_time ?? null;
+                existing.unlock_time_iso = holder.unlock_time_iso ?? null;
+            }
         } else {
             addressMap.set(holder.address, {
                 address: holder.address,
+                owner: holder.owner || null,
+                unlock_time: holder.unlock_time ?? null,
+                unlock_time_iso: holder.unlock_time_iso ?? null,
                 b0xBalance: 0,
                 b0xBalanceRaw: '0',
                 ethB0xBalance: parseFloat(holder.balanceFormatted) || 0,
@@ -2161,7 +2805,8 @@ export function filterData2() {
         filteredData2 = [...combinedData];
     } else {
         filteredData2 = combinedData.filter(holder =>
-            holder.address.toLowerCase().includes(searchTerm)
+            holder.address.toLowerCase().includes(searchTerm) ||
+            (holder.owner && holder.owner.toLowerCase().includes(searchTerm))
         );
     }
 
@@ -2192,7 +2837,8 @@ export function filterData() {
         filteredData = [...allStakingData];
     } else {
         filteredData = allStakingData.filter(user =>
-            user.address.toLowerCase().includes(searchTerm)
+            user.address.toLowerCase().includes(searchTerm) ||
+            (user.owner && user.owner.toLowerCase().includes(searchTerm))
         );
     }
 
@@ -2268,6 +2914,23 @@ export function initRichListEventListeners() {
         });
     }
 
+    // Guess B0x staking rich list - Search box event listener
+    const searchBoxGuessStaking = document.getElementById('searchBoxGuessStaking');
+    if (searchBoxGuessStaking) {
+        searchBoxGuessStaking.addEventListener('input', filterDataGuessStaking);
+    }
+
+    // Guess B0x staking rich list - Page size dropdown event listener
+    const pageSizeGuessStakingEl = document.getElementById('pageSizeGuessStaking');
+    if (pageSizeGuessStakingEl) {
+        pageSizeGuessStakingEl.addEventListener('change', function () {
+            pageSizeGuessStaking = parseInt(this.value);
+            currentPageGuessStaking = 1;
+            renderTableGuessStaking();
+            renderPaginationGuessStaking();
+        });
+    }
+
     console.log('Rich list event listeners initialized');
 }
 
@@ -2284,8 +2947,9 @@ function adjustTableForScreenSize() {
 
     const activeTab2 = activeTab.getAttribute('data-tab');
 
-    if (activeTab2 == 'stats-staking-rich-list') {
-        const table = document.querySelector('#tableContent55 table');
+    if (activeTab2 == 'stats-staking-rich-list' || activeTab2 == 'stats-guess-staking-rich-list') {
+        const containerId = activeTab2 == 'stats-staking-rich-list' ? 'tableContent55' : 'tableContentGuessStaking';
+        const table = document.querySelector(`#${containerId} table`);
         if (!table) return;
 
         const screenWidth = window.innerWidth;
@@ -2669,6 +3333,18 @@ export function renderTable2() {
             });
         }
 
+        // unlock_time_iso (preferred) or unlock_time (unix seconds) tells us when the lock releases
+        const unlockMs = user.unlock_time_iso
+            ? Date.parse(user.unlock_time_iso)
+            : (user.unlock_time ? parseInt(user.unlock_time, 10) * 1000 : NaN);
+        let unlockHTML = '';
+        if (!isNaN(unlockMs)) {
+            const unlockDateStr = new Date(unlockMs).toLocaleDateString('en-US');
+            unlockHTML = unlockMs <= Date.now()
+                ? `<br><span style="font-size:0.75em;color:#4caf50">Unlocked @ ${unlockDateStr}</span>`
+                : `<br><span style="font-size:0.75em;color:#fff">Locked: Unlocks @ ${unlockDateStr}</span>`;
+        }
+
         tableHTML += `
             <tr>
                 <td class="rank55">${rank}</td>
@@ -2679,6 +3355,16 @@ export function renderTable2() {
                        title="${user.address}">
                         ${user.address}
                     </a>
+                    ${user.owner ? `
+                    <br>
+                    <a href="https://basescan.org/address/${user.owner}"
+                       target="_blank"
+                       class="address-link"
+                       title="${user.owner}"
+                       style="font-size:0.75em">
+                        Owned By: ${user.owner}
+                    </a>` : ''}
+                    ${unlockHTML}
                 </td>
                 <td class="balance55">${b0xStakedFormatted}</td>
                 <td class="balance55">${btcStakedFormatted}</td>
@@ -2760,6 +3446,13 @@ export function renderTable() {
     const screenWidth = window.innerWidth;
     const maxDecimals = screenWidth <= 650 ? 1 : 6;
 
+    // These two holders' "owner" field is not a delegated/vault relationship
+    // worth surfacing, so the "Owned By" line is suppressed for them only.
+    const OWNER_DISPLAY_EXCLUDED_ADDRESSES = [
+        '0x08f489C5017942d3b7c82C1c178877C80492c948',
+        '0x498581fF718922c3f8e6A244956aF099B2652b2b'
+    ].map(addr => addr.toLowerCase());
+
     pageData.forEach((holder, index) => {
         var rank = "";
         if (sortByB0xBaseChain) {
@@ -2767,11 +3460,35 @@ export function renderTable() {
         } else {
             rank = holder.rankETHb0x;
         }
+        const showOwner = holder.owner && !OWNER_DISPLAY_EXCLUDED_ADDRESSES.includes(holder.address.toLowerCase());
+
+        // unlock_time_iso (preferred) or unlock_time (unix seconds) tells us when the lock releases
+        const unlockMs = holder.unlock_time_iso
+            ? Date.parse(holder.unlock_time_iso)
+            : (holder.unlock_time ? parseInt(holder.unlock_time, 10) * 1000 : NaN);
+        let unlockHTML = '';
+        if (!isNaN(unlockMs)) {
+            const unlockDateStr = new Date(unlockMs).toLocaleDateString('en-US');
+            unlockHTML = unlockMs <= Date.now()
+                ? `<br><span style="font-size:0.75em;color:#4caf50">Unlocked @ ${unlockDateStr}</span>`
+                : `<br><span style="font-size:0.75em;color:#fff">Locked: Unlocks @ ${unlockDateStr}</span>`;
+        }
+
         tableHTML += `
             <tr>
                 <td class="spot-rich">${rank}</td>
                 <td class="address-rich" data-full-address="${holder.address}">
                     <a href="${_BLOCK_EXPLORER_ADDRESS_URL}${holder.address}" target="_blank">${holder.address}</a>
+                    ${showOwner ? `
+                    <br>
+                    <a href="${_BLOCK_EXPLORER_ADDRESS_URL}${holder.owner}"
+                       target="_blank"
+                       class="address-link"
+                       title="${holder.owner}"
+                       style="font-size:0.75em">
+                        Owned By: ${holder.owner}
+                    </a>` : ''}
+                    ${unlockHTML}
                 </td>
                 <td class="balance-rich">${holder.b0xBalance.toLocaleString(undefined, { maximumFractionDigits: maxDecimals })}</td>
                 <td class="balance-rich">${holder.ethB0xBalance.toLocaleString(undefined, { maximumFractionDigits: maxDecimals })}</td>
@@ -3043,6 +3760,37 @@ export async function updateStatsDisplay(stats) {
         const lastBaseBlockEl = document.querySelector('.stat-value-lastBaseBlock');
         if (lastBaseBlockEl && stats.blockNumber) {
             lastBaseBlockEl.textContent = parseInt(stats.blockNumber);
+        }
+
+        // Update B0x Guess Available Pool Balance (balanceOf(B0xGuess) - unreleased)
+        const guessPoolBalanceEl = document.querySelector('.stat-value-guessPoolBalance');
+        if (guessPoolBalanceEl && stats.b0xGuessAvailableBalance) {
+            const available = parseFloat(stats.b0xGuessAvailableBalance) / 1e18;
+            const availableMaxDigits = available > 10000 ? 0 : 4;
+            guessPoolBalanceEl.innerHTML = `${available.toLocaleString(undefined, {maximumFractionDigits: availableMaxDigits})} <span class="unit">B0x</span>`;
+        }
+
+        // Update LP Staking Pool current B0x staked
+        const lpB0xStakedEl = document.querySelector('.stat-value-lpB0xStaked');
+        if (lpB0xStakedEl && stats.lpTotalB0xStaked) {
+            const b0xStaked = parseFloat(stats.lpTotalB0xStaked) / 1e18;
+            const b0xStakedMaxDigits = b0xStaked > 10000 ? 0 : 4;
+            lpB0xStakedEl.innerHTML = `${b0xStaked.toLocaleString(undefined, {maximumFractionDigits: b0xStakedMaxDigits})} <span class="unit">B0x</span>`;
+        }
+
+        // Update LP Staking Pool current 0xBTC staked
+        const lp0xBTCStakedEl = document.querySelector('.stat-value-lp0xBTCStaked');
+        if (lp0xBTCStakedEl && stats.lpTotal0xBTCStaked) {
+            const btcStaked = parseFloat(stats.lpTotal0xBTCStaked) / 1e8;
+            const btcStakedMaxDigits = btcStaked > 10000 ? 0 : 4;
+            lp0xBTCStakedEl.innerHTML = `${btcStaked.toLocaleString(undefined, {maximumFractionDigits: btcStakedMaxDigits})} <span class="unit">0xBTC</span>`;
+        }
+
+        // Update Max Possible Circulating B0x (PoW contract's getCirculatingSupply)
+        const circulatingSupplyEl = document.querySelector('.stat-value-circulatingSupply');
+        if (circulatingSupplyEl && stats.circulatingSupply) {
+            const circulating = parseFloat(stats.circulatingSupply) / 1e18;
+            circulatingSupplyEl.innerHTML = `${circulating.toLocaleString(undefined, {maximumFractionDigits: 0})} <span class="unit">B0x</span>`;
         }
 
         // Update Absolute Max Supply (fixed value: 31,165,100 B0x)
@@ -3988,6 +4736,7 @@ export default {
     switchTabForStats,
     showStatsPageDirect,
     switchTab2,
+    switchMinerTab,
     updateURL,
 
     // Wallet UI
@@ -4050,11 +4799,18 @@ export default {
     // Rich List Data Loading
     loadData2,
     loadData,
+    loadDataGuessStaking,
 
     // Rich List Controls
     changePage,
     changePage2,
     filterData,
     filterData2,
-    initRichListEventListeners
+    initRichListEventListeners,
+
+    // Guess B0x Staking Rich List
+    renderTableGuessStaking,
+    renderPaginationGuessStaking,
+    changePageGuessStaking,
+    filterDataGuessStaking
 };

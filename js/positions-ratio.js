@@ -17,8 +17,9 @@ import { positionData, stakingPositionData, updateTotalLiqIncrease, getTokenIDsO
 import { updateTotalLiqIncreaseSTAKING } from './staking.js';
 import { customRPC } from './settings.js';
 import { getEstimate } from './swaps.js';
-import { showSuccessNotification, showInfoNotification } from './ui.js';
+import { showSuccessNotification, showInfoNotification, showButtonToast, setButtonToastAnchor, clearButtonToastAnchor } from './ui.js';
 import { fetchBalances } from './utils.js';
+import { triggerRefresh, isSearchingLogs, sleep } from './data-loader.js';
 // Note: Using window.checkAdminAccess instead of direct import to avoid circular dependency
 
 // Create aliases for commonly used addresses
@@ -926,6 +927,9 @@ async function getRatioCreatePositiontokenB() {
         return;
     }
 
+    setButtonToastAnchor(amountInputB);
+    try {
+
     const tokenASelect = document.querySelector('#create .form-group:nth-child(1) select');
     const tokenBSelect = document.querySelector('#create .form-group:nth-child(2) select');
 
@@ -986,7 +990,7 @@ async function getRatioCreatePositiontokenB() {
     const wallet_zeroxbtc = ethers.utils.parseUnits(walletBalances['0xBTC'], 8).toString();
 
     if (parseFloat(zeroxbtcdecimal) > parseFloat(wallet_zeroxbtc)) {
-        alert("Too much 0xBTC - you don't have enough, lower the amount!");
+        showButtonToast('error', 'Insufficient Balance', "Too much 0xBTC - you don't have enough, lower the amount!");
         if (typeof window.getMaxCreatePosition === 'function') {
             await window.getMaxCreatePosition();
         }
@@ -997,7 +1001,7 @@ async function getRatioCreatePositiontokenB() {
     const wallet_b0x = ethers.utils.parseUnits(walletBalances['B0x'], 18).toString();
 
     if (parseFloat(b0xdecimal) > parseFloat(wallet_b0x)) {
-        alert("Too much B0x - you don't have enough, lower the amount!");
+        showButtonToast('error', 'Insufficient Balance', "Too much B0x - you don't have enough, lower the amount!");
         if (typeof window.getMaxCreatePosition === 'function') {
             await window.getMaxCreatePosition();
         }
@@ -1023,6 +1027,7 @@ async function getRatioCreatePositiontokenB() {
     } catch (error) {
         console.error(`Error in getRatioCreatePositiontokenB:`, error);
     }
+    } finally { clearButtonToastAnchor(); }
 }
 
 /**
@@ -1057,6 +1062,9 @@ async function getRatioCreatePositiontokenA() {
         console.error("Could not find amount input fields");
         return;
     }
+
+    setButtonToastAnchor(amountInputA);
+    try {
 
     const tokenAInput = amountInputA.value;
     const tokenBInput = amountInputB.value;
@@ -1108,7 +1116,7 @@ async function getRatioCreatePositiontokenA() {
     const wallet_zeroxbtc = ethers.utils.parseUnits(walletBalances['0xBTC'], 8).toString();
 
     if (parseFloat(zeroxbtcdecimal) > parseFloat(wallet_zeroxbtc)) {
-        alert("Too much 0xBTC - you don't have enough, lower the amount!");
+        showButtonToast('error', 'Insufficient Balance', "Too much 0xBTC - you don't have enough, lower the amount!");
         if (typeof window.getMaxCreatePosition === 'function') {
             await window.getMaxCreatePosition();
         }
@@ -1119,7 +1127,7 @@ async function getRatioCreatePositiontokenA() {
     const wallet_b0x = ethers.utils.parseUnits(walletBalances['B0x'], 18).toString();
 
     if (parseFloat(b0xdecimal) > parseFloat(wallet_b0x)) {
-        alert("Too much B0x - you don't have enough, lower the amount!");
+        showButtonToast('error', 'Insufficient Balance', "Too much B0x - you don't have enough, lower the amount!");
         if (typeof window.getMaxCreatePosition === 'function') {
             await window.getMaxCreatePosition();
         }
@@ -1143,6 +1151,7 @@ async function getRatioCreatePositiontokenA() {
     } catch (error) {
         console.error(`Error in getRatioCreatePositiontokenA:`, error);
     }
+    } finally { clearButtonToastAnchor(); }
 }
 
 // ============================================
@@ -1954,6 +1963,8 @@ async function approveIfNeeded(tokenToApprove, spenderAddress, requiredAmount) {
  * @returns {Promise<void>}
  */
 export async function getCreatePosition() {
+    setButtonToastAnchor('getCreatePositionBtn');
+    try {
     if (!getWalletConnected()) {
         await connectWallet();
     }
@@ -2078,7 +2089,7 @@ export async function getCreatePosition() {
     console.log("amountWith8Decimals0xBTC: ", zeroxbtcdecimal);
     console.log("wallet_zeroxbtc: ", wallet_zeroxbtc);
     if (parseFloat(zeroxbtcdecimal) > parseFloat(wallet_zeroxbtc)) {
-        alert("too much 0xbtc u dont have lower it!.");
+        showButtonToast('error', 'Insufficient Balance', "too much 0xbtc u dont have lower it!.");
         await getMaxCreatePosition();
         enableButton('getCreatePositionBtn', 'Create Position');
         return;
@@ -2090,7 +2101,7 @@ export async function getCreatePosition() {
     console.log("wallet_b0x: ", wallet_b0x);
 
     if (parseFloat(b0xdecimal) > parseFloat(wallet_b0x)) {
-        alert("too much b0x u dont have lower it!.");
+        showButtonToast('error', 'Insufficient Balance', "too much b0x u dont have lower it!.");
         await getMaxCreatePosition();
         enableButton('getCreatePositionBtn', 'Create Position');
         return;
@@ -2135,7 +2146,7 @@ export async function getCreatePosition() {
         console.log("Current_getsqrtPricex96: ", getCurrentSqrtPricex96().toString());
         console.log("HookAddress: ", HookAddress.toString());
 
-        alert("approving tokens for create position!");
+        showButtonToast('info', 'Approving', 'Approving tokens for create position!');
         await approveIfNeeded(tokenAddress, contractAddress_Swapper, amountToDepositBN);
         await approveIfNeeded(Address_ZEROXBTC_TESTNETCONTRACT, contractAddress_Swapper, amountToDepositBN2);
 
@@ -2175,14 +2186,32 @@ export async function getCreatePosition() {
         enableButton('getCreatePositionBtn', 'Create Position');
         fetchBalances();
 
+        // Force the background NFT-owner scanner to pick up the newly minted
+        // position immediately, instead of waiting for its next 3-minute cycle
+        // (this is the same call wallet.js makes on reconnect, which is why
+        // reconnecting was the only thing that surfaced new positions before).
+        triggerRefresh();
+        let waitedForScan = 0;
+        while (!isSearchingLogs() && waitedForScan < 3000) {
+            await sleep(100);
+            waitedForScan += 100;
+        }
+
         await getTokenIDsOwnedByMetamask(true);
         if (window.checkAdminAccess) await window.checkAdminAccess();
         await loadPositionsIntoDappSelections();
+        if (window.Timelock) {
+            window.Timelock.renderAllowedNFTs();
+            if (typeof window.Timelock.refreshSelectedVault === 'function') {
+                await window.Timelock.refreshSelectedVault();
+            }
+        }
 
     } catch (error) {
         console.error(`Error create Position:`, error);
         enableButton('getCreatePositionBtn', 'Create Position');
     }
+    } finally { clearButtonToastAnchor(); }
 }
 
 // ============================================

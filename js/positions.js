@@ -18,7 +18,7 @@ import {
     tokenIconsBase,
     hookAddress
 } from './config.js';
-import { showSuccessNotification, showErrorNotification, showInfoNotification, hideLoadingWidget, showLoadingWidget, updateLoadingStatusWidget, setLoadingProgress } from './ui.js';
+import { showSuccessNotification, showErrorNotification, showInfoNotification, hideLoadingWidget, showLoadingWidget, updateLoadingStatusWidget, setLoadingProgress, showAlertDialog } from './ui.js';
 import { POSITION_FINDER_ABI } from './abis.js';
 import { getSqrtRatioAtTick, approveTokensViaPermit2, toBigNumber } from './contracts.js';
 import { getSymbolFromAddress, tokenAddressesDecimals, fetchBalances } from './utils.js';
@@ -1351,12 +1351,13 @@ export async function increaseLiquidity() {
         showSuccessNotification('Increase Liquidity Complete!', 'Transaction confirmed on blockchain', tx.hash);
 
         enableButton('increaseLiquidityBtn', 'Increase Liquidity');
-        alert("Successfully increased liquidity of position");
+        await showAlertDialog("Successfully increased liquidity of position");
 
         await new Promise(resolve => setTimeout(resolve, 1000));
         fetchBalances();
         await new Promise(resolve => setTimeout(resolve, 1000));
         await getTokenIDsOwnedByMetamask(true); // Force refresh after liquidity change
+        if (window.Timelock) window.Timelock.renderAllowedNFTs();
     } catch (error) {
         console.error(`Error increasing liquidity:`, error);
         showErrorNotification('Operation Failed', error.message || 'Failed to increase liquidity');
@@ -1568,7 +1569,7 @@ export async function decreaseLiquidity() {
             [actions, params]
         );
 
-        alert("Decreasing Liquidity now! Approve Transaction!");
+        await showAlertDialog("Decreasing Liquidity now! Approve Transaction!");
         showInfoNotification('Confirm Decrease Liquidity', 'Confirm the decrease in liquidity transaction in your wallet');
 
         const tx = await positionManagerContract.modifyLiquidities(callData, deadline, { gasLimit: 10000000 });
@@ -1582,12 +1583,13 @@ export async function decreaseLiquidity() {
         showSuccessNotification('Decrease Liquidity Complete!', 'Transaction confirmed on blockchain', tx.hash);
 
         console.log("Transaction confirmed in block:", receipt.blockNumber);
-        alert("Successfully decreased liquidity of your Uniswap position");
+        await showAlertDialog("Successfully decreased liquidity of your Uniswap position");
 
         await new Promise(resolve => setTimeout(resolve, 1000));
         fetchBalances();
         await new Promise(resolve => setTimeout(resolve, 1000));
         getTokenIDsOwnedByMetamask(true); // Force refresh after liquidity change
+        if (window.Timelock) window.Timelock.renderAllowedNFTs();
     } catch (error) {
         enableButton('decreaseLiquidityBtn', 'Decrease Liquidity and Claim Fees');
         console.error(`Error decreasing liquidity:`, error);
@@ -1672,11 +1674,19 @@ export function updateStakingDepositPositionInfo() {
     // Calculate estimated percent of staking rewards
     const positionLiq = parseFloat(position.currentLiquidity);
     const totalLiq = parseFloat(totalLiquidityInStakingContract.toString());
-    const percentOfStaking = positionLiq / (totalLiq + positionLiq);
-
     const estimatedRewardsEl = document.getElementById('estimatedRewards');
-    if (estimatedRewardsEl) {
-        estimatedRewardsEl.value = (percentOfStaking * 100).toFixed(4) + "%";
+
+    // totalLiquidityInStakingContract is 0 until getRewardStats() resolves. Computing the
+    // ratio against a stale 0 total (rather than waiting for the real total) makes any
+    // existing position look like 100% of the pool, which is never actually true.
+    let percentOfStaking;
+    if (totalLiq <= 0) {
+        if (estimatedRewardsEl) estimatedRewardsEl.value = "Loading...";
+    } else {
+        percentOfStaking = positionLiq / (totalLiq + positionLiq);
+        if (estimatedRewardsEl) {
+            estimatedRewardsEl.value = (percentOfStaking * 100).toFixed(4) + "%";
+        }
     }
 
     console.log("updateStakingDepositPositionInfo - percentOfStaking:", percentOfStaking);

@@ -27,6 +27,40 @@ export const ERC20_ABI = [
 ];
 
 // ============================================
+// B0xGuess ABI (partial)
+// ============================================
+
+/**
+ * Minimal B0xGuess ABI - just the `unreleased` view used to compute the
+ * available staking pool balance (stakedToken.balanceOf(B0xGuess) - unreleased)
+ */
+export const B0XGUESS_ABI = [
+    { "inputs": [], "name": "unreleased", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }
+];
+
+// ============================================
+// LP Rewards Staking ABI (partial)
+// ============================================
+
+/**
+ * Minimal LP Rewards Staking ABI - just the `getContractTotals` view used to
+ * get the current B0x and 0xBTC staked in the LP Staking Pool
+ */
+export const LP_STAKING_ABI = [
+    {
+        "inputs": [],
+        "name": "getContractTotals",
+        "outputs": [
+            { "internalType": "uint128", "name": "liquidityInStaking", "type": "uint128" },
+            { "internalType": "uint256", "name": "total0xBTCStaked", "type": "uint256" },
+            { "internalType": "uint256", "name": "totalB0xStaked", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+];
+
+// ============================================
 // SWAP/ROUTING ABIs
 // ============================================
 
@@ -244,7 +278,8 @@ export const CONTRACT_ABI = [
     { "inputs": [], "name": "rewardEra", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
     { "inputs": [], "name": "readjustsToWhatDifficulty", "outputs": [{ "internalType": "uint256", "name": "newDifficulty", "type": "uint256" }], "stateMutability": "view", "type": "function" },
     { "inputs": [], "name": "tokensMinted", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
-    { "inputs": [], "name": "maxSupplyForEra", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }
+    { "inputs": [], "name": "maxSupplyForEra", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+    { "inputs": [], "name": "getCirculatingSupply", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }
 ];
 
 // ============================================

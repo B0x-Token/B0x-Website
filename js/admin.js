@@ -10,7 +10,7 @@
 
 // Import dependencies
 import { hookAddress, contractAddressLPRewardsStaking, tokenAddresses } from './config.js';
-import { showSuccessNotification, showErrorNotification, showInfoNotification } from './ui.js';
+import { showSuccessNotification, showErrorNotification, showInfoNotification, showAlertDialog } from './ui.js';
 import { connectWallet } from './wallet.js';
 
 // ============================================
@@ -266,7 +266,7 @@ export async function updateAdminFeeForPool() {
     }
 
     try {
-        alert("UPDATING MAIN POOL FEE");
+        await showAlertDialog("UPDATING MAIN POOL FEE");
 
         const feeInput = document.getElementById('UpdateAdminFee');
         if (!feeInput || !feeInput.value) {

@@ -57,10 +57,14 @@ export const contractAddress_Swapper = '0x6c6B14B49Cb4E9771c555689C2D11aF9A7500a
 export const contractAddressLPRewardsStaking = '0x08f489C5017942d3b7c82C1c178877C80492c948';
 export const hookAddress = '0x785319f8fCE23Cd733DE94Fd7f34b74A5cAa1000';
 export const ProofOfWorkAddresss = '0xd44Ee7dAdbF50214cA7009a29D9F88BCcD0E9Ff4';
+export const B0xGuessAddress = '0x57da35b42B97908255D5B1655DaC6ed936fc3668';
 
 // Multicall3 address (same across multiple networks)
 export const MULTICALL_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11";
 
+// TimeLockFactory contract address — update when the contract is deployed
+export const TIMELOCK_FACTORY_ADDRESS = "0xff054C399444d64bD772Ca4Efe71C6449E08C955";
+//old 0x7d1CFE679f6BA6483191ed13Ddf021F5D8cAD5aD
 // ============================================================================
 // TOKEN ADDRESSES - Base Network
 // ============================================================================
@@ -213,11 +217,18 @@ export const contractsList = [
         name: "Proof of Work / Mining Address ",
         address: ProofOfWorkAddresss,
         isToken: false,
-        chain: "base"
+        chain: "base",
+        explorerSuffix: "#tokentxns"
     },
     {
         name: "B0x Token Uniswap Liquidity Pool Staking Contract ",
         address: contractAddressLPRewardsStaking,
+        isToken: false,
+        chain: "base"
+    },
+    {
+        name: "B0x Guess",
+        address: B0xGuessAddress,
         isToken: false,
         chain: "base"
     },
@@ -278,6 +289,12 @@ export const contractsList = [
     {
         name: "Uniswapv4PoolCreator ",
         address: UniswapV4PoolCreatorAddress,
+        isToken: false,
+        chain: "base"
+    },
+    {
+        name: "Timelock Factory",
+        address: TIMELOCK_FACTORY_ADDRESS,
         isToken: false,
         chain: "base"
     }

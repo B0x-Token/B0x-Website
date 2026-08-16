@@ -9,12 +9,10 @@
     }
 
     body {
-        will-change: scroll-position;
         contain: layout style paint;
     }
 
     img {
-        will-change: transform;
         backface-visibility: hidden;
         transform: translateZ(0);
     }
@@ -339,7 +337,6 @@ body.stats-active .content {
         max-width: 1200px;
         margin: 0 auto;
         background: rgba(255, 255, 255, 0.02);
-        backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 24px;
         box-shadow:
@@ -347,7 +344,7 @@ body.stats-active .content {
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
         overflow: hidden;
         position: relative;
-        transition: background 0.15s ease-out, backdrop-filter 0.15s ease-out;
+        transition: background 0.15s ease-out;
     }
 
     .container::before {
@@ -477,7 +474,11 @@ body.stats-active .content {
         white-space: nowrap;
         position: relative;
         overflow: hidden;
-        will-change: transform;
+        text-decoration: none;
+    }
+
+    .nav-tab:visited {
+        color: rgba(255, 255, 255, 0.7);
     }
 
     .nav-tab::before {
@@ -493,17 +494,20 @@ body.stats-active .content {
                 transparent 100%);
         transform: translateX(-100%);
         transition: transform 0.5s ease;
-        will-change: transform;
     }
 
-    .nav-tab:hover {
+    .nav-tab:hover,
+    .nav-tab:focus-visible {
         background: rgba(120, 119, 198, 0.1);
         color: #ffffff;
         transform: translateY(-2px);
+        will-change: transform;
     }
 
-    .nav-tab:hover::before {
+    .nav-tab:hover::before,
+    .nav-tab:focus-visible::before {
         transform: translateX(100%);
+        will-change: transform;
     }
 
     .nav-tab.active {
@@ -2138,7 +2142,6 @@ body.stats-active .content {
         max-width: 2000px;
         margin: 0 auto;
         background: rgba(255, 255, 255, 0.02);
-        backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 24px;
         box-shadow:
@@ -2714,6 +2717,18 @@ body.stats-active .content {
         height: 35px;
         object-fit: cover;
         flex-shrink: 0;
+    }
+
+    /* Wider icon box + smaller paired icons for tokens that represent two
+       assets at once (e.g. "B0x" on Ethereum = B0x + RightsTo0xBTC) */
+    .token-icon.token-icon-dual {
+        width: 60px;
+        gap: 3px;
+    }
+
+    .token-icon222-dual {
+        width: 24px;
+        height: 24px;
     }
 
     .form-group select option {
@@ -6248,7 +6263,6 @@ body.stats-active .content {
     .mining-stats-button {
         background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4ecdc4, #45b7d1, #96ceb4);
         background-size: 400% 400%;
-        animation: gradientShift 3s ease infinite;
         border: none;
         padding: 20px 50px;
         font-size: 1.5em;
@@ -6283,11 +6297,55 @@ body.stats-active .content {
     .mining-stats-button:hover {
         transform: translateY(-3px) scale(1.05);
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        animation: gradientShift 3s ease infinite;
     }
 
     .mining-stats-button:active {
         transform: translateY(-1px) scale(1.02);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .miner-mode-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 35px;
+        padding: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .miner-mode-tab {
+        flex: 1;
+        background: none;
+        border: none;
+        color: #888;
+        font-size: 26px;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 16px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        letter-spacing: 0.3px;
+    }
+
+    .miner-mode-tab:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .miner-mode-tab.active {
+        color: #fff;
+        background: linear-gradient(135deg, #2a5298, #667eea);
+        box-shadow: 0 4px 15px rgba(42, 82, 152, 0.4);
+    }
+
+    .miner-tab-content {
+        display: none;
+    }
+
+    .miner-tab-content.active {
+        display: block;
     }
 
     @keyframes gradientShift {
@@ -6937,5 +6995,262 @@ body.ipfs-active {
 
     body.ipfs-active {
         padding-top: 55px;
+    }
+}
+
+/* ============================================================
+   Timelock Page Styles
+   ============================================================ */
+
+.timelock-nft-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.timelock-nft-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(120, 119, 198, 0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    min-width: 140px;
+    flex: 1 1 140px;
+}
+
+.timelock-nft-id {
+    font-size: 1.05em;
+    font-weight: 700;
+    color: #a78bfa;
+    margin-bottom: 4px;
+}
+
+.timelock-nft-pool {
+    font-size: 0.85em;
+    color: #ccc;
+    margin-bottom: 4px;
+}
+
+.timelock-nft-amounts {
+    font-size: 0.8em;
+    color: #aaa;
+}
+
+.timelock-vault-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(120, 119, 198, 0.25);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+}
+
+.timelock-vault-card.selected {
+    border-color: #a78bfa;
+    background: rgba(167, 139, 250, 0.08);
+}
+
+.timelock-vault-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 1.5em;
+}
+
+.timelock-vault-addr {
+    font-family: monospace;
+    font-size: 1.35em;
+    color: #a78bfa;
+    word-break: break-all;
+}
+
+.timelock-vault-detail {
+    font-size: 1.275em;
+    color: #bbb;
+    margin-bottom: 4px;
+}
+
+.timelock-select-btn {
+    margin-top: 10px;
+}
+
+.timelock-status-row {
+    font-size: 0.9em;
+    margin-bottom: 6px;
+    color: #ccc;
+}
+
+.timelock-token-bal-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    background: rgba(255,255,255,0.03);
+    font-size: 0.9em;
+    color: #aaa;
+}
+
+.timelock-token-bal-row.has-balance {
+    background: rgba(167, 139, 250, 0.08);
+    color: #fff;
+}
+
+.timelock-token-sym {
+    font-weight: 600;
+    color: #a78bfa;
+    min-width: 100px;
+}
+
+.timelock-token-bal-detail {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.timelock-token-amt {
+    font-family: monospace;
+    font-size: 1em;
+}
+
+.timelock-token-deposited {
+    font-size: 0.75em;
+    color: #888;
+    font-style: italic;
+}
+
+/* ============================================================
+   Bridging L1<->L2 Tab
+   ============================================================ */
+
+.bridge-balance-heading {
+    color: #aaa;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 4px 0 4px;
+}
+
+.bridge-withdrawals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.bridge-withdrawal-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: 4px solid #7877c6;
+    border-radius: 16px;
+    padding: 18px 20px;
+}
+
+.bridge-withdrawal-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.bridge-withdrawal-title {
+    font-weight: 700;
+    color: #fff;
+}
+
+.bridge-withdrawal-hash {
+    color: #8a90a3;
+    font-size: 0.78rem;
+    font-family: ui-monospace, monospace;
+    word-break: break-all;
+}
+
+.bridge-withdrawal-status {
+    color: #cfd2dc;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 8px 0 12px;
+}
+
+.bridge-status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.bridge-status-badge.pending {
+    background: rgba(246, 173, 85, 0.15);
+    color: #f6ad55;
+}
+
+.bridge-status-badge.ready {
+    background: rgba(56, 193, 114, 0.15);
+    color: #38c172;
+}
+
+.bridge-status-badge.done {
+    background: rgba(120, 119, 198, 0.2);
+    color: #a5a4e0;
+}
+
+.bridge-status-badge.error {
+    background: rgba(245, 101, 101, 0.15);
+    color: #f56565;
+}
+
+.bridge-withdrawal-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.bridge-withdrawal-actions button {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+}
+
+.btn-disabled-spinner {
+    cursor: not-allowed !important;
+}
+
+.bridge-scan-progress {
+    color: #8a90a3;
+    font-size: 0.8rem;
+    font-family: ui-monospace, monospace;
+    margin-top: 10px;
+    min-height: 1.2em;
+}
+
+.bridge-withdrawal-actions button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.timelock-datetime-row {
+    display: flex;
+    gap: 8px;
+}
+
+.timelock-datetime-row input {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 440px) {
+    .timelock-datetime-row {
+        flex-direction: column;
     }
 }

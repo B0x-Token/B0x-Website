@@ -11,7 +11,7 @@ import {
 } from './config.js';
 import {totalStakedAmounts, resetTotalStakedAmounts} from './positions.js';
 import {updateStakingValues} from './staking.js';
-import { showErrorNotification } from './ui.js';
+import { showErrorNotification, showButtonToast, setButtonToastAnchor, clearButtonToastAnchor } from './ui.js';
 import {maybeRestoreDefaultAddressesfromContract} from './settings.js';
 // ============================================================================
 // WALLET STATE MANAGEMENT
@@ -67,42 +67,17 @@ let isConnecting = false;
  */
 export let isDisconnecting = false;
 
-
-
 /**
- * Wait for wallet provider to be injected AND responsive
- * @param {number} maxWaitMs - Maximum time to wait for provider
- * @returns {Promise<boolean>} True if provider is ready
+ * Set for the duration of connectWallet()/quickconnectWallet()'s own
+ * eth_requestAccounts/wallet_switchEthereumChain calls. Those calls fire
+ * their own accountsChanged/chainChanged events as a side effect — without
+ * this flag, the listeners in setupWalletListeners() (and init.js's
+ * chainChanged listener) would treat those as an external change and re-run
+ * overlapping setup work, racing our own connect flow. This is what actually
+ * caused mobile wallets to get stuck "reconnecting forever."
  */
-async function waitForWalletReady(maxWaitMs = 5000) {
-    const startTime = Date.now();
+export let suppressWalletEvents = false;
 
-
-
-    // Poll for wallet injection (fallback)
-    const pollPromise = (async () => {
-        while (Date.now() - startTime < maxWaitMs) {
-            if (window.ethereum) {
-                // Verify wallet provider responds (not user approval)
-                try {
-                    await Promise.race([
-                        window.ethereum.request({ method: 'eth_chainId' }),
-                        new Promise((_, reject) => 
-                            setTimeout(() => reject(new Error('timeout')), 500)
-                        )
-                    ]);
-                    return true;
-                } catch (e) {
-                    // Provider not ready yet, continue polling
-                }
-            }
-            await new Promise(r => setTimeout(r, 200));
-        }
-        return false;
-    })();
-
-    return Promise.race([pollPromise]);
-}
 // ============================================================================
 // WALLET STATE SETTERS
 // ============================================================================
@@ -186,6 +161,21 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * Races a wallet RPC request against a timeout so a stuck bridge (e.g.
+ * MetaMask Mobile's in-app browser losing sync with the app) can't hang the
+ * connect flow forever. Rejects with a message containing 'timed out',
+ * matching the existing timeout handling in connectWallet's catch block.
+ */
+function requestWithTimeout(promise, ms = 60000) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Wallet request timed out')), ms)
+        )
+    ]);
+}
+
 // ============================================================================
 // WALLET CONNECTION FUNCTIONS
 // ============================================================================
@@ -196,19 +186,30 @@ function sleep(ms) {
  */
 export async function checkWalletConnection() {
     console.log("Checking wallet connection");
-    if (typeof window.ethereum !== 'undefined' && localStorage.getItem('walletConnected') === 'true') {
+
+    // Unlike a button click (where the whole page has already had time to
+    // load by the time the user acts), this runs during page load itself —
+    // window.ethereum injection timing isn't guaranteed yet at this exact
+    // point, especially in mobile in-app browsers. Poll briefly rather than
+    // doing a single one-shot check that can miss it entirely.
+    const pollStart = Date.now();
+    while (typeof window.ethereum === 'undefined' && Date.now() - pollStart < 10000) {
+        await new Promise(r => setTimeout(r, 100));
+    }
+
+    // Ask the wallet itself, not our own localStorage flag, whether this
+    // site is already authorized. eth_accounts is a silent, read-only,
+    // popup-free EIP-1193 call — always safe regardless of prior state — so
+    // there's no need to gate it. Some mobile in-app browsers (e.g. MetaMask
+    // Android) don't reliably persist localStorage across reloads, which
+    // made this gate skip auto-reconnect entirely even though the wallet
+    // itself still remembered the site was authorized.
+    if (typeof window.ethereum !== 'undefined') {
         // Don't make requests if page is hidden (prevents warning when closing Rabby browser)
         if (window.isPageVisible === false) {
             console.log('Page hidden, skipping wallet connection check');
             return;
         }
-        // Check if wallet is actually connected before making requests
-        // This prevents triggering wallet popups when user has closed the wallet
-        if (typeof window.ethereum.isConnected === 'function' && !window.ethereum.isConnected()) {
-            console.log('Wallet provider not connected, skipping auto-reconnect');
-            return;
-        }
-
         try {
             // Add timeout to prevent hanging if wallet extension isn't fully loaded
             const timeoutPromise = new Promise((_, reject) =>
@@ -265,6 +266,10 @@ export async function checkWalletConnection() {
 export async function quickconnectWallet() {
     console.log("Quick Connect Wallet");
 
+    setButtonToastAnchor('connectBtn');
+    suppressWalletEvents = true;
+    try {
+
     // Reset disconnecting flag when user initiates new connection
     isDisconnecting = false;
     window.isPageVisible = true;
@@ -277,11 +282,12 @@ export async function quickconnectWallet() {
     // Check if connection is already in progress
     if (isConnecting) {
         console.log('Connection already in progress, ignoring duplicate call');
+        showButtonToast('info', 'Already Connecting', 'A connection request is already pending — check your wallet extension/app.');
         return null;
     }
 
     if (typeof window.ethereum === 'undefined') {
-        alert('Please install MetaMask or Rabby wallet!');
+        showButtonToast('error', 'Wallet Not Found', 'Please install MetaMask or Rabby wallet!');
         return null;
     }
 
@@ -289,9 +295,9 @@ export async function quickconnectWallet() {
     isConnecting = true;
 
     try {
-        const accounts = await window.ethereum.request({
+        const accounts = await requestWithTimeout(window.ethereum.request({
             method: 'eth_requestAccounts'
-        });
+        }));
 
         if (accounts.length > 0) {
             // Switch to Base network
@@ -307,7 +313,11 @@ export async function quickconnectWallet() {
 
             updateWalletUI(userAddress, true);
 
-            await switchToEthereum();
+            // Note: no automatic switch to Ethereum here — fetchBalancesETH
+            // reads via its own independent RPC provider (customRPC_ETH), not
+            // the wallet's active chain, so we stay on Base the whole time.
+            // Anything that actually needs to sign on Ethereum (convert.js,
+            // bridge.js) calls switchToEthereum() itself right before it does.
 
             // Set up event listeners for account changes
             setupWalletListeners();
@@ -335,6 +345,7 @@ export async function quickconnectWallet() {
 
         return null;
     }
+    } finally { suppressWalletEvents = false; clearButtonToastAnchor(); }
 }
 
 /**
@@ -370,6 +381,21 @@ async function withNetworkRetry(fn, maxRetries = 3, stepName = '') {
 export async function connectWallet(resumeFromStep = null) {
     console.log("Connect Wallet", resumeFromStep ? `(resuming from: ${resumeFromStep})` : '');
 
+    // Simple, synchronous check — no async readiness poll here. By the time
+    // a user has actually clicked "Connect Wallet", window.ethereum has had
+    // the entire page-load to inject; waiting/polling in this click path
+    // only added a way to fail even when the wallet was fine.
+    if (!window.ethereum) {
+        showButtonToast('error', 'Wallet Not Detected', 'Please install a Web3 wallet or refresh manually.');
+        return null;
+    }
+
+    setButtonToastAnchor('connectBtn');
+    // Suppress accountsChanged/chainChanged reactions to our own connect
+    // calls for the duration of this function — see suppressWalletEvents doc.
+    suppressWalletEvents = true;
+    try {
+
     // Reset disconnecting flag when user initiates new connection
     isDisconnecting = false;
     window.isPageVisible = true;
@@ -391,58 +417,23 @@ export async function connectWallet(resumeFromStep = null) {
     // Check if connection is already in progress
     if (isConnecting && !resumeFromStep) {
         console.log('Connection already in progress, ignoring duplicate call');
+        showButtonToast('info', 'Already Connecting', 'A connection request is already pending — check your wallet extension/app.');
         return null;
     }
 
     // Set connection lock
     isConnecting = true;
 
-    // Wait for wallet extension to be fully ready (handles fresh Chrome instances)
-    console.log('Waiting for wallet to be ready...');
-    const isReady = await waitForWalletReady(2000);
-
-    if (!isReady) {
-        // Track reload attempts to prevent infinite loops
-        const reloadCount = parseInt(sessionStorage.getItem('walletReloadCount') || '0');
-
-        if (reloadCount < 2) {
-            console.log(`Wallet not ready after 3 seconds, reloading page (attempt ${reloadCount + 1}/2)...`);
-            sessionStorage.setItem('walletReloadCount', String(reloadCount + 1));
-            isConnecting = false;
-            window.location.reload();
-            return null;
-        } else {
-            console.log('Wallet not ready after multiple reloads');
-            sessionStorage.removeItem('walletReloadCount');
-            isConnecting = false;
-            alert('Wallet not detected. Please install a Web3 wallet or refresh manually.');
-            return null;
-        }
-    }
-
-    // Clear reload counter on success
-    sessionStorage.removeItem('walletReloadCount');
-
-
-    console.log('Wallet is ready, checking for accounts...');
-
     try {
-        // First try eth_accounts (doesn't require approval, won't hang)
-        let accounts = null;
-        try {
-            const existingAccounts = await window.ethereum.request({ method: 'eth_accounts' });
-            if (existingAccounts && existingAccounts.length > 0) {
-                console.log('Found existing authorized accounts:', existingAccounts.length);
-                accounts = existingAccounts;
-            }
-        } catch (e) {
-            console.log('eth_accounts check failed:', e.message);
-        }
-        if (!accounts || accounts.length === 0) {
-            console.log('No existing accounts, requesting authorization...');
-            accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        }
-        console.log('Accounts received:', accounts?.length || 0);
+        // Single request — no separate eth_accounts pre-check first. If the
+        // site is already authorized this resolves immediately with no
+        // popup anyway, so the pre-check only added another RPC round-trip
+        // that could itself hang.
+        console.log('Requesting account access...');
+        const accounts = await requestWithTimeout(
+            window.ethereum.request({ method: 'eth_requestAccounts' }),
+            30000
+        );
 
         if (!accounts || accounts.length === 0) {
             console.log('No accounts returned from wallet');
@@ -460,12 +451,14 @@ export async function connectWallet(resumeFromStep = null) {
         localStorage.setItem('walletConnected', 'true');
         localStorage.setItem('walletAddress', userAddress);
 
+        console.log('Ensuring wallet is on Base network...');
+        await switchToBase();
+
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
 
         await updateWalletUI(userAddress, true);
         setupWalletListeners();
-        await switchToBase();
 
 
         // PARALLEL GROUP 1: Fetch balances from both chains simultaneously
@@ -563,21 +556,21 @@ export async function connectWallet(resumeFromStep = null) {
         }
 
 
-        // Fetch ETH balances in background (non-blocking)
+        // Fetch ETH balances in background (non-blocking). No chain switch
+        // needed — fetchBalancesETH reads via its own independent RPC
+        // provider (customRPC_ETH), not the wallet's active chain.
         if (window.fetchBalancesETH && userAddress) {
-            switchToEthereum().then(() =>
-                withNetworkRetry(() => window.fetchBalancesETH(
-                    userAddress,
-                    window.tokenAddressesETH,
-                    window.tokenAddressesDecimalsETH,
-                    window.fetchTokenBalanceWithEthersETH,
-                    window.displayWalletBalancesETH,
-                    providerETH,
-                    signerETH,
-                    walletConnected,
-                    connectWallet
-                ), 2, 'fetchBalancesETH')
-            ).then(() => switchToBase())
+            withNetworkRetry(() => window.fetchBalancesETH(
+                userAddress,
+                window.tokenAddressesETH,
+                window.tokenAddressesDecimalsETH,
+                window.fetchTokenBalanceWithEthersETH,
+                window.displayWalletBalancesETH,
+                providerETH,
+                signerETH,
+                walletConnected,
+                connectWallet
+            ), 2, 'fetchBalancesETH')
             .catch(e => console.warn('fetchBalancesETH error:', e));
         }
 
@@ -617,6 +610,9 @@ export async function connectWallet(resumeFromStep = null) {
             if (window.updatePositionInfoDecrease) {
                 window.updatePositionInfoDecrease();
             }
+            if (window.Timelock && typeof window.Timelock.loadTimelockPage === 'function') {
+                window.Timelock.loadTimelockPage();
+            }
 
         // Release connection lock on success
         isConnecting = false;
@@ -633,13 +629,16 @@ export async function connectWallet(resumeFromStep = null) {
             console.log('Network error detected, attempting recovery...');
             connectionState.isRecovering = true;
             await sleep(2000);
-            return connectWallet(connectionState.lastStep);
+            // Awaited (not just returned) so this frame's finally below —
+            // which clears suppressWalletEvents — doesn't run until the
+            // recursive attempt (and its own suppress/clear) fully finishes.
+            return await connectWallet(connectionState.lastStep);
         }
 
         // Handle timeout specifically - wallet extension may still be loading
         if (error.message && error.message.includes('timed out')) {
             console.log('Wallet request timed out - extension may still be initializing');
-            alert('Wallet is still loading. Please wait a moment and click Connect Wallet again.');
+            showButtonToast('error', 'Wallet Loading', 'Wallet is still loading. Please wait a moment and click Connect Wallet again.');
             return null;
         }
 
@@ -648,6 +647,7 @@ export async function connectWallet(resumeFromStep = null) {
 
         return null;
     }
+    } finally { suppressWalletEvents = false; clearButtonToastAnchor(); }
 }
 
 // ============================================================================
@@ -690,7 +690,7 @@ export async function switchToEthereum(retryCount = 0, maxRetries = 5) {
     };
 
     // Check if already on Ethereum
-    const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+    const currentChainId = await requestWithTimeout(window.ethereum.request({ method: 'eth_chainId' }), 15000);
     if (currentChainId === EthereumConfig.chainId) {
         console.log('Already on Ethereum network');
         providerETH = new ethers.providers.Web3Provider(window.ethereum);
@@ -699,10 +699,10 @@ export async function switchToEthereum(retryCount = 0, maxRetries = 5) {
     }
 
     try {
-        await window.ethereum.request({
+        await requestWithTimeout(window.ethereum.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: EthereumConfig.chainId }]
-        });
+        }));
         console.log('Switched to Ethereum network');
         providerETH = new ethers.providers.Web3Provider(window.ethereum);
         signerETH = providerETH.getSigner();
@@ -710,10 +710,10 @@ export async function switchToEthereum(retryCount = 0, maxRetries = 5) {
         // Chain not added yet
         if (switchError.code === 4902) {
             try {
-                await window.ethereum.request({
+                await requestWithTimeout(window.ethereum.request({
                     method: 'wallet_addEthereumChain',
                     params: [EthereumConfig]
-                });
+                }));
                 console.log('Ethereum network added and switched');
                 providerETH = new ethers.providers.Web3Provider(window.ethereum);
                 signerETH = providerETH.getSigner();
@@ -782,7 +782,7 @@ export async function switchToBase(retryCount = 0, maxRetries = 5) {
     };
 
     // Check if already on Base
-    const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+    const currentChainId = await requestWithTimeout(window.ethereum.request({ method: 'eth_chainId' }), 15000);
     if (currentChainId === baseConfig.chainId) {
         console.log('Already on Base network');
         provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -791,10 +791,10 @@ export async function switchToBase(retryCount = 0, maxRetries = 5) {
     }
 
     try {
-        await window.ethereum.request({
+        await requestWithTimeout(window.ethereum.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: baseConfig.chainId }]
-        });
+        }));
         console.log('Switched to Base network');
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
@@ -802,10 +802,10 @@ export async function switchToBase(retryCount = 0, maxRetries = 5) {
         // Chain not added yet
         if (switchError.code === 4902) {
             try {
-                await window.ethereum.request({
+                await requestWithTimeout(window.ethereum.request({
                     method: 'wallet_addEthereumChain',
                     params: [baseConfig]
-                });
+                }));
                 console.log('Base network added and switched');
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 signer = provider.getSigner();
@@ -851,15 +851,15 @@ export function handleWalletError(error) {
 
     switch (error.code) {
         case 4001:
-            alert('Please approve the connection request in your wallet');
+            showButtonToast('error', 'Connection Rejected', 'Please approve the connection request in your wallet');
             attemptf2f21 = 0;
             break;
         case -32002:
-            alert('Connection request is already pending. Please check your wallet');
+            showButtonToast('error', 'Request Pending', 'Connection request is already pending. Please check your wallet');
             attemptf2f21 = 0;
             break;
         default:
-            alert('Failed to connect wallet: ' + error.message);
+            showButtonToast('error', 'Connection Failed', 'Failed to connect wallet: ' + error.message);
             attemptf2f21 = 0;
     }
 }
@@ -917,6 +917,14 @@ export async function setupWalletListeners() {
     // Handle account changes
     window.ethereum.on('accountsChanged', async (accounts) => {
         console.log('Account changed event:', accounts);
+        // Our own connectWallet()/quickconnectWallet() calls can fire this
+        // event themselves (e.g. first-time authorization) — ignore it while
+        // one of those is already driving the connection to avoid racing our
+        // own setup work.
+        if (suppressWalletEvents) {
+            console.log('Suppressing accountsChanged — own connect flow in progress');
+            return;
+        }
         // Don't process if page is hidden (prevents warning when closing Rabby browser)
         if (window.isPageVisible === false) {
             console.log('Page hidden, skipping account change handling');
@@ -1000,6 +1008,32 @@ export async function setupWalletListeners() {
                 window.triggerRefresh();
             }
 
+            // Reload Timelock vaults for the new account so the old account's
+            // vaults (and any selected vault's actions panel) don't linger.
+            if (window.Timelock) {
+                try {
+                    if (typeof window.Timelock.resetVaultSelection === 'function') {
+                        window.Timelock.resetVaultSelection();
+                    }
+                    if (typeof window.Timelock.loadUserVaults === 'function') {
+                        await window.Timelock.loadUserVaults();
+                    }
+                } catch (e) {
+                    console.warn('Failed to reload Timelock vaults on account change:', e);
+                }
+            }
+
+            // Refresh the Bridge tab for the new account — reloads both chains'
+            // balances and re-renders the tracked-withdrawals list (which is stored
+            // per-address), so the old account's data doesn't linger on screen.
+            if (window.Bridge && typeof window.Bridge.initBridgeTab === 'function') {
+                try {
+                    window.Bridge.initBridgeTab();
+                } catch (e) {
+                    console.warn('Failed to refresh Bridge tab on account change:', e);
+                }
+            }
+
             // Show loading state for position selectors during account change
             if (window.setIsInitialPositionLoad) {
                 window.setIsInitialPositionLoad(true);
@@ -1033,6 +1067,12 @@ export async function setupWalletListeners() {
                 window.setIsInitialPositionLoad(false);
             }
 
+            // Refresh the "Eligible NFT Positions" timelock panel now that
+            // positionData reflects the newly selected account (it otherwise
+            // keeps showing whatever the previously connected account had).
+            if (window.Timelock && typeof window.Timelock.renderAllowedNFTs === 'function') {
+                window.Timelock.renderAllowedNFTs();
+            }
 
             // Update staking stats
             if (window.updateStakingStats) {
@@ -1187,7 +1227,6 @@ export async function connect2() {
     }
     previousAct = userAddress;
 
-    await switchToEthereum();
     if (window.fetchBalancesETH && userAddress) {
         await window.fetchBalancesETH(
             userAddress,

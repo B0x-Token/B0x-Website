@@ -24,7 +24,8 @@ import {
     showSuccessNotification,
     showInfoNotification,
     showErrorNotification,
-    showToast
+    showToast,
+    showAlertDialog
 } from './ui.js';
 import { getSymbolFromAddress } from './utils.js';
 
@@ -190,7 +191,7 @@ export async function approveToken(tokenToApprove, spenderAddress, amount) {
     }
 
     try {
-        alert(`Approving ${tokenToApprove} token...`);
+        await showAlertDialog(`Approving ${tokenToApprove} token...`);
 
         let tokenContract;
 
@@ -198,36 +199,36 @@ export async function approveToken(tokenToApprove, spenderAddress, amount) {
         if (tokenToApprove === tokenAddresses['B0x']) {
             // B0x token
             tokenContract = new ethers.Contract(tokenAddresses['B0x'], ERC20_ABI, window.signer);
-            alert("Approving B0x token for spending...");
+            await showAlertDialog("Approving B0x token for spending...");
         } else if (tokenToApprove === tokenAddresses['0xBTC']) {
             // 0xBTC token
             tokenContract = new ethers.Contract(tokenAddresses['0xBTC'], ERC20_ABI, window.signer);
-            alert("Approving 0xBTC token for spending...");
+            await showAlertDialog("Approving 0xBTC token for spending...");
         } else if (tokenToApprove === USDCToken) {
             tokenContract = new ethers.Contract(USDCToken, ERC20_ABI, window.signer);
-            alert("Approving USDC token for spending");
+            await showAlertDialog("Approving USDC token for spending");
         } else {
             // Generic token approval
             tokenContract = new ethers.Contract(tokenToApprove, ERC20_ABI, window.signer);
             const tokenSymbol = getSymbolFromAddress(tokenToApprove) || "Token";
-            alert(`Approving ${tokenSymbol} token for spending...`);
+            await showAlertDialog(`Approving ${tokenSymbol} token for spending...`);
         }
 
         // Send approval transaction with retry for rate limiting
         const approveTx = await retryWithBackoff(async () => {
             return await tokenContract.approve(spenderAddress, amount);
         });
-        alert("Approval transaction sent! Waiting for confirmation...");
+        await showAlertDialog("Approval transaction sent! Waiting for confirmation...");
 
         // Wait for confirmation
         await approveTx.wait();
-        alert("Token approval confirmed!");
+        await showAlertDialog("Token approval confirmed!");
 
         return true;
 
     } catch (error) {
         console.error("Approval failed:", error);
-        alert(`Approval failed: ${error.message}`);
+        await showAlertDialog(`Approval failed: ${error.message}`);
         return false;
     }
 }
@@ -290,7 +291,7 @@ export async function approveIfNeededUSDC(tokenToApprove, spenderAddress, requir
 
     } catch (error) {
         console.error("Approve if needed failed:", error);
-        alert(`Approval process failed: ${error.message}`);
+        await showAlertDialog(`Approval process failed: ${error.message}`);
         return false;
     }
 }
@@ -505,7 +506,7 @@ export function getSqrtRatioAtTick(tick) {
  */
 export function getExplorerUrl(contractData) {
     const chain = chainConfig[contractData.chain];
-    return `${chain.explorerUrl}${contractData.address}`;
+    return `${chain.explorerUrl}${contractData.address}${contractData.explorerSuffix || ''}`;
 }
 
 /**

@@ -45,6 +45,8 @@ import * as Whitepaper from './whitepaper.js';  // NEW: Whitepaper page function
 import * as Pools from './pools.js';  // NEW: Pool fees functionality
 import * as MiningCalc from './mining-calc.js';  // NEW: Mining calculator functionality
 import * as Countdown from './countdown.js';  // NEW: Countdown timer and reload functionality
+import * as Timelock from './timelock.js';  // NEW: TimeLock vault functionality
+import * as Bridge from './bridge.js';  // NEW: Bridging L1<->L2 functionality
 
 // ============================================
 // EXPOSE MODULES GLOBALLY
@@ -70,6 +72,8 @@ window.MinerInfo = MinerInfo;
 window.Admin = Admin;
 window.Init = Init;
 window.Whitepaper = Whitepaper;
+window.Timelock = Timelock;
+window.Bridge = Bridge;
 
 // ============================================
 // EXPOSE KEY CONFIGURATION VARIABLES
@@ -191,6 +195,7 @@ window.showWarningNotification = UI.showWarningNotification;
 window.showInfoNotification = UI.showInfoNotification;
 window.showToast = UI.showToast;
 window.showAlert = UI.showAlert;
+window.showAlertDialog = UI.showAlertDialog;
 
 // Loading widgets
 window.showLoadingWidget = UI.showLoadingWidget;
@@ -205,6 +210,7 @@ window.showLoadingScreen = UI.showLoadingScreen;
 window.switchTab = UI.switchTab;
 window.switchTab2 = UI.switchTab2;
 window.switchTabForStats = UI.switchTabForStats;
+window.switchMinerTab = UI.switchMinerTab;
 
 // Wallet UI
 window.displayWalletBalances = UI.displayWalletBalances;
@@ -295,6 +301,11 @@ window.changePage2 = UI.changePage2;
 window.filterData = UI.filterData;
 window.filterData2 = UI.filterData2;
 window.initRichListEventListeners = UI.initRichListEventListeners;
+window.loadDataGuessStaking = UI.loadDataGuessStaking;
+window.renderTableGuessStaking = UI.renderTableGuessStaking;
+window.renderPaginationGuessStaking = UI.renderPaginationGuessStaking;
+window.changePageGuessStaking = UI.changePageGuessStaking;
+window.filterDataGuessStaking = UI.filterDataGuessStaking;
 window.known_miners = MinerInfo.known_miners;
 
 // Whitepaper page functions
@@ -470,6 +481,7 @@ window.getRewardStats = Staking.getRewardStats;
 window.startRewardPeriod = Staking.startRewardPeriod;
 window.addRewardToken = Staking.addRewardToken;
 window.fetchAllUniswapFees = Staking.fetchAllUniswapFees;
+window.fetchAllUniswapFeesBelowMinimum = Staking.fetchAllUniswapFeesBelowMinimum;
 window.decreaseLiquidityStaking = Staking.decreaseLiquidityStaking;
 window.increaseLiquidityStaking = Staking.increaseLiquidityStaking;
 window.populateStakingManagementData = Staking.populateStakingManagementData;
@@ -596,6 +608,32 @@ window.initializeDApp = Init.initializeDApp;
 window.setupEventListeners = Init.setupEventListeners;
 window.initializeTabFromURL = Init.initializeTabFromURL;
 
+// Bridge module (Bridging L1<->L2 tab)
+window.setBridgeDirection = Bridge.setBridgeDirection;
+window.flipBridgeDirection = Bridge.flipBridgeDirection;
+window.updateBridgeTokenIcon = Bridge.updateBridgeTokenIcon;
+window.setMaxBridgeAmount = Bridge.setMaxBridgeAmount;
+window.executeBridge = Bridge.executeBridge;
+window.trackBridgeWithdrawalByHash = Bridge.trackBridgeWithdrawalByHash;
+window.removeBridgeWithdrawal = Bridge.removeBridgeWithdrawal;
+window.checkBridgeWithdrawalStatus = Bridge.checkBridgeWithdrawalStatus;
+window.proveBridgeWithdrawal = Bridge.proveBridgeWithdrawal;
+window.finalizeBridgeWithdrawal = Bridge.finalizeBridgeWithdrawal;
+window.findMyBridgeWithdrawals = Bridge.findMyBridgeWithdrawals;
+window.stopBridgeWithdrawalScan = Bridge.stopBridgeWithdrawalScan;
+window.refreshAllTrackedWithdrawalStatuses = Bridge.refreshAllTrackedWithdrawalStatuses;
+
+// Jumps straight to the Bridge tab pre-set to a direction/asset (e.g. from the
+// "bridge to Base" links on other tabs) without a page navigation/reload.
+window.goToBridge = function (dir, asset) {
+    Bridge.setBridgeDirection(dir);
+    const tokenSelect = document.getElementById('bridgeToken');
+    if (tokenSelect && Array.from(tokenSelect.options).some(opt => opt.value === asset)) {
+        tokenSelect.value = asset;
+    }
+    UI.switchTab('bridge');
+};
+
 // Countdown module
 window.resetCountdown = Countdown.resetCountdown;
 window.startCountdown = Countdown.startCountdown;
@@ -611,7 +649,7 @@ window.isCountdownRunning = Countdown.isCountdownRunning;
 console.log('✅ All modules loaded successfully');
 console.log('📦 Modules available:', Object.keys({
     Config, Utils, UI, Wallet, Charts, ABIs, Settings,
-    Contracts, DataLoader, Staking, Positions, Swaps, Convert, Admin, Init, Whitepaper, Countdown
+    Contracts, DataLoader, Staking, Positions, Swaps, Convert, Admin, Init, Whitepaper, Countdown, Timelock, Bridge
 }));
 console.log('🚀 B0x DApp ready for initialization');
 
