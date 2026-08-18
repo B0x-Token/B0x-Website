@@ -216,7 +216,7 @@ export const contractsList = [
     },
     {
         name: "Decentralized FrontEnd",
-        address: "0x00000000004710aF531CDA9BeD8447Bc40baE6C8",
+        address: "0x0000000000b28e06c885024db22265b2536b24cc",
         isToken: false,
         chain: "optimism",
         explorerSuffix: "#code"
