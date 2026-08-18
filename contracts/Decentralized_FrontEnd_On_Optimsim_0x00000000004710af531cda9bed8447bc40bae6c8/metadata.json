@@ -1,0 +1,18 @@
+{
+  "address": "0x00000000004710af531cda9bed8447bc40bae6c8",
+  "chainid": 10,
+  "label": "",
+  "contract_name": "B0xWebsiteFrontend",
+  "compiler_version": "v0.8.28+commit.7893614a",
+  "optimization_used": true,
+  "optimization_runs": "200",
+  "evm_version": "Default",
+  "via_ir": false,
+  "metadata_bytecode_hash": "default",
+  "license_type": "MIT",
+  "constructor_arguments": "",
+  "library_used": "",
+  "proxy": false,
+  "implementation_address": "",
+  "source_format": "single-file"
+}

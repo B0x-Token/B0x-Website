@@ -1,0 +1,18 @@
+{
+  "address": "0x1f8f212540b31b37f40d8c57b5c7d8b55bf25919",
+  "chainid": 1,
+  "label": "B0x_Mainnet_Eth_Contract",
+  "contract_name": "B0x_Mainnet",
+  "compiler_version": "v0.8.28+commit.7893614a",
+  "optimization_used": true,
+  "optimization_runs": "200",
+  "evm_version": "paris",
+  "via_ir": true,
+  "metadata_bytecode_hash": "default",
+  "license_type": "",
+  "constructor_arguments": "",
+  "library_used": "",
+  "proxy": false,
+  "implementation_address": "",
+  "source_format": "standard-json"
+}

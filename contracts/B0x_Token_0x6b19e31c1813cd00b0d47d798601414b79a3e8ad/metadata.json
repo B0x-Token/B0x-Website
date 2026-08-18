@@ -1,0 +1,18 @@
+{
+  "address": "0x6b19e31c1813cd00b0d47d798601414b79a3e8ad",
+  "chainid": 8453,
+  "label": "B0x_Token",
+  "contract_name": "OptimismMintableERC20",
+  "compiler_version": "v0.8.15+commit.e14f2714",
+  "optimization_used": true,
+  "optimization_runs": "999999",
+  "evm_version": "Default",
+  "via_ir": false,
+  "metadata_bytecode_hash": "default",
+  "license_type": "",
+  "constructor_arguments": "",
+  "library_used": "",
+  "proxy": false,
+  "implementation_address": "",
+  "source_format": "standard-json"
+}

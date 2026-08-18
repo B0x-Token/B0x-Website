@@ -1,0 +1,18 @@
+{
+  "address": "0x6c6b14b49cb4e9771c555689c2d11af9a7500a6f",
+  "chainid": 8453,
+  "label": "B0x_Uniswap_Router",
+  "contract_name": "UniswapV4Swap",
+  "compiler_version": "v0.8.28+commit.7893614a",
+  "optimization_used": true,
+  "optimization_runs": "200",
+  "evm_version": "paris",
+  "via_ir": true,
+  "metadata_bytecode_hash": "default",
+  "license_type": "",
+  "constructor_arguments": "",
+  "library_used": "",
+  "proxy": false,
+  "implementation_address": "",
+  "source_format": "standard-json"
+}

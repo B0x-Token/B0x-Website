@@ -1,0 +1,18 @@
+{
+  "address": "0xd44ee7dadbf50214ca7009a29d9f88bccd0e9ff4",
+  "chainid": 8453,
+  "label": "PoW_Mining_Address",
+  "contract_name": "B0x_Mining_Proof_of_Work",
+  "compiler_version": "v0.8.28+commit.7893614a",
+  "optimization_used": true,
+  "optimization_runs": "200",
+  "evm_version": "paris",
+  "via_ir": true,
+  "metadata_bytecode_hash": "default",
+  "license_type": "",
+  "constructor_arguments": "0000000000000000000000006b19e31c1813cd00b0d47d798601414b79a3e8ad00000000000000000000000008f489c5017942d3b7c82c1c178877c80492c948",
+  "library_used": "",
+  "proxy": false,
+  "implementation_address": "",
+  "source_format": "standard-json"
+}

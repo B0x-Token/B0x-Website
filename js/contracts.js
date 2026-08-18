@@ -786,7 +786,7 @@ export function renderContracts() {
                     📋 Copy
                 </button>
                 <a href="${explorerUrl}" target="_blank" class="btn" style="display: flex; justify-content: center; align-items: center; text-align: center;">
-                    🔍 View on ${chain.name === 'Ethereum' ? 'Etherscan' : 'BaseScan'}
+                    🔍 View on ${contractData.chain === 'ethereum' ? 'Etherscan' : contractData.chain === 'optimism' ? 'Optimistic Etherscan' : 'BaseScan'}
                 </a>
                 ${metaMaskButton}
             </div>

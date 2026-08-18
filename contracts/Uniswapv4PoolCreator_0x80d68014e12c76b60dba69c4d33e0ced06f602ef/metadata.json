@@ -1,0 +1,18 @@
+{
+  "address": "0x80d68014e12c76b60dba69c4d33e0ced06f602ef",
+  "chainid": 8453,
+  "label": "Uniswapv4PoolCreator",
+  "contract_name": "UniswapV4PoolCreator",
+  "compiler_version": "v0.8.28+commit.7893614a",
+  "optimization_used": true,
+  "optimization_runs": "200",
+  "evm_version": "paris",
+  "via_ir": true,
+  "metadata_bytecode_hash": "default",
+  "license_type": "",
+  "constructor_arguments": "0000000000000000000000006b19e31c1813cd00b0d47d798601414b79a3e8ad",
+  "library_used": "",
+  "proxy": false,
+  "implementation_address": "",
+  "source_format": "standard-json"
+}

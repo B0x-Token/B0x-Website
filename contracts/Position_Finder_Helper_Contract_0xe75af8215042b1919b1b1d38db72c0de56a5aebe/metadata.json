@@ -1,0 +1,18 @@
+{
+  "address": "0xe75af8215042b1919b1b1d38db72c0de56a5aebe",
+  "chainid": 8453,
+  "label": "Position_Finder_Helper_Contract",
+  "contract_name": "positionFinderPro2",
+  "compiler_version": "v0.8.28+commit.7893614a",
+  "optimization_used": true,
+  "optimization_runs": "200",
+  "evm_version": "paris",
+  "via_ir": true,
+  "metadata_bytecode_hash": "default",
+  "license_type": "",
+  "constructor_arguments": "",
+  "library_used": "",
+  "proxy": false,
+  "implementation_address": "",
+  "source_format": "standard-json"
+}

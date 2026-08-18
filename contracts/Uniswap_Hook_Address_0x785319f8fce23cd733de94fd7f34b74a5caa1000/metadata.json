@@ -1,0 +1,18 @@
+{
+  "address": "0x785319f8fce23cd733de94fd7f34b74a5caa1000",
+  "chainid": 8453,
+  "label": "Uniswap_Hook_Address",
+  "contract_name": "UniV4Hook",
+  "compiler_version": "v0.8.28+commit.7893614a",
+  "optimization_used": true,
+  "optimization_runs": "200",
+  "evm_version": "paris",
+  "via_ir": true,
+  "metadata_bytecode_hash": "default",
+  "license_type": "",
+  "constructor_arguments": "",
+  "library_used": "",
+  "proxy": false,
+  "implementation_address": "",
+  "source_format": "standard-json"
+}

@@ -135,6 +135,16 @@ export const chainConfig = {
             symbol: "ETH",
             decimals: 18
         }
+    },
+    optimism: {
+        name: "Optimism",
+        explorerUrl: "https://optimistic.etherscan.io/address/",
+        chainId: 10,
+        nativeCurrency: {
+            name: "Ethereum",
+            symbol: "ETH",
+            decimals: 18
+        }
     }
 };
 
@@ -203,6 +213,13 @@ export const contractsList = [
         decimals: 18,
         isToken: true,
         chain: "base"
+    },
+    {
+        name: "Decentralized FrontEnd",
+        address: "0x00000000004710aF531CDA9BeD8447Bc40baE6C8",
+        isToken: false,
+        chain: "optimism",
+        explorerSuffix: "#code"
     },
     {
         name: "0xBitcoin Token ",

@@ -1,0 +1,18 @@
+{
+  "address": "0xff054c399444d64bd772ca4efe71c6449e08c955",
+  "chainid": 8453,
+  "label": "Timelock_Factory",
+  "contract_name": "TimeLockFactory",
+  "compiler_version": "v0.8.28+commit.7893614a",
+  "optimization_used": true,
+  "optimization_runs": "200",
+  "evm_version": "paris",
+  "via_ir": true,
+  "metadata_bytecode_hash": "default",
+  "license_type": "",
+  "constructor_arguments": "",
+  "library_used": "",
+  "proxy": false,
+  "implementation_address": "",
+  "source_format": "standard-json"
+}

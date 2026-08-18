@@ -296,7 +296,8 @@ const validTabs = [
     'miner-pool',
     'miner-fpga',
     'Timelock',
-    'bridge'
+    'bridge',
+    'download-site'
 ];
 
 // Stats sub-tabs that require switchTabForStats() first
