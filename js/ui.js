@@ -271,11 +271,10 @@ export function showButtonToast(type = 'info', title = '', message = '', duratio
         const tw  = 340;
         const th  = 90; // conservative height estimate
 
-        // getBoundingClientRect() is viewport-relative, but body has contain:paint
-        // which makes position:fixed relative to the body origin, not the viewport.
-        // Add scroll offsets to convert viewport coords → document coords.
-        const scrollX = window.scrollX || 0;
-        const scrollY = window.scrollY || 0;
+        // toast is position:fixed and appended directly to document.body (a
+        // sibling of #main-content, not a descendant of it), so #main-content's
+        // contain:paint doesn't establish its containing block — getBoundingClientRect()
+        // and the toast's own top/left stay viewport-relative. No scroll offset needed.
 
         // Horizontal: align with button left edge, clamp to viewport width
         let left = r.left;
@@ -285,11 +284,11 @@ export function showButtonToast(type = 'info', title = '', message = '', duratio
         // Vertical: above button if room, otherwise below
         const top = r.top > th + 12 ? r.top - th - 8 : r.bottom + 8;
 
-        toast.style.left = `${Math.round(left + scrollX)}px`;
-        toast.style.top  = `${Math.round(top  + scrollY)}px`;
+        toast.style.left = `${Math.round(left)}px`;
+        toast.style.top  = `${Math.round(top)}px`;
     } else {
         // Fallback: top-right of the current viewport
-        toast.style.top   = `${Math.round(20 + (window.scrollY || 0))}px`;
+        toast.style.top   = '20px';
         toast.style.right = '20px';
     }
 
@@ -340,6 +339,7 @@ function _createDialogShell(title, message) {
     box.style.cssText = [
         'position:fixed', 'z-index:100001', 'box-sizing:border-box',
         'max-width:340px', 'min-width:220px', 'width:calc(100% - 24px)',
+        'max-height:calc(100vh - 24px)', 'overflow-y:auto',
         'background:#1a1a2e', 'border:1px solid rgba(255,255,255,0.12)',
         'border-radius:12px', 'padding:16px 18px', 'color:#fff',
         'box-shadow:0 12px 40px rgba(0,0,0,0.6)',
@@ -372,22 +372,35 @@ function _showDialog(overlay, box) {
 
     const anchorEl = _actionAnchorBtn || _lastClickedBtn;
     const tw = 340;
-    const th = 130; // conservative height estimate
-    const scrollX = window.scrollX || 0;
-    const scrollY = window.scrollY || 0;
+    const margin = 8;
+    // Box already has its title/message/button(s) appended by the caller, so
+    // its real height is measurable now — using that instead of a guessed
+    // constant matters because these dialogs can carry long, variable-length
+    // messages (e.g. a multi-vault destroy confirmation).
+    const bh = box.getBoundingClientRect().height || 130;
 
+    // box is position:fixed, so its top/left are viewport-relative already —
+    // getBoundingClientRect() is also viewport-relative, so no scroll offset
+    // should be added here. Adding it (as this used to) pushes the box below
+    // the visible viewport on any page that's scrolled down, leaving just the
+    // full-screen dimming overlay visible with no dialog in sight.
     if (anchorEl) {
         const r = anchorEl.getBoundingClientRect();
         let left = r.left;
         if (left + tw > window.innerWidth - 12) left = window.innerWidth - tw - 12;
-        if (left < 8) left = 8;
+        if (left < margin) left = margin;
 
-        const top = r.top > th + 12 ? r.top - th - 8 : r.bottom + 8;
+        let top = r.top > bh + 12 ? r.top - bh - margin : r.bottom + margin;
+        // Clamp to the viewport — an anchor near the bottom of a long page
+        // (e.g. "Destroy Empty Vaults") otherwise places the box below the
+        // visible area entirely, leaving just the dimming overlay on screen.
+        if (top + bh > window.innerHeight - margin) top = window.innerHeight - bh - margin;
+        if (top < margin) top = margin;
 
-        box.style.left = `${Math.round(left + scrollX)}px`;
-        box.style.top = `${Math.round(top + scrollY)}px`;
+        box.style.left = `${Math.round(left)}px`;
+        box.style.top = `${Math.round(top)}px`;
     } else {
-        box.style.top = `${Math.round(20 + scrollY)}px`;
+        box.style.top = '20px';
         box.style.right = '20px';
     }
 
