@@ -410,6 +410,7 @@ window.saveCustomRPC_Graph = Settings.saveCustomRPC_Graph;
 window.restoreDefaultRPC_Graph = Settings.restoreDefaultRPC_Graph;
 window.saveCustomDataSource_Testnet = Settings.saveCustomDataSource_Testnet;
 window.restoreDefaultCustomDataSource = Settings.restoreDefaultCustomDataSource;
+window.useCurrentSiteAsDataSource = Settings.useCurrentSiteAsDataSource;
 window.saveAddresses = Settings.saveAddresses;
 window.restoreDefaultAddresses = Settings.restoreDefaultAddresses;
 window.restoreDefaultAddressesfromContract = Settings.restoreDefaultAddressesfromContract;

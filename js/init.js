@@ -123,7 +123,7 @@ export async function initializeDApp() {
             updateLoadingStatus('Loading... (data will appear shortly)');
         }
 
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 100));
         hideLoadingScreen();
 
         // Signal to Farcaster Mini App SDK that app is ready

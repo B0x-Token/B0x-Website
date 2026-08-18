@@ -13,7 +13,8 @@
     <link rel="dns-prefetch" href="https://mainnet.base.org">
 
     <!-- Favicon -->
-    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="images/favicon.ico" type="image/x-icon">
 
 
     <!-- Description for search engines -->
@@ -42,8 +43,12 @@
     <link rel="stylesheet" href="style.css">
 
     <!-- Async load libraries to avoid blocking -->
-    <script src="ethers.umd.min.js" defer></script>
-    <script src="chart.min.js" defer></script>
+    <script src="js/vendor/ethers.umd.min.js" defer></script>
+    <script src="js/vendor/chart.min.js" defer></script>
+
+    <!-- Offline "download whole site as zip" feature -->
+    <script src="js/vendor/jszip.min.js" defer></script>
+    <script src="js/download-site.js" defer></script>
 
     <!-- Farcaster Mini App SDK -->
     <script type="module">
@@ -137,15 +142,15 @@
     <div id="loading-screen">
         <div class="loading-content">
             <div class="loading-title">
-                <span class="boxNameInline">B[]x</span><br>
-                <span class="boxNameInline">B ZERO X</span>
-                    <div class="image-container">
-                        <img src="images/3dgiffspinning.gif"
-                            alt="Spinning 3D GIF"
-                            class="zoom-image">
-                    </div>
+                <img src="images/b0x-title.svg" alt="B0x" class="boxNameInline boxNameInline-img"><br>
+                <img src="images/b0x-title-zerox.svg" alt="B ZERO X" class="boxNameInline boxNameInline-img">
+                <div class="loading-status" id="loading-status">Loading contracts...</div>
+                <div class="image-container">
+                    <img src="images/B0xonBase.svg"
+                        alt="Spinning B0x Coin"
+                        class="zoom-image spin-coin">
+                </div>
             </div>
-            <div class="loading-status" id="loading-status">Loading contracts...</div>
         </div>
     </div>
 
@@ -181,7 +186,7 @@
 
                 <!-- Text content positioned over chart -->
                 <div class="header-content">
-                    <div class="megapunch-only">B[]x DeFi</div>
+                    <div class="megapunch-only"><img src="images/b0x-defi-title.svg" alt="B0x DeFi" class="megapunch-only-img"></div>
                     <p>Swap, Stake, and Manage Your Liquidity Positions</p>
                 </div>
             </div>
@@ -207,7 +212,7 @@
                <!--<button class="nav-tab" onclick="switchTab('testnet-faucet')" data-tab="testnet-faucet">Testnet Token
                     Faucet</button>-->
                 <button class="nav-tab" onclick="switchTab('settings')" data-tab="settings">Settings</button>
-                
+
                 <button class="nav-tab" onclick="switchTab('stats')" data-tab="stats">Live Statistics</button>
 
                 <button class="nav-tab" onclick="switchTab('miner')" data-tab="miner">Miner Setup</button>
@@ -218,6 +223,7 @@
                 <button class="nav-tab" onclick="switchTab('side-pools')" data-tab="side-pools">Side Liquidty Pools</button>
 
                 <a class="nav-tab" href="https://bafybeic7qncugaatrxuqiymddnacjjm6pao3ypg4eoy5lbhh46mjck6tmy.ipfs.dweb.link/">B0x Guess</a>
+                <button class="nav-tab" onclick="switchTab('download-site')" data-tab="download-site">Download Website</button>
 
             </div>
             <center>
@@ -1399,6 +1405,41 @@
 
 
 
+                <!-- Download Website Page -->
+                <div id="download-site" class="page">
+                    <div class="info-card">
+                        <h3>Download Website</h3>
+                        <p>B0x is a 100% decentralized, client-side dApp — everything needed to run it lives right
+                            here in this site. Grab a full offline copy so you can keep using it even without
+                            internet access, or verify exactly what code you're running.</p>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">Get an Offline Copy</h2>
+                        <div class="settings-form" style="max-width: 640px; margin: 0 auto; text-align: center;">
+                            <p>Downloads every file this page loaded from &mdash; HTML, CSS, JavaScript, and images
+                                &mdash; preserving the folder structure, plus a fresh snapshot of the current
+                                mainnet data (rich lists, mined blocks, Uniswap V4 positions, price history) into
+                                <strong>mainnet/</strong> &mdash; packaged as a single zip.</p>
+                            <button class="btn-primary" id="downloadSiteBtn" onclick="downloadSiteAsZip()">Download
+                                B0x_dAPP_Website.zip</button>
+                            <div style="margin-top: 20px; font-size: 0.9em; color: #b0b0b0; text-align: left;">
+                                <p><strong>Step 1)</strong> Unzip it, then use
+                                    <strong>Run_Ubuntu_B0x_dAPP_offline.sh</strong> (Linux) or
+                                    <strong>run_Windows_B0x_dAPP_offline.bat</strong> (Windows) included inside to
+                                    start it &mdash; see the README for details.</p>
+                                <p><strong>Step 2)</strong> To use the local copy that's bundled
+                                    right in the zip, set the Custom Data Source URL to
+                                    <strong>http://localhost:8000/mainnet/</strong> (Windows) or
+                                    <strong>http://127.0.0.1:8080/mainnet/</strong> (Linux/Ubuntu), save,
+                                    then reload the page. Or just click the
+                                    <strong>"Use Current Site URL"</strong> button in Settings &mdash;
+                                    it fills that in for you.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Settings Page -->
                 <div id="settings" class="page">
                     <div class="info-card">
@@ -1469,9 +1510,10 @@
             <textarea id="customDataSource" class="rpc-textarea" placeholder="https://data.bzerox.org/graph/">https://data.bzerox.org/graph/</textarea>
         </div>
     </div>
-<div style="display: flex; gap: 10px;">
-    <button class="btn-primary" onclick="saveCustomDataSource_Testnet()">Save Custom Data Source</button>
-    <button class="btn-primary" onclick="restoreDefaultCustomDataSource()">Restore Default Data Source</button>
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <button class="btn-primary" style="width: auto; flex: 1 1 auto; min-width: 200px; margin-top: 0;" onclick="saveCustomDataSource_Testnet()">Save Custom Data Source</button>
+    <button class="btn-primary" style="width: auto; flex: 1 1 auto; min-width: 200px; margin-top: 0;" onclick="restoreDefaultCustomDataSource()">Restore Default Data Source</button>
+    <button class="btn-primary" style="width: auto; flex: 1 1 auto; min-width: 200px; margin-top: 0;" onclick="useCurrentSiteAsDataSource()" title="Use this site's own address (e.g. your local offline copy) plus /mainnet/ as the data source">Use Current Site URL</button>
 </div>
     <div id="dataSourceSuccess" class="success-message" style="display: none;">Custom Data Source saved successfully!</div>
 </div><br></br><br></br>
@@ -1613,6 +1655,12 @@
                             </div>
                         </div>
 
+                        <br></br><br></br>
+                        <div class="settings-form" style="text-align: center;">
+                            <h3>📦 Offline Copy</h3>
+                            <p>Want to run B0x without an internet connection?</p>
+                            <a href="#" onclick="switchTab('download-site'); return false;">Download the whole website as a .zip &rarr;</a>
+                        </div>
                     </div>
                 </div>
 
@@ -2425,7 +2473,7 @@
                     </svg>
                     Main Website
                 </a>
-                <a href="https://bafybeiabngro2f5ycbacyukauqq3piawb7x47xkyjtloxc55wg55vw2j6a.ipfs.dweb.link/" class="social-link website" target="_blank" rel="noopener noreferrer">
+                <a href="https://bafybeigl2dypumvljxyid5fig6zhi66nypgulppikmovx6wmqa5nt3vcna.ipfs.dweb.link/" class="social-link website" target="_blank" rel="noopener noreferrer">
                     <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
                     </svg>

@@ -364,6 +364,18 @@ export function restoreDefaultRPC_Graph() {
 // ============================================
 
 /**
+ * True if the given URL points at localhost/127.0.0.1 (e.g. a locally-run offline copy).
+ */
+function isLocalhostUrl(urlString) {
+    try {
+        const host = new URL(urlString).hostname;
+        return host === 'localhost' || host === '127.0.0.1';
+    } catch (error) {
+        return false;
+    }
+}
+
+/**
  * Saves custom data source URL to localStorage
  * @async
  * @returns {Promise<void>}
@@ -384,7 +396,22 @@ export async function saveCustomDataSource_Testnet() {
 
         localStorage.setItem('customDataSource_Testnet', customDataSource);
         showSuccessMessage('dataSourceSuccess');
-        showToast('Data source URL saved successfully');
+
+        // A localhost primary source (e.g. an offline copy) usually has no real backup
+        // server behind it. Without this, a single missing local file would fall through
+        // to the real internet backup — mirror it onto the backup source too so that
+        // can't happen.
+        if (isLocalhostUrl(customDataSource)) {
+            customBACKUPDataSource = customDataSource;
+            localStorage.setItem('customDataSource_BACKUP_Testnet', customBACKUPDataSource);
+            const backupDataSourceElement = document.getElementById('BACKUPcustomDataSource');
+            if (backupDataSourceElement) {
+                backupDataSourceElement.value = customBACKUPDataSource;
+            }
+            showToast('Setting Custom BACKUP Data Source as the localhost at the current port to prevent backup data source from firing');
+        } else {
+            showToast('Data source URL saved successfully');
+        }
 
         // Reconnect if wallet is connected
         if (window.walletConnected && window.connect2) {
@@ -394,6 +421,20 @@ export async function saveCustomDataSource_Testnet() {
         console.error('Error saving custom data source:', error);
         showErrorToast('Failed to save data source URL');
     }
+}
+
+/**
+ * Points the Custom Data Source at this page's own address plus /mainnet/ — the folder a
+ * downloaded offline copy (see js/download-site.js) ships its mainnet data snapshot into.
+ * Saves immediately, which (via saveCustomDataSource_Testnet) also mirrors the backup
+ * source onto the same local address so it doesn't fall back out to the real internet.
+ */
+export function useCurrentSiteAsDataSource() {
+    const dataSourceElement = document.getElementById('customDataSource');
+    if (!dataSourceElement) return;
+
+    dataSourceElement.value = window.location.origin + '/mainnet/';
+    saveCustomDataSource_Testnet();
 }
 
 /**
@@ -410,6 +451,13 @@ export function restoreDefaultCustomDataSource() {
 
     console.log('Data source restored to defaults');
     saveCustomDataSource_Testnet();
+
+    // If the backup source is still pointed at localhost (mirrored there alongside a local
+    // primary source — see saveCustomDataSource_Testnet), restore it too, otherwise it's
+    // left pointing at a local server that may no longer be running.
+    if (isLocalhostUrl(customBACKUPDataSource)) {
+        restoreDefaultBACKUPCustomDataSource();
+    }
 }
 
 /**
@@ -920,25 +968,46 @@ export function handleUniswapDataUpload() {
 }
 
 /**
- * Downloads current mined blocks data from localStorage
+ * Reads the currently cached mined-blocks data out of localStorage.
+ * Returns null if nothing has been cached yet. Shared by downloadMinedBlocksData()
+ * and the "Download Website" offline zip so both ship the exact same current data.
  */
-export function downloadMinedBlocksData() {
+export function getCurrentMinedBlocksData() {
     const minedBlocks = localStorage.getItem('mintData_EraBitcoin2_afbRAFFABC_B0x1');
+    if (!minedBlocks) return null;
+
     const latestBlock = localStorage.getItem('lastMintBlock_EraBitcoin2_afbRAFFABC_B0x1');
     const previousChallenge = localStorage.getItem('mintData_GreekWedding2_B0x1');
 
-    if (!minedBlocks) {
+    return {
+        mined_blocks: JSON.parse(minedBlocks),
+        latest_block_number: latestBlock ? parseInt(latestBlock) : null,
+        previous_challenge: previousChallenge ? JSON.parse(previousChallenge) : null
+    };
+}
+
+/**
+ * Reads the currently cached Uniswap V4 data out of localStorage.
+ * Returns null if nothing has been cached yet. Shared by downloadUniswapData()
+ * and the "Download Website" offline zip so both ship the exact same current data.
+ */
+export function getCurrentUniswapV4Data() {
+    const uniswapData = localStorage.getItem('testnet_uniswap_v4_local_data');
+    return uniswapData ? JSON.parse(uniswapData) : null;
+}
+
+/**
+ * Downloads current mined blocks data from localStorage
+ */
+export function downloadMinedBlocksData() {
+    const data = getCurrentMinedBlocksData();
+
+    if (!data) {
         showToast('No mined blocks data found in localStorage', true);
         return;
     }
 
     try {
-        const data = {
-            mined_blocks: JSON.parse(minedBlocks),
-            latest_block_number: latestBlock ? parseInt(latestBlock) : null,
-            previous_challenge: previousChallenge ? JSON.parse(previousChallenge) : null
-        };
-
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -960,16 +1029,14 @@ export function downloadMinedBlocksData() {
  * Downloads current Uniswap V4 data from localStorage
  */
 export function downloadUniswapData() {
-    const uniswapData = localStorage.getItem('testnet_uniswap_v4_local_data');
+    const data = getCurrentUniswapV4Data();
 
-    if (!uniswapData) {
+    if (!data) {
         showToast('No Uniswap V4 data found in localStorage', true);
         return;
     }
 
     try {
-        const data = JSON.parse(uniswapData);
-
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

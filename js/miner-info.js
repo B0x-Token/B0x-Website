@@ -2275,7 +2275,7 @@ export async function updateAllMinerInfoBackwardsOfflineServer(
     let lastProcessedFromBlock = scanStartBlock; // Track for saving outside loop
 
     while (run < iterations && !shouldStopDueToLimit) {
-        const toBlock = scanStartBlock - (run * 1000);
+        let toBlock = scanStartBlock - (run * 1000);
         let fromBlock = toBlock - 999;
 
         if (fromBlock < scanEndBlock) {

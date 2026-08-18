@@ -9,12 +9,12 @@
 // IMAGE URLS - Token Icons (Base Network)
 // ============================================================================
 export const bbaseurlBASE = "images/";
-export const ethbase = bbaseurlBASE + "ETHonBase.png";
-export const Zeroxbtcbase = bbaseurlBASE + "0xBTConBase.png";
-export const B0xbase = bbaseurlBASE + "B0xonBase.png";
-export const RightsTo0xBTCbase = bbaseurlBASE + "RightsTo0xBTConBase.png";
-export const WETHbase = bbaseurlBASE + "WETHonBase.png";
-export const USDCbase = bbaseurlBASE + "USDConBase.png";
+export const ethbase = bbaseurlBASE + "ETHonBase.svg";
+export const Zeroxbtcbase = bbaseurlBASE + "0xBTConBase.svg";
+export const B0xbase = bbaseurlBASE + "B0xonBase.svg";
+export const RightsTo0xBTCbase = bbaseurlBASE + "RightsTo0xBTConBase.svg";
+export const WETHbase = bbaseurlBASE + "WETHonBase.svg";
+export const USDCbase = bbaseurlBASE + "USDConBase.svg";
 
 // Token icons mapping for Base network
 export const tokenIconsBase = {
@@ -30,11 +30,11 @@ export const tokenIconsBase = {
 // IMAGE URLS - Token Icons (Ethereum Network)
 // ============================================================================
 export const bbaseurl = "images/";
-export const etheth = bbaseurl + "ETHonETH.png";
-export const Zeroxbtceth = bbaseurl + "0xBTConETH.png";
-export const B0xeth = bbaseurl + "B0xonETH.png";
-export const RightsTo0xBTCeth = bbaseurl + "RightsTo0xBTConETH.png";
-export const WETHeth = bbaseurl + "WETHonETH.png";
+export const etheth = bbaseurl + "ETHonETH.svg";
+export const Zeroxbtceth = bbaseurl + "0xBTConETH.svg";
+export const B0xeth = bbaseurl + "B0xonETH.svg";
+export const RightsTo0xBTCeth = bbaseurl + "RightsTo0xBTConETH.svg";
+export const WETHeth = bbaseurl + "WETHonETH.svg";
 
 // Token icons mapping for Ethereum network
 export const tokenIconsETH = {
